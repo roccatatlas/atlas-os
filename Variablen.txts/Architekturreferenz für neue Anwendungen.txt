@@ -1,0 +1,678 @@
+
+AIAtlas
+Architekturreferenz für neue Anwendungen
+Extrahiert aus Quellcode, Datenbankschema, Copilot-Gesprächen und Projektdateien
+Stack
+Datenbank
+Services
+Automation
+Next.jsExpressTypeScriptPostgreSQLRedis
+32+ Tabellenpgvector HNSWKnowledge GraphRedis CacheMigrationen
+Vector SearchRanking EngineRecommendationsTrust ScoreBenchmark
+Discovery Agent17 Hintergrund-JobsSEO-GeneratorContent-PipelineNewsletter
+
+
+
+1. Technologie-Stack
+
+
+1.1 Frontend
+Framework: Next.js (App Router, SSR + SSG)
+Sprache: TypeScript (tsconfig.json, strict mode)
+Styling: Tailwind CSS + PostCSS
+Komponenten: Eigenes Design-System (Navbar, Footer, Layout, ui.tsx mit 20+ Komponenten)
+Charts: VisualEngine / VisualEngineV2 (eigene Chart-Abstraktion)
+State: React Context (SearchContext)
+API-Client: lib/api.ts — zentraler Fetch-Wrapper
+
+1.2 Backend
+Framework: Express.js + TypeScript (apps/api/src/main.ts)
+45+ REST-Endpunkte: /search, /tools, /trending, /benchmark, /compare, /models, /workflows, /agents, /insights, /changes, /market-map …
+Middleware: CORS, JSON-Body-Parser (1MB), Request-Logging mit Latenz
+Fehlerbehandlung: Zentraler Error-Handler, AppError-Klasse mit HTTP-Status + Code
+
+1.3 Datenbank & Infrastruktur
+Primär-DB: PostgreSQL 15 mit pgvector + pg_trgm Extensions
+Cache: Redis 7 — Query-Cache, Embedding-Cache, Rate-Limit-Tracking
+Graph-Datenbank: Postgres graph_nodes / graph_edges (geplante Neo4j-Migration)
+Container: Docker + Docker Compose (infra/docker/docker-compose.yml)
+Monorepo: Workspace-Struktur: apps/, services/, agents/, packages/
+
+1.4 Dependencies (package.json)
+Paket
+Version
+Zweck
+express
+^4.21.0
+HTTP-Server
+pg
+^8.13.0
+PostgreSQL-Client
+redis
+^4.7.0
+Redis-Client
+axios
+^1.7.0
+HTTP-Requests
+cors
+^2.8.5
+CORS-Middleware
+typescript
+^5.6.0
+Typsicherheit
+ts-node
+^10.9.0
+TypeScript-Runtime
+
+
+
+2. Datenbankschema (32+ Tabellen)
+
+
+2.1 Kern-Tabellen (Migration 001 + 002)
+Tabelle
+Wichtigste Felder
+tools
+id, name, slug, description, category, platform, lifecycle, difficulty_level, verified, capabilities_score, adoption_score, growth_score, pricing_score, trust_score, stars, logo_url, github_url, model_id, company_id, keywords[], integrations[], target_users[]
+tool_embeddings
+tool_id, embedding VECTOR(1536), model — Index: HNSW cosine für Vektorsuche
+reviews
+tool_id, rating (1-5 CHECK), content, author, created_at
+traffic_metrics
+tool_id, visits, period DATE, source (organic/direct/referral) — PRIMARY KEY (tool_id, period, source)
+tool_rankings
+tool_id, rank, score FLOAT, calculated_at — Materialisiertes Ranking
+api_keys
+key_hash, tier (free/pro/enterprise), owner_email, requests_used, requests_limit, expires_at
+newsletter_subscribers
+email UNIQUE, subscribed BOOLEAN, created_at
+analytics_events
+event, payload JSONB, user_id, session_id, created_at — Index DESC für schnelle Zeitabfragen
+
+
+2.2 Wissens-Tabellen (Migration 003 — V2)
+Tabelle
+Beschreibung
+ai_models
+name, developer, capabilities TEXT[], context_length, multimodal, open_source, api_available, benchmark_scores JSONB
+ai_companies
+name, slug, funding_total BIGINT, funding_stage, founded_year, headquarters, employee_count
+ai_research
+title, authors TEXT[], institution, year, abstract, arxiv_url, related_models INT[], citations
+use_cases
+title, slug, category, tool_ids INT[], workflow_steps JSONB[], search_volume — Intent-basierte Entdeckung
+tool_changes
+change_type (pricing_change/feature_added/feature_removed/model_update/api_launch/other), field, old_value, new_value
+tool_snapshots
+tool_id, snapshot_data JSONB, snapshot_date — UNIQUE(tool_id, snapshot_date) — Vollständige Versionshistorie
+feature_tags
+label UNIQUE, color, icon — Verknüpft mit tool_features (N:M)
+graph_nodes
+id TEXT, type (tool/category/feature/use_case), label, metadata JSONB
+graph_edges
+source, target, relation (belongs_to/has_feature/similar_to/integrates_with/alternative_to), weight FLOAT
+
+
+2.3 Plattform-Tabellen (Migration 004+005 — V3)
+Tabelle
+Beschreibung
+workflows
+name, slug, category (content_creation/marketing/coding/research/automation/design/custom), steps JSONB, usage_count
+ai_agents
+name, category, tool_ids INT[], model_id, prompt_template, config JSONB, installs, rating, is_public
+tool_performance
+tool_id, latency_ms, status_code, available BOOLEAN, checked_at — Uptime-Monitoring
+tool_reliability
+uptime_pct, avg_latency_ms, error_rate_pct, checks_total — Materialisiert, stündlich aktualisiert
+tool_comparisons
+tool_a_id, tool_b_id, slug ('cursor-vs-copilot'), winner_id, data JSONB — Auto-generiert
+tool_similarities
+tool_id, similar_ids INT[] — Vorberechnete Ähnlichkeits-Paare (periodisch aktualisiert)
+market_map
+tool_id, innovation_score, adoption_score, quadrant (leader/visionary/challenger/niche)
+auto_content
+tool_id, content_type (review/tutorial/comparison/guide/report), title, body, status, quality_score
+playground_sessions
+user_id, model_id, prompt, response, tokens_used, latency_ms — Prompt-Playground
+affiliate_links
+tool_id, url, provider, clicks, conversions, active — Monetarisierung
+category_weekly_growth
+category, week_start DATE, growth_pct, tool_count — Heatmap-Daten
+
+
+2.4 Intelligence Layer (Migration 007 — V6)
+Tabelle
+Beschreibung
+founders
+name, slug, company_id, role, linkedin_url, twitter_url, bio
+investors
+name, type (vc/angel/corporate/government/accelerator), website, portfolio_size — Vorbesetzt mit Sequoia, a16z, YC…
+funding_rounds
+company_id, round_type (pre-seed bis IPO/acquisition), amount BIGINT, currency, lead_investor_id, co_investors INT[]
+ai_usage
+company_name, entity_type (tool/model), confidence FLOAT, source (github_deps/job_posting/product_page/…)
+ai_datasets
+name, size_gb, records BIGINT, modality (text/image/audio/video/code/multimodal/tabular), license
+infra_providers
+name, type (cloud/inference/training/hosting/edge), regions TEXT[], gpu_types TEXT[] — AWS, GCP, Azure, Lambda, Together AI…
+infra_deployments
+model_id, provider_id, region, gpu_type, latency_ms, cost_per_1k FLOAT, available
+capability_genome
+tool_id, dimension (text/image/code/audio/video/automation/integration/reasoning/creativity/speed/accuracy), score 0-100, evidence
+
+
+2.5 Ingestion-Pipeline (Migration 006)
+Tabelle
+Beschreibung
+ai_categories
+name, slug, icon — Normalisierte Kategorien: Text/Image/Code/Video/Audio/Data Generation, Automation, Other
+ai_features
+name, type (capability/access/platform/status) — Standard-Features: API Access, Open Source, Multimodal, Mobile App…
+ai_reviews
+tool_id, review_text, generated_by, strengths TEXT[], weaknesses TEXT[], best_for TEXT[], quality_score, published
+ai_tutorials
+title, slug, tool_id, content, difficulty, generated_by, published
+ingestion_sources
+name, type (github/producthunt/hackernews/twitter/rss/newsletter/directory/manual), url, enabled, config JSONB
+ingestion_jobs
+source_id, status (pending/running/completed/failed), tools_found, tools_new, started_at, finished_at, error
+ingestion_logs
+job_id, level, message, metadata JSONB — Vollständiges Job-Logging
+ai_model_capabilities
+model_id, capability VARCHAR(120), score 0-100 — UNIQUE(model_id, capability)
+
+
+💡 Key Patterns:  Alle Tabellen nutzen TIMESTAMPTZ für Zeitstempel. Auto-update-Trigger auf tools und ai_models. HNSW-Index für Vektorsuche. Trigram-Index (gin_trgm) für Volltextsuche auf tool names.
+
+
+
+3. TypeScript-Typdefinitionen (shared/types)
+
+
+3.1 Kern-Types
+Interface
+Schlüsselfelder
+Tool
+id, name, slug, category, platform, lifecycle, difficulty_level, verified, capabilities_score, adoption_score, growth_score, pricing_score, trust_score
+ToolWithScore
+extends Tool + score: number, distance?: number — Ergebnis nach Ranking
+SearchRequest
+query, category?, limit?, offset?
+SearchResponse
+tools: ToolWithScore[], total, query, took_ms
+RankingWeights
+traffic, reviews, features, relevance, recency — alle als number (0-1, Summe = 1)
+GraphNode
+id: string, type: tool|category|feature|use_case, label, metadata JSONB
+GraphEdge
+source, target, relation: belongs_to|has_feature|similar_to|integrates_with|alternative_to, weight
+ApiKey
+key_hash, tier: free|pro|enterprise, requests_used, requests_limit, expires_at
+AnalyticsEvent
+event, payload: Record<string, unknown>, user_id?, session_id?, timestamp
+TrustScore
+overall_score, review_score, reputation_score, security_score, transparency_score — je 0-100
+Workflow
+steps: WorkflowStep[], tool_ids INT[], is_public, usage_count
+WorkflowStep
+order, tool_id, tool_name, action, input_type, output_type
+RoutingDecision
+task_type, recommended_model, reason, estimated_cost, estimated_latency_ms — für Model Router
+MarketMapEntry
+tool_id, innovation_score, adoption_score, quadrant: leaders|challengers|visionaries|niche
+CapabilityGenome
+tool_id, dimension: string, score 0-100, evidence: string — Feingranulares Fähigkeitsprofil
+FundingRound
+company_id, round_type, amount, currency, lead_investor_id, co_investors INT[], source_url
+
+
+3.2 Enum-Types
+ToolCategory: "Code" | "Code Generation" | "Design" | "Image Generation" | "Audio" | "Audio Generation" | "Video" | "Video Generation" | "Writing" | "Text Generation" | "Data" | "Data Analysis" | "Other"
+Platform: "openai" | "anthropic" | "google" | "midjourney" | "elevenlabs" | "runway" | "vercel" | "stackblitz" | "suno" | "stability" | "meta" | "other"
+lifecycle: "new" | "growing" | "active" | "mature" | "declining"
+difficulty_level: "beginner" | "intermediate" | "advanced"
+change_type: "pricing_change" | "feature_added" | "feature_removed" | "model_update" | "api_launch" | "name_change" | "other"
+
+
+4. Service-Layer & Algorithmen
+
+
+4.1 Ranking Engine (services/ranking-engine/ranking.ts)
+Gewichteter 5-Signal-Score. Standardgewichte (konfigurierbar):
+
+Signal
+Gewicht
+Berechnung
+traffic
+25%
+Besuche letzte 30 Tage, normalisiert
+reviews
+30%
+Normalisierter Count × (avg_rating / 5)
+features
+15%
+Anzahl Features normalisiert
+relevance
+20%
+1 − vector_distance (aus Suche)
+recency
+10%
+Exponentieller Decay e^(−days/130), Halbwertszeit 90 Tage
+
+
+4.2 Vector Search (services/vector-search/search.ts)
+Index: HNSW cosine_ops (pgvector) für approximate nearest neighbor
+Dimensionen: 1536 (text-embedding-3-small)
+Max Distance: 0.8 (konfigurierbar)
+Funktionen: vectorSearch(vector, options), findSimilarTools(toolId), upsertEmbedding(toolId, embedding)
+Kategorie-Filter: Optional als SQL-AND-Bedingung, nicht Post-Filter → performant
+
+4.3 Recommendation Engine (hybrid)
+Quellen: Vector Search (ANN) + Knowledge Graph (graph_edges) kombiniert
+Deduplication: Set<number> über tool_ids vor Ranking
+Graph-Typen: similar_to + alternative_to Relations werden parallel abgefragt
+Ranking: Gemeinsames rankTools() mit relevance-Boost (0.3) für Graph-Matches
+
+4.4 Trust Score (services/trust-engine/trust.ts)
+5-dimensionaler Composite-Score 0-100:
+review_score (25%): (avg_rating/5 × 80) + min(review_count/10, 20)
+company_score (20%): log10(funding) × 5 + Unternehmensalter × 5 + 30 wenn verified
+transparency_score (20%): open_source +50, api_available +30, github_url +20
+longevity_score (15%): Tage seit Launch / 3.65 — 100 bei ~1 Jahr
+community_score (20%): (stars/1000 × 50) + (monthly_traffic/100000 × 50)
+
+4.5 Model Router (services/model-router/router.ts)
+Input: task_type, priority (quality/speed/cost), max_latency_ms, context_needed
+Output: RoutingDecision mit recommended_model, reason, estimated_cost, estimated_latency_ms
+Endpunkt: POST /models/route
+
+4.6 Trend Engine (services/trend-engine/trends.ts)
+Vergleicht aktuellen Zeitraum mit vorherigem gleicher Länge:
+rising: growth_pct > 10%
+stable: growth_pct −10% bis +10%
+declining: growth_pct < −10%
+Heatmap: Wöchentliches Kategorie-Wachstum via CTE, Endpunkt: GET /trends/heatmap
+
+4.7 Weitere Services
+Service
+Funktion
+Similarity Engine
+Vorberechnete ANN-Paare, periodisch aktualisiert via buildSimilarityIndex()
+Classification Engine
+GPT-4o-mini klassifiziert neue Tools automatisch (Kategorie, Pricing, Capabilities)
+Change Tracker
+Snapshot-Diffs: erkennt Preisänderungen, neue Features, Modell-Updates automatisch
+Performance Monitor
+Stündliche Uptime/Latenz-Checks, materialisierte Reliability-Scores
+Insight Engine
+Auto-generierte Marktanalyse: growth, launch, funding, trend, decline Insights
+Knowledge Graph
+Recursive CTE für Multi-Hop-Traversal (depth-parametrisiert), getSimilar(), getAlternatives()
+Usage Graph
+getToolAdopters(), getCompanyStack(), getMostAdoptedTools() — Wer nutzt welches Tool?
+Benchmark Engine
+Multi-dimensionaler Head-to-Head-Vergleich: capabilities, adoption, growth, pricing score
+Screenshot Engine
+captureAllMissing() — Automatische Tool-Previews täglich
+SEO Page Generator
+Programmatische Seiten pro Kategorie/Keyword, persistiert in seo_pages
+
+
+
+5. REST API — Vollständige Endpunktliste (45+)
+
+
+5.1 Core
+Method + Path
+Beschreibung
+GET /health
+DB-Status + Timestamp
+GET /stats
+tools_indexed, categories, monthly_searches
+POST /search
+Body: {query, category?, limit?} — Semantic + Keyword Search mit Ranking
+GET /tools
+Filter: category, platform, lifecycle, difficulty, verified — Pagination: limit/offset
+GET /tools/:slug/detail
+Vollprofil inkl. company_name, funding_total, model_name
+GET /tools/:id/similar
+Ähnliche Tools via Hybrid-Empfehlung
+GET /tools/:id/recommendations
+Empfehlungen für ein Tool (vector + graph)
+GET /tools/:id/history
+Änderungshistorie (days-Parameter)
+GET /tools/:id/performance
+Uptime, avg_latency, error_rate
+GET /tools/:id/genome
+Capability-Genome (10+ Dimensionen, score 0-100 je)
+GET /tools/:id/adopters
+Welche Firmen nutzen dieses Tool?
+GET /trending
+?days=30&limit=20 — trending tools + category trends
+GET /trending/heatmap
+Wöchentliche Kategorie-Wachstums-Matrix
+POST /benchmark
+Body: {tool_ids: []} — Multi-dimensionaler Vergleich ≥2 Tools
+
+
+5.2 Modelle, Firmen, Research
+Method + Path
+Beschreibung
+GET /models
+Alle Modelle, sortiert nach benchmark_scores.overall
+GET /models/leaderboard
+MMLU + HumanEval Scores, mit Developer-Name
+POST /models/route
+{task_type, priority, max_latency_ms} → recommended model
+GET /companies
+Alle Firmen, sortiert nach funding_total
+GET /companies/:slug
+Firma + alle zugehörigen Tools
+GET /research
+Research-Paper, sortiert nach year DESC (year-Filter)
+GET /funding
+Letzte Finanzierungsrunden inkl. Lead-Investor-Name
+GET /investors
+Alle Investoren, sortiert nach portfolio_size
+GET /founders
+Alle Gründer mit Firma
+
+
+5.3 Platform-Endpunkte
+Method + Path
+Beschreibung
+GET /use-cases
+?category= — Intent-basierte Tool-Empfehlungen
+GET /use-cases/:slug/tools
+Alle passenden Tools für einen Use-Case
+GET /workflows
+?category= — Öffentliche Workflows, nach usage_count
+POST /workflows/suggest
+{task: string} → KI-generierter Workflow
+GET /agents
+?category= — Öffentliche AI-Agents, nach installs
+GET /insights
+Auto-generierte Marktinsights (12h-Cache)
+GET /changes
+Letzte Tool-Änderungen (pricing, features, …)
+GET /market-map
+Innovation- vs Adoption-Score je Tool mit Quadrant
+GET /compare/:slug
+Vergleich 'cursor-vs-copilot' aus tool_comparisons
+GET /compare/:slugA-vs-:slugB
+Live-Vergleich mit Auto-Score über 4 Dimensionen
+GET /content/:toolId
+?type=review|tutorial|… — Auto-generierter Content
+GET /datasets
+?modality= — AI-Datensätze
+GET /infrastructure
+Alle Infra-Provider (AWS, GCP, Together AI, …)
+GET /usage/top
+?limit= — Meist-genutzte Tools
+GET /usage/company/:name
+Tech-Stack einer Firma (AI-Tools + Modelle)
+POST /newsletter/subscribe
+{email} — Upsert (re-subscribe wenn vorher abgemeldet)
+POST /admin/pipeline/run
+Manueller Pipeline-Trigger (Discovery → Enrichment → Ranking)
+
+
+
+6. Autopilot Worker — 17 Hintergrund-Jobs
+
+
+Der Worker (apps/workers/src/worker.ts) startet alle Jobs mit randomisiertem Stagger (max 10% des Intervalls oder 30s) um Lastspitzen zu vermeiden.
+
+Job
+Intervall
+Funktion
+analytics-flush
+10 Sek
+Event-Buffer in DB schreiben
+enrichment
+30 Min
+50 neue Tools pro Lauf mit Embeddings versehen (OpenAI)
+performance-monitor
+1 Std
+Uptime-Check aller Tools, Latenz messen
+rankings
+1 Std
+Globales Ranking neu berechnen, Redis-Cache invalidieren
+graph-relations
+2 Std
+Neue Kanten im Knowledge Graph (similar_to, integrates_with)
+similarity-engine
+4 Std
+Vorberechnete ANN-Paare in tool_similarities aktualisieren
+trust-scores
+6 Std
+5-dimensionale Trust-Scores für alle Tools neu berechnen
+classification
+2 Std
+30 unkategorisierte Tools per GPT-4o-mini klassifizieren
+discovery
+6 Std
+GitHub + ProductHunt + HackerNews + RSS crawlen, neue Tools persistieren
+change-tracker
+12 Std
+Snapshots aller Tools, Diffs erkennen und in tool_changes speichern
+insights
+12 Std
+Auto-Marktinsights generieren (growth/launch/funding/trend/decline)
+seo-generation
+12 Std
+Programmatische SEO-Seiten für alle 12 Kategorien generieren
+content-automation
+24 Std
+Reviews, Tutorials, Comparisons per KI auto-generieren
+screenshots
+24 Std
+Fehlende Tool-Previews/Screenshots nachholen (10 pro Lauf)
+research-scan
+12 Std
+arXiv nach LLM/Diffusion/Agent/Multimodal-Papers scannen
+newsletter
+7 Tage
+Wöchentlichen Newsletter auto-generieren
+workflow-seeds
+7 Tage
+Workflow-Templates für alle Kategorien befüllen
+
+
+6.1 Discovery Agent — Quellen
+GitHub: Queries: 'ai tool', 'llm framework', 'ai agent', 'generative ai', 'ml ops', 'vector database', 'ai coding assistant' — Min. 50 Stars, letzte 30 Tage
+ProductHunt: 2 Seiten neueste AI-Launches
+Hacker News: 80 aktuelle Einträge (Show HN, Ask HN)
+RSS: 15 Feeds (AI-Newsletter, Blogs)
+Deduplication: deduplicateBy(results, 'external_id') — bereits bekannte (source, external_id) werden übersprungen
+
+
+7. Konfiguration & Environment
+
+
+7.1 Environment Variables (.env.example)
+Variable
+Default
+Beschreibung
+DATABASE_URL
+postgresql://...
+required — PostgreSQL Connection String
+REDIS_URL
+redis://localhost:6379
+optional — Redis URL
+OPENAI_API_KEY
+sk-...
+optional — für Embeddings + Klassifizierung
+GITHUB_TOKEN
+ghp_...
+optional — für GitHub-Crawler (Rate-Limit erhöhen)
+PRODUCTHUNT_TOKEN
+
+
+optional — ProductHunt API v2
+API_PORT
+3000
+API-Port
+CORS_ORIGINS
+http://localhost:3001
+Komma-getrennte allowed Origins
+RATE_LIMIT_MAX
+100
+Requests pro 60s
+EMBEDDING_MODEL
+text-embedding-3-small
+1536 Dimensionen
+CACHE_TTL
+3600
+Sekunden Redis-Cache-Lifetime
+CRAWLER_CONCURRENCY
+3
+Parallele Crawl-Jobs
+CRAWL_INTERVAL_MS
+3600000
+1 Stunde — Crawl-Intervall
+BASE_URL
+https://atlasai.dev
+Basis-URL für SEO-Seiten
+DB_POOL_MIN / MAX
+2 / 20
+PostgreSQL Connection Pool
+
+
+7.2 npm-Scripts
+Script
+Befehl
+npm run dev:api
+API-Server starten (ts-node)
+npm run dev:workers
+Autopilot-Worker starten
+npm run docker:up
+Alle Services per Docker Compose hochfahren
+npm run db:migrate
+Alle 7 Migrationen sequenziell ausführen
+npm run db:seed
+Grunddaten + Superstack-Seed importieren
+npm run import:dataset
+10.000 AI-Tools aus CSV importieren
+npm run ingest
+Manueller Ingest-Lauf
+
+
+
+8. Frontend — Seiten & Komponenten
+
+
+8.1 Seiten (apps/web/src/pages/)
+Route
+Inhalt
+/
+index.tsx
+Landing Page — Hero, Stats, Kategorien, Featured Tools
+/explore
+explore.tsx
+Explore-Interface mit Suche und Filter
+/discover
+discover.tsx
+Discovery-Feed — neue und trending Tools
+/benchmark
+benchmark.tsx
+Multi-dimensionaler Tool-Vergleich
+/trends
+trends.tsx
+Trend-Heatmap, Kategorie-Wachstum
+/models
+models.tsx
+AI-Modell-Leaderboard mit Benchmark-Scores
+/api-docs
+api-docs.tsx
+Interaktive API-Dokumentation
+/ai/[slug]
+ai/[slug].tsx
+Vollständiges Tool-Profil (SSR)
+/ai/category/[slug]
+ai/category/[slug].tsx
+Kategorie-Seite mit allen Tools (SSG)
+/compare/[slug]
+compare/[slug].tsx
+'cursor-vs-copilot' Vergleichsseiten (SSG)
+/admin/entity-resolution
+admin/entity-resolution.tsx
+Admin-Tool für Entity-Deduplication
+
+
+8.2 Komponenten (apps/web/src/components/)
+Layout.tsx: Wrapper mit Navbar + Footer, Meta-Tags, globale Styles
+Navbar.tsx: Navigation mit SearchContext-Integration
+ui.tsx: 20+ Basiskomponenten: Button, Card, Badge, Modal, Tooltip, Tabs, Dropdown…
+charts.tsx / VisualEngine.tsx / VisualEngineV2.tsx: Chart-Abstraktionen für Trends, Benchmark-Visualisierungen
+SearchContext.tsx: Global geteilter Such-State (query, results, loading)
+lib/api.ts: Zentraler API-Wrapper mit Typsicherheit und Error-Handling
+
+
+9. Wichtige Architektur-Muster
+
+
+9.1 Materialisierte Rankings (Caching-Pattern)
+Statt Rankings live zu berechnen, schreibt der Worker stündlich in tool_rankings (rank, score, calculated_at). API liest nur noch die Tabelle ab. Redis-Invalidierung bei Änderung:
+Schreiben: DELETE FROM tool_rankings → INSERT alle Ränge (Worker, stündlich)
+Lesen: SELECT * FROM tool_rankings ORDER BY rank — O(1)
+Invalidierung: invalidate('search:*') in Redis nach jedem Ranking-Run
+
+9.2 Hybrid Vector + Graph Search
+Die Recommendation Engine kombiniert zwei Quellen parallel:
+1. pgvector ANN (cosine distance < 0.8) für semantische Ähnlichkeit
+2. graph_edges (similar_to + alternative_to) für explizite Relationen
+Merge via Set<number> zur Deduplizierung, dann einheitliches rankTools()
+
+9.3 Tiered Worker Architecture
+Jobs nach Kritikalität gestaffelt:
+Tier 1 (10s): Analytics-Flush — kritisch, minimale Latenz
+Tier 2 (30m-1h): Enrichment, Performance-Monitor, Rankings
+Tier 3 (2-6h): Graph-Relations, Similarity, Trust-Scores
+Tier 4 (6-24h): Discovery, Change-Tracker, Insights, SEO, Content, Screenshots
+Tier 5 (wöchentlich): Newsletter, Workflow-Seeds
+
+9.4 Auto-generierter Content-Stack
+ai_reviews: AI-generierte Reviews mit strengths, weaknesses, best_for — UNIQUE(tool_id, generated_by)
+ai_tutorials: Tutorials mit Difficulty-Level, published-Flag
+ai_comparisons: X-vs-Y Vergleichstexte — UNIQUE(tool_a_id, tool_b_id)
+auto_content: Generischer Content-Store mit Status-Workflow: draft → review → published → archived
+quality_score: Jedes Content-Stück bekommt einen Qualitäts-Score vor der Publikation
+
+9.5 Multi-Source Ingestion Pattern
+ingestion_sources definiert alle Quellen (mit config JSONB für Quell-spezifische Parameter)
+ingestion_jobs protokolliert jeden Lauf (tools_found, tools_new, started_at, finished_at, error)
+ingestion_logs für vollständiges Job-Logging (level: info/warn/error, metadata JSONB)
+Deduplication: UNIQUE(source, external_id) auf tools-Tabelle — Upsert statt Insert
+
+9.6 API-Key-Tiers
+Dreistufiges Zugangsmodell:
+free: 10.000 Requests/Monat
+pro: Höheres Limit, erweiterte Endpunkte
+enterprise: Unlimitiert, dedizierter Support
+Tracking in api_usage_log (endpoint, status_code, latency_ms) für detaillierte Auswertung
+
+
+10. Deployment-Optionen
+
+
+Option
+Schwierigkeit
+Setup
+Replit
+⭐ Einfach
+Kein Install, tar xzf → npm install → npm run dev:api — Einschränkung: kein Docker, kein Redis, kein pgvector
+Cursor + Docker
+⭐⭐ Mittel
+docker compose up -d postgres redis → npm install → npm run dev:api + dev:workers → http://localhost:3001
+Vercel + Neon
+⭐⭐⭐ Fortgeschritten
+GitHub-Repo → Vercel Import → Neon.tech für PostgreSQL → ENV-Vars setzen → automatisches Deploy
+
+
+⚡ Schnellstart lokal:  docker compose -f infra/docker/docker-compose.yml up -d postgres redis && npm run db:migrate && npm run import:dataset && npm run dev:api
+
+
+🌐 Health Check:  curl http://localhost:3000/health → {"status":"healthy","database":true}
+
+

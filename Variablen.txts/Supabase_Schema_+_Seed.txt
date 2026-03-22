@@ -1,0 +1,600 @@
+-- ============================================================
+-- ATLAS OS — Supabase PostgreSQL Schema + Seed
+-- AIAstralis · Version 20.0 · Ultimate Fusion Edition
+-- ============================================================
+-- SETUP:
+--   1. Supabase Dashboard → SQL Editor → Run this file
+--   2. Or: supabase db reset (local dev)
+-- ============================================================
+
+-- ── EXTENSIONS ───────────────────────────────────────────────
+create extension if not exists "uuid-ossp";
+create extension if not exists "pg_trgm";
+
+-- ── CLEANUP (safe re-run) ─────────────────────────────────────
+drop table if exists tool_comparisons  cascade;
+drop table if exists stack_steps       cascade;
+drop table if exists stacks            cascade;
+drop table if exists tool_integrations cascade;
+drop table if exists tool_categories   cascade;
+drop table if exists tools             cascade;
+drop table if exists categories        cascade;
+drop table if exists seo_pages         cascade;
+drop table if exists slug_history      cascade;
+drop table if exists page_analytics    cascade;
+
+-- ── CATEGORIES ───────────────────────────────────────────────
+create table categories (
+  id           serial primary key,
+  slug         text unique not null,
+  name         text not null,
+  super_cat    text,
+  description  text,
+  tool_count   int not null default 0,
+  icon         text,
+  display_order int default 999,
+  status       text default 'active',
+  created_at   timestamptz default now()
+);
+
+-- ── TOOLS ────────────────────────────────────────────────────
+create table tools (
+  id               uuid primary key default uuid_generate_v4(),
+  slug             text unique not null,
+  name             text not null,
+  description      text not null,
+  category         text not null,
+  company          text,
+  pricing          text,
+  pricing_num      decimal(10,2) default 0,
+  logo             text default '🤖',
+  rating           decimal(3,2) default 4.0,
+  users            text default '—',
+  api_available    boolean default false,
+  open_source      boolean default false,
+  deploy           text default 'cloud',
+  integrations     int default 0,
+  context_window   text default '—',
+  affiliate_url    text,
+  atlas_score      decimal(5,2) default 50.0,
+  monthly_visitors bigint,
+  github_stars     int,
+  website_url      text,
+  sponsored_tier   text default 'none',
+  tags             text[] default '{}',
+  use_cases        text[] default '{}',
+  status           text default 'active',
+  created_at       timestamptz default now(),
+  updated_at       timestamptz default now()
+);
+
+create index idx_tools_category    on tools (category);
+create index idx_tools_atlas_score on tools (atlas_score desc);
+create index idx_tools_slug        on tools (slug);
+create index idx_tools_status      on tools (status);
+create index idx_tools_tags        on tools using gin (tags);
+create index idx_tools_name_trgm   on tools using gin (name gin_trgm_ops);
+
+-- ── TOOL ↔ CATEGORY (join) ───────────────────────────────────
+create table tool_categories (
+  tool_id     uuid not null references tools(id) on delete cascade,
+  category_id int  not null references categories(id) on delete cascade,
+  primary key (tool_id, category_id)
+);
+
+-- ── TOOL INTEGRATIONS (knowledge graph edges) ────────────────
+create table tool_integrations (
+  tool_id            uuid not null references tools(id) on delete cascade,
+  integrates_with_id uuid not null references tools(id) on delete cascade,
+  created_at         timestamptz default now(),
+  primary key (tool_id, integrates_with_id),
+  constraint no_self_integration check (tool_id <> integrates_with_id)
+);
+
+create index idx_ti_tool_id  on tool_integrations (tool_id);
+create index idx_ti_with_id  on tool_integrations (integrates_with_id);
+
+-- ── STACKS ───────────────────────────────────────────────────
+create table stacks (
+  id           uuid primary key default uuid_generate_v4(),
+  slug         text unique not null,
+  title        text not null,
+  goal         text,
+  description  text,
+  difficulty   text not null default 'medium'
+               check (difficulty in ('easy','medium','hard')),
+  cost_monthly text,
+  views        int not null default 0,
+  clones       int not null default 0,
+  is_public    boolean not null default true,
+  status       text default 'approved',
+  created_at   timestamptz default now(),
+  updated_at   timestamptz default now()
+);
+
+create index idx_stacks_slug      on stacks (slug);
+create index idx_stacks_is_public on stacks (is_public);
+
+-- ── STACK STEPS ──────────────────────────────────────────────
+create table stack_steps (
+  id          uuid primary key default uuid_generate_v4(),
+  stack_id    uuid not null references stacks(id) on delete cascade,
+  tool_name   text not null,
+  role        text not null,
+  action      text,
+  step_order  int not null,
+  constraint stack_steps_order_pos check (step_order >= 0),
+  unique (stack_id, step_order)
+);
+
+create index idx_ss_stack_id on stack_steps (stack_id);
+
+-- ── TOOL COMPARISONS ─────────────────────────────────────────
+create table tool_comparisons (
+  id           uuid primary key default uuid_generate_v4(),
+  tool_a_id    uuid references tools(id) on delete cascade,
+  tool_b_id    uuid references tools(id) on delete cascade,
+  slug         text unique not null,
+  verdict      text,
+  content_json jsonb,
+  views        int default 0,
+  created_at   timestamptz default now(),
+  unique (tool_a_id, tool_b_id)
+);
+
+-- ── SEO PAGES ────────────────────────────────────────────────
+create table seo_pages (
+  id               uuid primary key default uuid_generate_v4(),
+  path             text unique not null,
+  page_type        text not null,
+  indexing_state   text not null default 'noindex'
+                   check (indexing_state in ('indexable','noindex','blocked')),
+  quality_passed   boolean default false,
+  canonical_url    text,
+  source_entity_id uuid,
+  created_at       timestamptz default now(),
+  updated_at       timestamptz default now()
+);
+
+-- ── SLUG HISTORY (SEO safety — 301s) ─────────────────────────
+create table slug_history (
+  id          uuid primary key default uuid_generate_v4(),
+  entity_type text not null,
+  entity_id   uuid not null,
+  old_slug    text not null,
+  new_slug    text not null,
+  created_at  timestamptz default now(),
+  unique (entity_type, old_slug)
+);
+
+-- ── PAGE ANALYTICS ───────────────────────────────────────────
+create table page_analytics (
+  id          bigserial primary key,
+  page_url    text not null,
+  page_type   text,
+  views       int default 0,
+  clicks      int default 0,
+  conversions int default 0,
+  recorded_at date default current_date
+);
+
+create index idx_pa_page_url on page_analytics (page_url);
+create index idx_pa_date     on page_analytics (recorded_at desc);
+
+-- ── AUTO updated_at TRIGGER ───────────────────────────────────
+create or replace function set_updated_at()
+returns trigger language plpgsql as $$
+begin new.updated_at = now(); return new; end; $$;
+
+create trigger tools_updated_at  before update on tools  for each row execute function set_updated_at();
+create trigger stacks_updated_at before update on stacks for each row execute function set_updated_at();
+
+-- ── RLS (Row Level Security) ──────────────────────────────────
+alter table tools      enable row level security;
+alter table stacks     enable row level security;
+alter table stack_steps enable row level security;
+alter table categories  enable row level security;
+
+-- Public read access
+create policy "Public read tools"       on tools       for select using (status = 'active');
+create policy "Public read stacks"      on stacks      for select using (is_public = true);
+create policy "Public read stack_steps" on stack_steps for select using (true);
+create policy "Public read categories"  on categories  for select using (status = 'active');
+
+-- ============================================================
+-- SEED DATA
+-- ============================================================
+
+-- ── CATEGORIES SEED ──────────────────────────────────────────
+insert into categories (slug, name, super_cat, description, icon, display_order) values
+('writing',      'Writing',      'Creative',    'AI tools for writing, copywriting and content creation',    '✍️',  1),
+('image',        'Image',        'Creative',    'AI image generation and editing tools',                     '🎨',  2),
+('video',        'Video',        'Creative',    'AI video generation and editing',                           '🎬',  3),
+('audio',        'Audio',        'Creative',    'AI voice synthesis, music and audio tools',                 '🎙️',  4),
+('coding',       'Coding',       'Development', 'AI coding assistants and developer tools',                  '💻',  5),
+('research',     'Research',     'Research',    'AI-powered search and research tools',                      '🔍',  6),
+('automation',   'Automation',   'Automation',  'AI workflow and automation platforms',                      '⚡',  7),
+('productivity', 'Productivity', 'Productivity','AI productivity and workspace tools',                       '📝',  8),
+('design',       'Design',       'Creative',    'AI-powered design tools',                                   '🎭',  9),
+('marketing',    'Marketing',    'Business',    'AI marketing and growth tools',                             '📈', 10),
+('customer-support','Customer Support','Business','AI customer support and chatbot tools',                   '💬', 11),
+('data-analysis','Data Analysis','Research',   'AI data analysis and visualization',                        '📊', 12);
+
+-- ── TOOLS SEED ───────────────────────────────────────────────
+insert into tools (slug, name, description, category, company, pricing, pricing_num, logo, rating, users, api_available, open_source, deploy, integrations, context_window, atlas_score, website_url, tags, use_cases) values
+
+-- Writing
+('chatgpt',
+ 'ChatGPT',
+ 'Conversational AI by OpenAI. Best for chat, coding, image generation and plugins.',
+ 'Writing', 'OpenAI', 'Free / $20mo', 20, '🤖', 4.8, '100M+',
+ true, false, 'cloud', 500, '128K', 95.0, 'https://chat.openai.com',
+ array['writing','coding','chat','image'], array['content creation','coding','research','chat']),
+
+('claude',
+ 'Claude',
+ 'Anthropic''s AI — best for long documents, deep reasoning and safe outputs.',
+ 'Writing', 'Anthropic', 'Free / $20mo', 20, '🧠', 4.9, '10M+',
+ true, false, 'cloud', 120, '200K', 94.0, 'https://claude.ai',
+ array['writing','reasoning','analysis','long-form'], array['document analysis','coding','research','writing']),
+
+('copy-ai',
+ 'Copy.ai',
+ 'AI marketing copy and content generation platform for teams and agencies.',
+ 'Writing', 'Copy.ai', 'Free / $49mo', 49, '✍️', 4.3, '10M+',
+ true, false, 'cloud', 90, '—', 72.0, 'https://copy.ai',
+ array['copywriting','marketing','content'], array['ad copy','blog posts','social media']),
+
+('jasper',
+ 'Jasper',
+ 'AI content platform for marketing teams. Long-form content at scale.',
+ 'Writing', 'Jasper', '$49mo', 49, '🖊️', 4.4, '100K+',
+ true, false, 'cloud', 50, '—', 74.0, 'https://jasper.ai',
+ array['writing','marketing','brand'], array['blog posts','marketing copy','brand voice']),
+
+('grammarly',
+ 'Grammarly',
+ 'AI grammar, spelling and style assistant. Works everywhere you write.',
+ 'Writing', 'Grammarly', 'Free / $12mo', 12, '📖', 4.6, '30M+',
+ true, false, 'browser-ext', 20, '—', 78.0, 'https://grammarly.com',
+ array['writing','editing','grammar'], array['proofreading','writing improvement','emails']),
+
+-- Image
+('midjourney',
+ 'Midjourney',
+ 'AI image generation from text prompts. Best visual quality on the market.',
+ 'Image', 'Midjourney', '$10mo', 10, '🎨', 4.7, '20M+',
+ false, false, 'cloud', 30, '—', 88.0, 'https://midjourney.com',
+ array['image','art','creative'], array['image generation','concept art','illustrations']),
+
+('dalle-3',
+ 'DALL·E 3',
+ 'OpenAI''s image generation model — natively integrated in ChatGPT.',
+ 'Image', 'OpenAI', '$0.04/img', 0, '🖼️', 4.5, '50M+',
+ true, false, 'cloud', 50, '—', 82.0, 'https://openai.com/dall-e-3',
+ array['image','ai-art','generation'], array['image generation','illustrations','product images']),
+
+('stable-diffusion',
+ 'Stable Diffusion',
+ 'Open-source image generation model. Self-host or use via API. Fully customizable.',
+ 'Image', 'Stability AI', 'Free', 0, '🌊', 4.4, '10M+',
+ true, true, 'self-hosted', 200, '—', 80.0, 'https://stability.ai',
+ array['image','open-source','self-hosted'], array['image generation','fine-tuning','custom models']),
+
+('remove-bg',
+ 'Remove.bg',
+ 'AI background removal from images. One click, instant results.',
+ 'Image', 'Kaleido', 'Free / $9mo', 9, '✂️', 4.5, '150M+',
+ true, false, 'cloud', 30, '—', 70.0, 'https://remove.bg',
+ array['image','background-removal','editing'], array['product photos','headshots','design']),
+
+-- Video
+('runway',
+ 'Runway',
+ 'AI video generation and editing platform for creators and studios.',
+ 'Video', 'Runway', '$15mo', 15, '🎬', 4.5, '3M+',
+ true, false, 'cloud', 45, '—', 85.0, 'https://runwayml.com',
+ array['video','generation','editing'], array['video generation','video editing','visual effects']),
+
+('pika',
+ 'Pika',
+ 'AI video generation from text or image. Fast, beautiful results.',
+ 'Video', 'Pika Labs', 'Free / $8mo', 8, '🎥', 4.4, '500K+',
+ false, false, 'cloud', 10, '—', 75.0, 'https://pika.art',
+ array['video','generation','text-to-video'], array['video generation','social content','ads']),
+
+('descript',
+ 'Descript',
+ 'Edit audio and video like a text document. AI-powered overdub and filler removal.',
+ 'Video', 'Descript', 'Free / $24mo', 24, '✂️', 4.4, '500K+',
+ false, false, 'desktop', 30, '—', 74.0, 'https://descript.com',
+ array['video','audio','editing','podcast'], array['podcast editing','video editing','transcription']),
+
+('synthesia',
+ 'Synthesia',
+ 'Create AI avatar videos from text in 120+ languages. No camera needed.',
+ 'Video', 'Synthesia', '$22mo', 22, '👤', 4.3, '50K+',
+ true, false, 'cloud', 25, '—', 72.0, 'https://synthesia.io',
+ array['video','avatar','presentation'], array['training videos','explainer videos','presentations']),
+
+-- Audio
+('elevenlabs',
+ 'ElevenLabs',
+ 'Ultra-realistic AI voice synthesis, cloning and text-to-speech platform.',
+ 'Audio', 'ElevenLabs', 'Free / $22mo', 22, '🎙️', 4.8, '1M+',
+ true, false, 'cloud', 80, '—', 90.0, 'https://elevenlabs.io',
+ array['audio','voice','tts','cloning'], array['voiceover','podcasts','audiobooks','dubbing']),
+
+('murf',
+ 'Murf',
+ 'AI voice generator with 120+ voices in 20+ languages.',
+ 'Audio', 'Murf AI', 'Free / $29mo', 29, '🔊', 4.3, '500K+',
+ true, false, 'cloud', 20, '—', 68.0, 'https://murf.ai',
+ array['audio','voice','tts'], array['voiceover','presentations','e-learning']),
+
+('suno',
+ 'Suno',
+ 'AI music generation from text prompts. Full songs in seconds.',
+ 'Audio', 'Suno AI', 'Free / $10mo', 10, '🎵', 4.5, '10M+',
+ false, false, 'cloud', 5, '—', 78.0, 'https://suno.com',
+ array['audio','music','generation'], array['music creation','background music','jingles']),
+
+-- Coding
+('cursor',
+ 'Cursor',
+ 'AI-first code editor built on VSCode. Inline AI, chat and autocomplete.',
+ 'Coding', 'Anysphere', 'Free / $20mo', 20, '💻', 4.9, '500K+',
+ false, false, 'desktop', 40, '—', 92.0, 'https://cursor.sh',
+ array['coding','ide','ai-editor'], array['coding','debugging','refactoring','code review']),
+
+('github-copilot',
+ 'GitHub Copilot',
+ 'AI coding assistant integrated into GitHub and VS Code. Industry standard.',
+ 'Coding', 'GitHub/Microsoft', '$10mo', 10, '🐙', 4.7, '1M+',
+ true, false, 'cloud', 30, '—', 88.0, 'https://github.com/features/copilot',
+ array['coding','autocomplete','github'], array['code completion','code review','pull requests']),
+
+('replit',
+ 'Replit',
+ 'Browser-based IDE with AI coding assistant and instant deployment.',
+ 'Coding', 'Replit', 'Free / $25mo', 25, '🔄', 4.4, '20M+',
+ true, false, 'cloud', 20, '—', 76.0, 'https://replit.com',
+ array['coding','cloud-ide','deployment'], array['prototyping','learning','deployment','collaboration']),
+
+('codeium',
+ 'Codeium',
+ 'Free AI code completion and chat. Supports 70+ programming languages.',
+ 'Coding', 'Codeium', 'Free / $12mo', 12, '🌀', 4.5, '500K+',
+ true, false, 'cloud', 25, '—', 78.0, 'https://codeium.com',
+ array['coding','autocomplete','free'], array['code completion','refactoring','code chat']),
+
+-- Research
+('perplexity',
+ 'Perplexity',
+ 'AI-powered search engine with real-time web access and source citations.',
+ 'Research', 'Perplexity AI', 'Free / $20mo', 20, '🔍', 4.7, '15M+',
+ true, false, 'cloud', 20, '—', 87.0, 'https://perplexity.ai',
+ array['research','search','web','citations'], array['research','fact-checking','news','analysis']),
+
+('elicit',
+ 'Elicit',
+ 'AI research assistant for literature review and paper analysis.',
+ 'Research', 'Ought', 'Free / $10mo', 10, '📚', 4.4, '1M+',
+ true, false, 'cloud', 10, '—', 70.0, 'https://elicit.com',
+ array['research','academic','papers'], array['literature review','paper summarization','research']),
+
+('consensus',
+ 'Consensus',
+ 'AI search engine for scientific papers. Find evidence-based answers.',
+ 'Research', 'Consensus', 'Free / $9mo', 9, '🔬', 4.3, '500K+',
+ false, false, 'cloud', 5, '—', 68.0, 'https://consensus.app',
+ array['research','academic','science'], array['scientific research','fact-checking','literature review']),
+
+-- Automation
+('zapier',
+ 'Zapier',
+ 'Connect 6000+ apps and automate workflows without code.',
+ 'Automation', 'Zapier', 'Free / $19mo', 19, '⚡', 4.6, '5M+',
+ true, false, 'cloud', 6000, '—', 86.0, 'https://zapier.com',
+ array['automation','integration','workflow','no-code'], array['workflow automation','app integration','notifications']),
+
+('make',
+ 'Make',
+ 'Visual workflow automation platform. More powerful than Zapier.',
+ 'Automation', 'Make', 'Free / $9mo', 9, '🔧', 4.5, '500K+',
+ true, false, 'cloud', 1000, '—', 80.0, 'https://make.com',
+ array['automation','integration','visual'], array['workflow automation','data processing','multi-step workflows']),
+
+('n8n',
+ 'n8n',
+ 'Open-source workflow automation. Self-host for full control.',
+ 'Automation', 'n8n', 'Free / $20mo', 20, '🔀', 4.6, '200K+',
+ true, true, 'self-hosted', 400, '—', 82.0, 'https://n8n.io',
+ array['automation','open-source','self-hosted'], array['workflow automation','data pipelines','self-hosted']),
+
+-- Productivity
+('notion-ai',
+ 'Notion AI',
+ 'AI-enhanced workspace for notes, docs and project management.',
+ 'Productivity', 'Notion', '$10mo', 10, '📝', 4.5, '30M+',
+ false, false, 'cloud', 200, '—', 82.0, 'https://notion.so',
+ array['productivity','notes','docs','workspace'], array['note-taking','project management','wikis','docs']),
+
+('obsidian',
+ 'Obsidian',
+ 'Markdown-based knowledge base with AI plugins. Local-first.',
+ 'Productivity', 'Obsidian', 'Free / $10mo', 10, '💎', 4.6, '1M+',
+ false, false, 'desktop', 1000, '—', 76.0, 'https://obsidian.md',
+ array['productivity','notes','knowledge-base','local'], array['personal knowledge management','note-taking','writing']),
+
+('otter-ai',
+ 'Otter.ai',
+ 'AI meeting notes and transcription. Real-time summaries.',
+ 'Productivity', 'Otter.ai', 'Free / $10mo', 10, '🦦', 4.3, '10M+',
+ true, false, 'cloud', 20, '—', 72.0, 'https://otter.ai',
+ array['productivity','transcription','meetings'], array['meeting notes','transcription','summaries']),
+
+('fireflies',
+ 'Fireflies.ai',
+ 'AI meeting assistant. Records, transcribes and summarizes meetings.',
+ 'Productivity', 'Fireflies.ai', 'Free / $18mo', 18, '🔥', 4.4, '1M+',
+ true, false, 'cloud', 50, '—', 74.0, 'https://fireflies.ai',
+ array['productivity','meetings','transcription','crm'], array['meeting notes','CRM sync','action items']);
+
+-- ── STACKS SEED ──────────────────────────────────────────────
+insert into stacks (slug, title, goal, difficulty, cost_monthly, views, is_public, status) values
+('youtube-channel-builder',
+ 'YouTube Channel Builder',
+ 'Full AI-powered YouTube channel from research to publish',
+ 'medium', '~$57/mo', 2400, true, 'approved'),
+
+('saas-marketing-machine',
+ 'SaaS Marketing Machine',
+ 'Automated content marketing pipeline for SaaS products',
+ 'easy', '~$39/mo', 1800, true, 'approved'),
+
+('ai-saas-mvp-builder',
+ 'AI SaaS MVP Builder',
+ 'Launch an AI-powered product in 30 days',
+ 'hard', '~$60/mo', 3100, true, 'approved'),
+
+('podcast-production-stack',
+ 'Podcast Production Stack',
+ 'Record, edit, transcribe and publish podcasts with AI',
+ 'easy', '~$32/mo', 980, true, 'approved'),
+
+('content-research-pipeline',
+ 'Content Research Pipeline',
+ 'Deep research to polished long-form content',
+ 'medium', '~$40/mo', 1200, true, 'approved'),
+
+('ai-customer-support',
+ 'AI Customer Support Stack',
+ 'Automate customer support with AI agents',
+ 'medium', '~$95/mo', 760, true, 'approved');
+
+-- ── STACK STEPS SEED ─────────────────────────────────────────
+-- YouTube Channel Builder
+with s as (select id from stacks where slug = 'youtube-channel-builder')
+insert into stack_steps (stack_id, tool_name, role, action, step_order) values
+((select id from s), 'Perplexity',   'Research',  'Find trending topics and keywords',       0),
+((select id from s), 'Claude',       'Script',    'Write engaging, SEO-optimized scripts',   1),
+((select id from s), 'ElevenLabs',   'Voice',     'Generate realistic voiceover audio',      2),
+((select id from s), 'Runway',       'Video',     'Create and edit visual content',          3),
+((select id from s), 'Descript',     'Edit',      'Final cut, captions and corrections',     4);
+
+-- SaaS Marketing Machine
+with s as (select id from stacks where slug = 'saas-marketing-machine')
+insert into stack_steps (stack_id, tool_name, role, action, step_order) values
+((select id from s), 'Perplexity',   'Research',    'Competitor and keyword analysis',       0),
+((select id from s), 'Claude',       'Content',     'Blog posts and landing page copy',      1),
+((select id from s), 'Midjourney',   'Visuals',     'Brand imagery and social assets',       2),
+((select id from s), 'Copy.ai',      'Ads',         'A/B ad copy variants at scale',         3),
+((select id from s), 'Zapier',       'Publish',     'Auto-distribute to all channels',       4);
+
+-- AI SaaS MVP Builder
+with s as (select id from stacks where slug = 'ai-saas-mvp-builder')
+insert into stack_steps (stack_id, tool_name, role, action, step_order) values
+((select id from s), 'Claude',       'Architect',   'System design and tech spec',           0),
+((select id from s), 'Cursor',       'Code',        'Build the full product',                1),
+((select id from s), 'ChatGPT',      'Debug',       'Fix bugs and write tests',              2),
+((select id from s), 'Midjourney',   'Design',      'UI mockups and brand identity',         3),
+((select id from s), 'Notion AI',    'Docs',        'Product docs and roadmap',              4);
+
+-- Podcast Production Stack
+with s as (select id from stacks where slug = 'podcast-production-stack')
+insert into stack_steps (stack_id, tool_name, role, action, step_order) values
+((select id from s), 'Descript',     'Record/Edit', 'Record and edit audio like a doc',      0),
+((select id from s), 'ElevenLabs',   'Voice',       'AI voice enhancement or cloning',       1),
+((select id from s), 'Claude',       'Show Notes',  'Generate summaries and show notes',     2),
+((select id from s), 'Zapier',       'Publish',     'Auto-publish to all podcast platforms', 3);
+
+-- Content Research Pipeline
+with s as (select id from stacks where slug = 'content-research-pipeline')
+insert into stack_steps (stack_id, tool_name, role, action, step_order) values
+((select id from s), 'Perplexity',   'Search',      'Real-time research with citations',     0),
+((select id from s), 'Elicit',       'Papers',      'Find supporting academic research',     1),
+((select id from s), 'Claude',       'Draft',       'Write long-form content from research', 2),
+((select id from s), 'Grammarly',    'Edit',        'Polish grammar and style',              3),
+((select id from s), 'Notion AI',    'Publish',     'Organize and publish to knowledge base',4);
+
+-- AI Customer Support
+with s as (select id from stacks where slug = 'ai-customer-support')
+insert into stack_steps (stack_id, tool_name, role, action, step_order) values
+((select id from s), 'Claude',       'AI Brain',    'Handle complex customer queries',       0),
+((select id from s), 'ElevenLabs',   'Voice',       'Human-quality voice for phone support', 1),
+((select id from s), 'Notion AI',    'Knowledge',   'Connect docs to AI context (RAG)',      2),
+((select id from s), 'Zapier',       'Routing',     'Route tickets to right department',     3),
+((select id from s), 'Fireflies.ai', 'Analytics',   'Transcribe and analyze support calls',  4);
+
+-- ── TOOL INTEGRATIONS SEED (Knowledge Graph edges) ──────────
+-- ChatGPT ↔ Zapier, Claude ↔ Zapier, etc.
+insert into tool_integrations (tool_id, integrates_with_id)
+select a.id, b.id from tools a, tools b
+where (a.slug, b.slug) in (
+  ('chatgpt',       'zapier'),
+  ('chatgpt',       'notion-ai'),
+  ('claude',        'zapier'),
+  ('claude',        'notion-ai'),
+  ('claude',        'github-copilot'),
+  ('elevenlabs',    'zapier'),
+  ('elevenlabs',    'descript'),
+  ('midjourney',    'zapier'),
+  ('runway',        'descript'),
+  ('perplexity',    'notion-ai'),
+  ('cursor',        'github-copilot'),
+  ('zapier',        'notion-ai'),
+  ('zapier',        'fireflies'),
+  ('notion-ai',     'zapier'),
+  ('grammarly',     'notion-ai'),
+  ('otter-ai',      'notion-ai'),
+  ('fireflies',     'notion-ai'),
+  ('make',          'notion-ai'),
+  ('n8n',           'notion-ai')
+);
+
+-- ── COMPARISON SEED ──────────────────────────────────────────
+insert into tool_comparisons (tool_a_id, tool_b_id, slug, verdict, views)
+select a.id, b.id, a.slug || '-vs-' || b.slug,
+  case
+    when a.slug = 'chatgpt' and b.slug = 'claude'
+      then 'Claude wins on reasoning and context window. ChatGPT wins on plugins and image generation.'
+    when a.slug = 'midjourney' and b.slug = 'dalle-3'
+      then 'Midjourney wins on artistic quality. DALL·E 3 wins on prompt accuracy and ChatGPT integration.'
+    when a.slug = 'cursor' and b.slug = 'github-copilot'
+      then 'Cursor wins on AI-native editing experience. GitHub Copilot wins on ecosystem integration.'
+    else 'See full comparison for details.'
+  end,
+  floor(random() * 2000 + 500)::int
+from tools a, tools b
+where (a.slug, b.slug) in (
+  ('chatgpt',    'claude'),
+  ('midjourney', 'dalle-3'),
+  ('cursor',     'github-copilot'),
+  ('zapier',     'make'),
+  ('elevenlabs', 'murf'),
+  ('runway',     'pika'),
+  ('notion-ai',  'obsidian'),
+  ('perplexity', 'consensus')
+);
+
+-- ── UPDATE CATEGORY TOOL COUNTS ──────────────────────────────
+update categories c
+set tool_count = (
+  select count(*) from tools t
+  where lower(t.category) = lower(c.name)
+  and t.status = 'active'
+);
+
+-- ── VERIFY ───────────────────────────────────────────────────
+select 'tools'            as table_name, count(*) as rows from tools
+union all
+select 'categories',                     count(*) from categories
+union all
+select 'stacks',                          count(*) from stacks
+union all
+select 'stack_steps',                     count(*) from stack_steps
+union all
+select 'tool_integrations',               count(*) from tool_integrations
+union all
+select 'tool_comparisons',                count(*) from tool_comparisons;

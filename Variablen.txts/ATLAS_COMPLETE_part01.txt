@@ -1,0 +1,4533 @@
+pacity: 0 }}
+                className="grid grid-cols-2 gap-3"
+              >
+                {[0,1,2,3].map(i => <SkeletonCard key={i} />)}
+              </motion.div>
+            )}
+
+            {state.result && !state.loading && (
+              <motion.div
+                key="results"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 8 }}
+                transition={{ duration: 0.3 }}
+                aria-live="polite"
+                aria-label="Your recommended AI stack"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-xs font-semibold text-[#9BA3AF] uppercase tracking-wider">Your recommended stack</p>
+                  <div className="flex gap-2">
+                    <button onClick={handleCopy} aria-label="Copy stack to clipboard"
+                      className="flex items-center gap-1.5 text-xs text-[#6B7280] hover:text-[#E6EDF3] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4DA3FF]/50 rounded px-2 py-1">
+                      {state.copied ? <Check className="w-3.5 h-3.5 text-[#22C55E]" /> : <Copy className="w-3.5 h-3.5" />}
+                      {state.copied ? "Copied!" : "Copy"}
+                    </button>
+                    <button onClick={() => dispatch({ type:"RESET" })} aria-label="Reset form and result"
+                      className="flex items-center gap-1.5 text-xs text-[#6B7280] hover:text-[#E6EDF3] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4DA3FF]/50 rounded px-2 py-1">
+                      <RefreshCw className="w-3.5 h-3.5" /> Reset
+                    </button>
+                  </div>
+                </div>
+                <ul className="grid grid-cols-2 gap-3 list-none p-0">
+                  {state.result.map((tool) => (
+                    <li key={tool.slug}>
+                      <a href={`${APP_URL}/tools/${tool.slug}`}
+                        className="block bg-[#1A2028] border border-[#232A33] p-3.5 rounded-xl hover:border-[#2E3440] transition-all group no-underline hover:-translate-y-0.5 hover:shadow-lg hover:shadow-[#4DA3FF]/5">
+                        <div className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold text-[#0B0D10] mb-2"
+                          style={{ backgroundColor: tool.accent }} aria-hidden="true">
+                          {tool.name[0]}
+                        </div>
+                        <p className="text-sm font-semibold text-[#E6EDF3] group-hover:text-[#4DA3FF] transition-colors">{tool.name}</p>
+                        <p className="text-xs text-[#6B7280] mt-0.5">{tool.role}</p>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+
+                {/* Feature #29: Email lead magnet */}
+                <div className="mt-4 p-3 rounded-lg bg-[#1A2028] border border-[#232A33]">
+                  {!showEmailCapture ? (
+                    <button
+                      onClick={() => setShowEmailCapture(true)}
+                      className="flex items-center gap-2 text-xs text-[#9BA3AF] hover:text-[#E6EDF3] transition-colors w-full justify-center"
+                    >
+                      <Mail className="w-3.5 h-3.5 text-[#4DA3FF]" />
+                      Get this stack as a detailed PDF report
+                      <ArrowRight className="w-3 h-3" />
+                    </button>
+                  ) : (
+                    <form
+                      onSubmit={(e) => { e.preventDefault(); setShowEmailCapture(false); }}
+                      className="flex gap-2"
+                    >
+                      <input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="your@email.com"
+                        required
+                        className="flex-1 bg-[#111418] border border-[#232A33] text-[#E6EDF3] placeholder:text-[#6B7280] rounded-md px-3 py-2 text-xs focus:outline-none focus:border-[#4DA3FF]/50"
+                      />
+                      <button type="submit"
+                        className="px-4 py-2 rounded-md bg-[#4DA3FF] text-[#0B0D10] text-xs font-semibold hover:bg-[#4DA3FF]/90 transition-colors">
+                        Send PDF
+                      </button>
+                    </form>
+                  )}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+
+--- FILE: src/components/sections/CommunityStacks.tsx ---
+import { motion } from "framer-motion";
+import { useState } from "react";
+import { Heart, Copy, Check } from "lucide-react";
+
+interface Stack {
+  username: string;
+  initials: string;
+  title: string;
+  description: string;
+  tools: string[];
+  useCase: string;
+  upvotes: number;
+}
+
+const stacks: Stack[] = [
+  {
+    username: "Alex M.",
+    initials: "AM",
+    title: "Content Creator Pro",
+    description: "Kompletter YouTube-Workflow von Skript bis Publish",
+    tools: ["ChatGPT", "Midjourney", "ElevenLabs", "CapCut"],
+    useCase: "YouTube Content",
+    upvotes: 234,
+  },
+  {
+    username: "Sarah K.",
+    initials: "SK",
+    title: "Full-Stack Dev",
+    description: "Moderner Entwicklungs-Stack mit AI-Superkräften",
+    tools: ["Cursor", "Claude", "Copilot", "Vercel"],
+    useCase: "Webentwicklung",
+    upvotes: 187,
+  },
+  {
+    username: "Tom R.",
+    initials: "TR",
+    title: "Design Studio",
+    description: "Brand-Identität und visuelle Assets in Rekordzeit",
+    tools: ["Midjourney", "Figma AI", "DALL-E", "Canva AI"],
+    useCase: "Brand Design",
+    upvotes: 156,
+  },
+  {
+    username: "Dr. Chen",
+    initials: "DC",
+    title: "Research Lab",
+    description: "Akademische Recherche und Paper-Analyse automatisiert",
+    tools: ["Perplexity", "Claude", "Elicit", "Consensus"],
+    useCase: "Akademisch",
+    upvotes: 142,
+  },
+  {
+    username: "Lisa B.",
+    initials: "LB",
+    title: "Marketing Machine",
+    description: "Datengetriebenes Marketing von SEO bis Social Ads",
+    tools: ["ChatGPT", "Jasper", "Surfer SEO", "Midjourney"],
+    useCase: "Digital Marketing",
+    upvotes: 198,
+  },
+  {
+    username: "DJ Wave",
+    initials: "DW",
+    title: "Music Producer",
+    description: "Beats, Vocals und Mastering komplett AI-gestützt",
+    tools: ["Suno", "ElevenLabs", "Udio", "Splice AI"],
+    useCase: "Musikproduktion",
+    upvotes: 121,
+  },
+  {
+    username: "Max H.",
+    initials: "MH",
+    title: "Data Wizard",
+    description: "Von Rohdaten zu Insights in Minuten statt Stunden",
+    tools: ["Claude", "Jupyter AI", "Pandas AI", "ChatGPT"],
+    useCase: "Datenanalyse",
+    upvotes: 165,
+  },
+  {
+    username: "Nina F.",
+    initials: "NF",
+    title: "Startup Toolkit",
+    description: "Pitch Deck, Strategie und Docs für Gründer",
+    tools: ["Claude", "Notion AI", "Gamma", "Pitch"],
+    useCase: "Startups",
+    upvotes: 173,
+  },
+];
+
+function getAvatarColor(name: string): string {
+  const colors = [
+    "#4DA3FF",
+    "#2EC4B6",
+    "#E040FB",
+    "#FF9100",
+    "#69F0AE",
+    "#FF5252",
+    "#7C4DFF",
+    "#FFAB40",
+  ];
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return colors[Math.abs(hash) % colors.length];
+}
+
+const containerVariants = {
+  hidden: {},
+  visible: {
+    transition: {
+      staggerChildren: 0.06,
+    },
+  },
+};
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 30 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.4, ease: "easeOut" },
+  },
+};
+
+function StackCard({ stack }: { stack: Stack }) {
+  const [upvoted, setUpvoted] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const avatarColor = getAvatarColor(stack.username);
+  const displayUpvotes = upvoted ? stack.upvotes + 1 : stack.upvotes;
+
+  function handleCopy() {
+    const text = `${stack.title}: ${stack.tools.join(", ")}`;
+    navigator.clipboard.writeText(text).catch(() => {});
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  return (
+    <motion.div
+      variants={cardVariants}
+      whileHover={{ y: -4 }}
+      transition={{ type: "spring", stiffness: 300, damping: 20 }}
+      className="group relative flex flex-col rounded-2xl border border-white/10 bg-white/[0.04] p-5 backdrop-blur-xl transition-colors duration-300 hover:border-white/20"
+      style={{
+        boxShadow: "0 4px 16px rgba(0,0,0,0.15)",
+      }}
+    >
+      {/* Header: Avatar + User + Use-Case Tag */}
+      <div className="mb-3 flex items-center gap-3">
+        <div
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
+          style={{ backgroundColor: avatarColor }}
+          aria-hidden="true"
+        >
+          {stack.initials}
+        </div>
+        <div className="min-w-0 flex-1">
+          <span className="block truncate text-sm font-medium text-white">
+            {stack.username}
+          </span>
+        </div>
+        <span className="shrink-0 rounded-full bg-white/[0.08] px-2.5 py-0.5 text-[11px] font-medium text-white/60">
+          {stack.useCase}
+        </span>
+      </div>
+
+      {/* Title + Description */}
+      <h3 className="mb-1 text-base font-semibold text-white">{stack.title}</h3>
+      <p className="mb-4 text-sm leading-relaxed text-white/45">
+        {stack.description}
+      </p>
+
+      {/* Tool pills */}
+      <div className="mb-4 flex flex-wrap gap-1.5">
+        {stack.tools.map((tool) => (
+          <span
+            key={tool}
+            className="rounded-md border border-white/[0.08] bg-white/[0.06] px-2.5 py-1 text-xs font-medium text-white/70"
+          >
+            {tool}
+          </span>
+        ))}
+      </div>
+
+      {/* Footer: Upvote + Copy */}
+      <div className="mt-auto flex items-center justify-between pt-2">
+        <button
+          onClick={() => setUpvoted((v) => !v)}
+          className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs transition-colors hover:bg-white/[0.06]"
+          aria-label={upvoted ? "Upvote entfernen" : "Upvoten"}
+          aria-pressed={upvoted}
+        >
+          <Heart
+            className={`h-3.5 w-3.5 transition-colors ${
+              upvoted ? "fill-red-400 text-red-400" : "text-white/40"
+            }`}
+          />
+          <span
+            className={`font-medium tabular-nums ${
+              upvoted ? "text-red-400" : "text-white/40"
+            }`}
+          >
+            {displayUpvotes}
+          </span>
+        </button>
+
+        <button
+          onClick={handleCopy}
+          className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-white/40 opacity-0 transition-all hover:bg-white/[0.06] hover:text-white/70 group-hover:opacity-100"
+          aria-label="Stack kopieren"
+        >
+          {copied ? (
+            <>
+              <Check className="h-3.5 w-3.5 text-emerald-400" />
+              <span className="text-emerald-400">Kopiert!</span>
+            </>
+          ) : (
+            <>
+              <Copy className="h-3.5 w-3.5" />
+              <span>Stack kopieren</span>
+            </>
+          )}
+        </button>
+      </div>
+    </motion.div>
+  );
+}
+
+export function CommunityStacks() {
+  return (
+    <section className="relative w-full py-24" aria-labelledby="community-stacks-title">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        {/* Header */}
+        <div className="mb-14 text-center">
+          <motion.h2
+            id="community-stacks-title"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 0.5 }}
+            className="text-3xl font-bold tracking-tight text-white sm:text-4xl"
+          >
+            Community Stacks
+          </motion.h2>
+          <motion.p
+            initial={{ opacity: 0, y: 14 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="mt-4 text-base text-white/50 sm:text-lg"
+          >
+            Entdecke, welche AI-Stacks andere nutzen
+          </motion.p>
+        </div>
+
+        {/* Grid */}
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-60px" }}
+          className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4"
+        >
+          {stacks.map((stack) => (
+            <StackCard key={stack.title} stack={stack} />
+          ))}
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
+
+--- FILE: src/components/sections/TrendingTools.tsx ---
+import { useState, useRef, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useInView } from 'react-intersection-observer';
+import { ExternalLink, Star, Crown, Zap, Code, DollarSign } from 'lucide-react';
+import { APP_URL } from '@/lib/config';
+import { STATS } from '@/lib/constants';
+
+type Category = 'All' | 'Text' | 'Image' | 'Video' | 'Audio';
+
+const tools = [
+  { name: "ChatGPT",    desc: "Advanced language model by OpenAI for dialogue and generation.", category: "Text"  as const, tags: ["LLM","Chat"],        rating: 4.9, accent: "#2EC4B6", slug: "chatgpt",    price: "Free / $20/mo", hasAPI: true, featured: false },
+  { name: "Midjourney", desc: "High-quality AI image generation via Discord interface.",        category: "Image" as const, tags: ["Generative","Art"],   rating: 4.8, accent: "#4DA3FF", slug: "midjourney",  price: "$10/mo",        hasAPI: false, featured: true },
+  { name: "Runway",     desc: "Make the impossible. Next-generation video creation suite.",     category: "Video" as const, tags: ["Gen2","Editing"],     rating: 4.7, accent: "#F2C94C", slug: "runway",      price: "Free / $15/mo", hasAPI: true, featured: false },
+  { name: "ElevenLabs", desc: "The most realistic and versatile AI speech software.",           category: "Audio" as const, tags: ["TTS","Voice"],        rating: 4.9, accent: "#FF7A59", slug: "elevenlabs",  price: "Free / $5/mo",  hasAPI: true, featured: false },
+  { name: "Claude",     desc: "Next-gen AI assistant by Anthropic with large context window.",  category: "Text"  as const, tags: ["Assistant","Coding"], rating: 4.8, accent: "#4DA3FF", slug: "claude",      price: "Free / $20/mo", hasAPI: true, featured: true },
+  { name: "Pika",       desc: "An idea-to-video platform that brings your creativity to life.", category: "Video" as const, tags: ["Animation","3D"],     rating: 4.6, accent: "#2EC4B6", slug: "pika",        price: "Free / $10/mo", hasAPI: false, featured: false },
+];
+
+const CATEGORIES: Category[] = ["All", "Text", "Image", "Video", "Audio"];
+
+function TiltCard({ children, className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    const card = cardRef.current;
+    if (!card) return;
+    const rect = card.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width;
+    const y = (e.clientY - rect.top) / rect.height;
+    const tiltX = (y - 0.5) * -8;
+    const tiltY = (x - 0.5) * 8;
+    card.style.transform = `perspective(600px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) translateY(-4px)`;
+    card.style.setProperty('--mouse-x', `${x * 100}%`);
+    card.style.setProperty('--mouse-y', `${y * 100}%`);
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    const card = cardRef.current;
+    if (card) {
+      card.style.transform = 'perspective(600px) rotateX(0deg) rotateY(0deg) translateY(0px)';
+    }
+  }, []);
+
+  return (
+    <div
+      ref={cardRef}
+      className={`tilt-card ${className}`}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      style={{ transition: 'transform 0.15s ease-out' }}
+      {...props}
+    >
+      <div className="tilt-card-shine" />
+      {children}
+    </div>
+  );
+}
+
+export function TrendingTools() {
+  const [activeCategory, setActiveCategory] = useState<Category>("All");
+  const [hoveredTool, setHoveredTool] = useState<string | null>(null);
+  const [ref, inView] = useInView({ triggerOnce: true, threshold: 0.1 });
+
+  const filtered = activeCategory === "All"
+    ? tools
+    : tools.filter((t) => t.category === activeCategory);
+
+  return (
+    <section id="tools" className="py-24 bg-[#0B0D10]" aria-label="Trending AI tools">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex flex-col md:flex-row justify-between items-end mb-8 gap-4">
+          <div>
+            <h2 className="text-3xl md:text-4xl font-display font-bold text-[#E6EDF3] mb-1">Trending AI Tools</h2>
+            <p className="text-[#9BA3AF] text-sm">The most-used platforms in the ecosystem right now.</p>
+          </div>
+          <a
+            href={`${APP_URL}/tools`}
+            className="text-sm font-medium text-[#4DA3FF] hover:text-[#E6EDF3] transition-colors flex items-center gap-1.5 whitespace-nowrap no-underline"
+          >
+            View all {STATS.tools}+ <ExternalLink className="w-3.5 h-3.5" aria-hidden="true" />
+          </a>
+        </div>
+
+        <div className="flex flex-wrap gap-2 mb-8" role="group" aria-label="Filter by category">
+          {CATEGORIES.map((cat) => (
+            <button key={cat} onClick={() => setActiveCategory(cat)} aria-pressed={activeCategory === cat}
+              className={`px-4 py-1.5 rounded-full text-xs font-semibold border transition-all ${
+                activeCategory === cat
+                  ? 'bg-[#4DA3FF] text-[#0B0D10] border-[#4DA3FF]'
+                  : 'bg-[#1A2028] text-[#9BA3AF] border-[#232A33] hover:border-[#4DA3FF]/40 hover:text-[#E6EDF3]'
+              } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4DA3FF]/50`}>
+              {cat}
+            </button>
+          ))}
+        </div>
+
+        <div ref={ref} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <AnimatePresence mode="popLayout">
+            {filtered.map((tool, idx) => (
+              <motion.div
+                key={tool.slug}
+                layout
+                initial={{ opacity: 0, y: 16 }}
+                animate={inView ? { opacity: 1, y: 0 } : {}}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.35, delay: idx * 0.06 }}
+                className="relative"
+                onMouseEnter={() => setHoveredTool(tool.slug)}
+                onMouseLeave={() => setHoveredTool(null)}
+              >
+                <TiltCard className="glass-card p-5 rounded-xl group cursor-pointer block relative overflow-hidden">
+                  {/* Feature #28: Featured badge */}
+                  {tool.featured && (
+                    <div className="absolute top-3 right-3 flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#F2C94C]/10 border border-[#F2C94C]/30">
+                      <Crown className="w-3 h-3 text-[#F2C94C]" />
+                      <span className="text-[9px] font-bold text-[#F2C94C] uppercase">Featured</span>
+                    </div>
+                  )}
+
+                  <a href={`${APP_URL}/tools/${tool.slug}`} className="no-underline block">
+                    <div className="flex justify-between items-start mb-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg flex items-center justify-center font-bold text-[#0B0D10] text-sm flex-shrink-0"
+                          style={{ backgroundColor: tool.accent }} aria-hidden="true">
+                          {tool.name[0]}
+                        </div>
+                        <div>
+                          <h3 className="text-sm font-semibold text-[#E6EDF3] group-hover:text-[#4DA3FF] transition-colors leading-tight">
+                            {tool.name}
+                          </h3>
+                          <span className="text-[10px] font-medium text-[#6B7280] bg-[#1A2028] px-1.5 py-0.5 rounded mt-0.5 inline-block">
+                            {tool.category}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1 text-[#F2C94C] text-xs font-semibold" aria-label={`Rating: ${tool.rating} out of 5`}>
+                        <Star className="w-3 h-3 fill-current" aria-hidden="true" />
+                        {tool.rating}
+                      </div>
+                    </div>
+                    <p className="text-xs text-[#9BA3AF] mb-4 line-clamp-2 leading-relaxed">{tool.desc}</p>
+                    <div className="flex items-center justify-between">
+                      <div className="flex gap-1.5" aria-label={`Tags: ${tool.tags.join(", ")}`}>
+                        {tool.tags.map((tag) => (
+                          <span key={tag} className="text-[10px] border border-[#232A33] text-[#6B7280] px-2 py-0.5 rounded">{tag}</span>
+                        ))}
+                      </div>
+                      <ExternalLink className="w-3.5 h-3.5 text-[#6B7280] group-hover:text-[#4DA3FF] transition-colors" aria-hidden="true" />
+                    </div>
+                  </a>
+                </TiltCard>
+
+                {/* Feature #15: Hover popover */}
+                <AnimatePresence>
+                  {hoveredTool === tool.slug && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 4 }}
+                      transition={{ duration: 0.15 }}
+                      className="absolute -bottom-2 left-4 right-4 translate-y-full z-30 bg-[#1A2028] border border-[#232A33] rounded-lg p-3 shadow-xl pointer-events-none"
+                    >
+                      <div className="flex items-center gap-3 text-[10px]">
+                        <div className="flex items-center gap-1 text-[#9BA3AF]">
+                          <DollarSign className="w-3 h-3" />
+                          <span>{tool.price}</span>
+                        </div>
+                        {tool.hasAPI && (
+                          <div className="flex items-center gap-1 text-[#22C55E]">
+                            <Code className="w-3 h-3" />
+                            <span>API Available</span>
+                          </div>
+                        )}
+                        <div className="flex items-center gap-1 text-[#4DA3FF] ml-auto">
+                          <Zap className="w-3 h-3" />
+                          <span>Add to Stack</span>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+
+--- FILE: src/components/sections/ComparisonTable.tsx ---
+import { useState, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ChevronDown, X, Plus, Check, Minus, AlertTriangle } from 'lucide-react';
+
+type Support = 'yes' | 'no' | 'partial';
+
+interface ToolData {
+  name: string;
+  logo: string;
+  pricing: string;
+  apiAvailable: Support;
+  openSource: Support;
+  languageSupport: string;
+  speed: 'Schnell' | 'Mittel' | 'Langsam';
+  quality: 'Hoch' | 'Sehr Hoch' | 'Mittel';
+  category: string;
+}
+
+const TOOLS: Record<string, ToolData> = {
+  ChatGPT: {
+    name: 'ChatGPT',
+    logo: '🤖',
+    pricing: 'Freemium / $20/mo',
+    apiAvailable: 'yes',
+    openSource: 'no',
+    languageSupport: '95+ Sprachen',
+    speed: 'Schnell',
+    quality: 'Sehr Hoch',
+    category: 'LLM',
+  },
+  Claude: {
+    name: 'Claude',
+    logo: '🧠',
+    pricing: 'Freemium / $20/mo',
+    apiAvailable: 'yes',
+    openSource: 'no',
+    languageSupport: '80+ Sprachen',
+    speed: 'Schnell',
+    quality: 'Sehr Hoch',
+    category: 'LLM',
+  },
+  Gemini: {
+    name: 'Gemini',
+    logo: '✨',
+    pricing: 'Freemium / $20/mo',
+    apiAvailable: 'yes',
+    openSource: 'partial',
+    languageSupport: '100+ Sprachen',
+    speed: 'Schnell',
+    quality: 'Sehr Hoch',
+    category: 'LLM',
+  },
+  Midjourney: {
+    name: 'Midjourney',
+    logo: '🎨',
+    pricing: 'Ab $10/mo',
+    apiAvailable: 'no',
+    openSource: 'no',
+    languageSupport: 'Englisch (primär)',
+    speed: 'Mittel',
+    quality: 'Sehr Hoch',
+    category: 'Image AI',
+  },
+  'DALL-E': {
+    name: 'DALL-E',
+    logo: '🖼️',
+    pricing: 'Pay-per-Use',
+    apiAvailable: 'yes',
+    openSource: 'no',
+    languageSupport: '30+ Sprachen',
+    speed: 'Mittel',
+    quality: 'Hoch',
+    category: 'Image AI',
+  },
+  'Stable Diffusion': {
+    name: 'Stable Diffusion',
+    logo: '🌀',
+    pricing: 'Kostenlos / Self-Host',
+    apiAvailable: 'yes',
+    openSource: 'yes',
+    languageSupport: 'Englisch (primär)',
+    speed: 'Langsam',
+    quality: 'Hoch',
+    category: 'Image AI',
+  },
+  Copilot: {
+    name: 'Copilot',
+    logo: '💻',
+    pricing: '$10/mo',
+    apiAvailable: 'partial',
+    openSource: 'no',
+    languageSupport: '20+ Sprachen',
+    speed: 'Schnell',
+    quality: 'Hoch',
+    category: 'Code AI',
+  },
+  Cursor: {
+    name: 'Cursor',
+    logo: '⌨️',
+    pricing: 'Freemium / $20/mo',
+    apiAvailable: 'no',
+    openSource: 'no',
+    languageSupport: '15+ Sprachen',
+    speed: 'Schnell',
+    quality: 'Sehr Hoch',
+    category: 'Code AI',
+  },
+  Perplexity: {
+    name: 'Perplexity',
+    logo: '🔍',
+    pricing: 'Freemium / $20/mo',
+    apiAvailable: 'yes',
+    openSource: 'no',
+    languageSupport: '50+ Sprachen',
+    speed: 'Schnell',
+    quality: 'Hoch',
+    category: 'Suche',
+  },
+  ElevenLabs: {
+    name: 'ElevenLabs',
+    logo: '🎙️',
+    pricing: 'Freemium / $5/mo',
+    apiAvailable: 'yes',
+    openSource: 'no',
+    languageSupport: '29 Sprachen',
+    speed: 'Schnell',
+    quality: 'Sehr Hoch',
+    category: 'Audio AI',
+  },
+  Runway: {
+    name: 'Runway',
+    logo: '🎬',
+    pricing: 'Freemium / $12/mo',
+    apiAvailable: 'yes',
+    openSource: 'no',
+    languageSupport: 'Englisch (primär)',
+    speed: 'Langsam',
+    quality: 'Sehr Hoch',
+    category: 'Video AI',
+  },
+  Suno: {
+    name: 'Suno',
+    logo: '🎵',
+    pricing: 'Freemium / $10/mo',
+    apiAvailable: 'partial',
+    openSource: 'no',
+    languageSupport: '10+ Sprachen',
+    speed: 'Mittel',
+    quality: 'Hoch',
+    category: 'Audio AI',
+  },
+};
+
+const TOOL_NAMES = Object.keys(TOOLS);
+
+const FEATURES: { key: string; label: string; accessor: (t: ToolData) => string | Support }[] = [
+  { key: 'pricing', label: 'Preis', accessor: (t) => t.pricing },
+  { key: 'apiAvailable', label: 'API verfügbar', accessor: (t) => t.apiAvailable },
+  { key: 'openSource', label: 'Open Source', accessor: (t) => t.openSource },
+  { key: 'languageSupport', label: 'Sprachen', accessor: (t) => t.languageSupport },
+  { key: 'speed', label: 'Geschwindigkeit', accessor: (t) => t.speed },
+  { key: 'quality', label: 'Qualität', accessor: (t) => t.quality },
+  { key: 'category', label: 'Kategorie', accessor: (t) => t.category },
+];
+
+function SupportBadge({ value }: { value: Support }) {
+  if (value === 'yes') {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/20 px-2.5 py-0.5 text-xs font-medium text-emerald-400">
+        <Check className="h-3 w-3" /> Ja
+      </span>
+    );
+  }
+  if (value === 'no') {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full bg-red-500/20 px-2.5 py-0.5 text-xs font-medium text-red-400">
+        <X className="h-3 w-3" /> Nein
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/20 px-2.5 py-0.5 text-xs font-medium text-amber-400">
+      <AlertTriangle className="h-3 w-3" /> Teilweise
+    </span>
+  );
+}
+
+function CellContent({ value }: { value: string | Support }) {
+  if (value === 'yes' || value === 'no' || value === 'partial') {
+    return <SupportBadge value={value} />;
+  }
+  return <span className="text-sm text-zinc-300">{value}</span>;
+}
+
+export function ComparisonTable() {
+  const [selected, setSelected] = useState<string[]>(['ChatGPT', 'Claude']);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [search, setSearch] = useState('');
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const available = TOOL_NAMES.filter(
+    (n) => !selected.includes(n) && n.toLowerCase().includes(search.toLowerCase()),
+  );
+
+  const addTool = (name: string) => {
+    if (selected.length < 3 && !selected.includes(name)) {
+      setSelected((prev) => [...prev, name]);
+    }
+    setDropdownOpen(false);
+    setSearch('');
+  };
+
+  const removeTool = (name: string) => {
+    setSelected((prev) => prev.filter((t) => t !== name));
+  };
+
+  return (
+    <section className="relative w-full py-20 md:py-28" aria-labelledby="comparison-heading">
+      {/* Background glow */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute left-1/2 top-0 -translate-x-1/2 h-[500px] w-[700px] rounded-full bg-[#4DA3FF]/5 blur-[120px]" />
+      </div>
+
+      <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+        {/* Header */}
+        <motion.div
+          className="mb-12 text-center"
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.3 }}
+          transition={{ duration: 0.6 }}
+        >
+          <h2
+            id="comparison-heading"
+            className="text-3xl font-bold tracking-tight text-white sm:text-4xl lg:text-5xl"
+          >
+            AI Tool{' '}
+            <span className="bg-gradient-to-r from-[#4DA3FF] to-[#2EC4B6] bg-clip-text text-transparent">
+              Vergleich
+            </span>
+          </h2>
+          <p className="mx-auto mt-4 max-w-2xl text-base text-zinc-400 sm:text-lg">
+            Vergleiche die besten AI-Tools Seite an Seite
+          </p>
+        </motion.div>
+
+        {/* Tool selector */}
+        <motion.div
+          className="mb-8 flex flex-wrap items-center justify-center gap-3"
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+        >
+          <AnimatePresence mode="popLayout">
+            {selected.map((name) => {
+              const tool = TOOLS[name];
+              return (
+                <motion.button
+                  key={name}
+                  layout
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+                  onClick={() => removeTool(name)}
+                  className="group flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 backdrop-blur-md transition-colors hover:border-red-500/40 hover:bg-red-500/10"
+                  aria-label={`${name} entfernen`}
+                >
+                  <span className="text-lg">{tool.logo}</span>
+                  <span className="text-sm font-medium text-white">{name}</span>
+                  <X className="h-3.5 w-3.5 text-zinc-500 transition-colors group-hover:text-red-400" />
+                </motion.button>
+              );
+            })}
+          </AnimatePresence>
+
+          {selected.length < 3 && (
+            <div className="relative" ref={dropdownRef}>
+              <button
+                onClick={() => setDropdownOpen((o) => !o)}
+                className="flex items-center gap-2 rounded-xl border border-dashed border-white/20 bg-white/5 px-4 py-2.5 text-sm text-zinc-400 backdrop-blur-md transition-colors hover:border-[#4DA3FF]/50 hover:text-white"
+                aria-haspopup="listbox"
+                aria-expanded={dropdownOpen}
+              >
+                <Plus className="h-4 w-4" />
+                Tool hinzufügen
+                <ChevronDown
+                  className={`h-3.5 w-3.5 transition-transform ${dropdownOpen ? 'rotate-180' : ''}`}
+                />
+              </button>
+
+              <AnimatePresence>
+                {dropdownOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.2 }}
+                    className="absolute left-0 z-50 mt-2 w-64 overflow-hidden rounded-xl border border-white/10 bg-zinc-900/95 shadow-2xl backdrop-blur-xl"
+                  >
+                    <div className="border-b border-white/5 p-2">
+                      <input
+                        type="text"
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        placeholder="Tool suchen…"
+                        className="w-full rounded-lg bg-white/5 px-3 py-2 text-sm text-white placeholder-zinc-500 outline-none focus:ring-1 focus:ring-[#4DA3FF]/50"
+                        autoFocus
+                      />
+                    </div>
+                    <ul className="max-h-56 overflow-y-auto p-1" role="listbox">
+                      {available.length === 0 && (
+                        <li className="px-3 py-2 text-center text-xs text-zinc-500">
+                          Keine Tools gefunden
+                        </li>
+                      )}
+                      {available.map((name) => {
+                        const tool = TOOLS[name];
+                        return (
+                          <li key={name}>
+                            <button
+                              onClick={() => addTool(name)}
+                              className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm text-zinc-300 transition-colors hover:bg-white/10 hover:text-white"
+                              role="option"
+                              aria-selected={false}
+                            >
+                              <span className="text-base">{tool.logo}</span>
+                              <span className="flex-1">{name}</span>
+                              <span className="rounded-md bg-white/5 px-1.5 py-0.5 text-[10px] text-zinc-500">
+                                {tool.category}
+                              </span>
+                            </button>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          )}
+        </motion.div>
+
+        {/* Comparison table */}
+        <AnimatePresence mode="wait">
+          {selected.length >= 2 ? (
+            <motion.div
+              key={selected.join(',')}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.4 }}
+            >
+              {/* Desktop table */}
+              <div className="hidden overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-md md:block">
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="border-b border-white/10">
+                      <th className="px-6 py-5 text-xs font-semibold uppercase tracking-wider text-zinc-500">
+                        Feature
+                      </th>
+                      {selected.map((name) => {
+                        const tool = TOOLS[name];
+                        return (
+                          <th key={name} className="px-6 py-5 text-center">
+                            <div className="flex flex-col items-center gap-1.5">
+                              <span className="text-2xl">{tool.logo}</span>
+                              <span className="text-sm font-semibold text-white">{name}</span>
+                              <span className="rounded-md bg-white/5 px-2 py-0.5 text-[10px] text-zinc-500">
+                                {tool.category}
+                              </span>
+                            </div>
+                          </th>
+                        );
+                      })}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {FEATURES.map((feature, i) => (
+                      <motion.tr
+                        key={feature.key}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: i * 0.05, duration: 0.3 }}
+                        className="border-b border-white/5 transition-colors hover:bg-white/[0.02]"
+                      >
+                        <td className="px-6 py-4 text-sm font-medium text-zinc-400">
+                          {feature.label}
+                        </td>
+                        {selected.map((name) => {
+                          const tool = TOOLS[name];
+                          const value = feature.accessor(tool);
+                          return (
+                            <td key={name} className="px-6 py-4 text-center">
+                              <CellContent value={value} />
+                            </td>
+                          );
+                        })}
+                      </motion.tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile cards */}
+              <div className="flex flex-col gap-4 md:hidden">
+                {selected.map((name) => {
+                  const tool = TOOLS[name];
+                  return (
+                    <motion.div
+                      key={name}
+                      initial={{ opacity: 0, y: 16 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-md"
+                    >
+                      <div className="flex items-center gap-3 border-b border-white/10 px-5 py-4">
+                        <span className="text-2xl">{tool.logo}</span>
+                        <div>
+                          <p className="text-sm font-semibold text-white">{name}</p>
+                          <p className="text-xs text-zinc-500">{tool.category}</p>
+                        </div>
+                      </div>
+                      <div className="divide-y divide-white/5">
+                        {FEATURES.map((feature) => {
+                          const value = feature.accessor(tool);
+                          return (
+                            <div
+                              key={feature.key}
+                              className="flex items-center justify-between px-5 py-3"
+                            >
+                              <span className="text-xs font-medium text-zinc-500">
+                                {feature.label}
+                              </span>
+                              <CellContent value={value} />
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </motion.div>
+          ) : (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-white/10 py-20 text-center"
+            >
+              <Minus className="mb-3 h-8 w-8 text-zinc-600" />
+              <p className="text-sm text-zinc-500">
+                Wähle mindestens <span className="text-zinc-300">2 Tools</span> aus, um sie zu
+                vergleichen
+              </p>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </section>
+  );
+}
+
+
+--- FILE: src/components/sections/ToolComparison.tsx ---
+import { useState, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { X, Plus, Star, ExternalLink, ArrowLeftRight, DollarSign, Layers, Tag } from 'lucide-react';
+import { TOOLS_DATA } from '@/data/toolsData';
+import type { ToolData } from '@/api/toolsApi';
+
+const MAX_COMPARE = 3;
+
+function PricingBadge({ pricing }: { pricing: string }) {
+  const c: Record<string, string> = {
+    Free: 'bg-green-500/20 text-green-400 border-green-500/30',
+    Freemium: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
+    Paid: 'bg-orange-500/20 text-orange-400 border-orange-500/30',
+  };
+  return <span className={`px-2.5 py-1 rounded-full text-xs font-medium border ${c[pricing] || 'bg-gray-500/20 text-gray-400'}`}>{pricing}</span>;
+}
+
+function RatingBar({ value }: { value: number }) {
+  return (
+    <div className="flex items-center gap-2">
+      <div className="flex-1 h-2 bg-white/5 rounded-full overflow-hidden">
+        <motion.div className="h-full bg-gradient-to-r from-cyan-500 to-purple-500 rounded-full"
+          initial={{ width: 0 }} animate={{ width: `${(value/5)*100}%` }} transition={{ duration: 0.6 }} />
+      </div>
+      <span className="text-sm font-mono text-gray-300 w-8 text-right">{value.toFixed(1)}</span>
+    </div>
+  );
+}
+
+export function ToolComparison() {
+  const [selected, setSelected] = useState<ToolData[]>([]);
+  const [query, setQuery] = useState('');
+  const [showPicker, setShowPicker] = useState(false);
+
+  const results = useMemo(() => {
+    if (!query.trim()) return TOOLS_DATA.slice(0, 8);
+    const q = query.toLowerCase();
+    return TOOLS_DATA.filter(t => t.name.toLowerCase().includes(q) || t.category.toLowerCase().includes(q)).slice(0, 8);
+  }, [query]);
+
+  const addTool = (tool: ToolData) => {
+    if (selected.length < MAX_COMPARE && !selected.find(t => t.id === tool.id)) {
+      setSelected(p => [...p, tool]);
+      setShowPicker(false);
+      setQuery('');
+    }
+  };
+
+  const allTags = useMemo(() => {
+    const s = new Set<string>();
+    selected.forEach(t => t.tags.forEach(tag => s.add(tag)));
+    return [...s].sort();
+  }, [selected]);
+
+  return (
+    <section id="compare" className="py-20 px-4" aria-label="Tool-Vergleich">
+      <div className="max-w-6xl mx-auto">
+        <div className="text-center mb-12">
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-cyan-500/10 to-purple-500/10 border border-cyan-500/20 text-sm text-cyan-400 mb-4">
+            <ArrowLeftRight className="w-4 h-4" /> Side-by-Side
+          </motion.div>
+          <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">Tools vergleichen</h2>
+          <p className="text-gray-400 mt-2">Wähle bis zu 3 Tools und vergleiche sie direkt</p>
+        </div>
+
+        <div className="flex flex-wrap justify-center gap-4 mb-10">
+          <AnimatePresence>
+            {selected.map(tool => (
+              <motion.div key={tool.id} layout initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10">
+                <span className="font-medium">{tool.name}</span>
+                <button onClick={() => setSelected(p => p.filter(t => t.id !== tool.id))} className="p-0.5 rounded-full hover:bg-white/10" aria-label={`${tool.name} entfernen`}>
+                  <X className="w-3.5 h-3.5 text-gray-400" />
+                </button>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+          {selected.length < MAX_COMPARE && (
+            <div className="relative">
+              <button onClick={() => setShowPicker(!showPicker)}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl border border-dashed border-white/20 hover:border-cyan-500/40 hover:bg-white/5 transition-all text-gray-400 hover:text-white">
+                <Plus className="w-4 h-4" /> Tool hinzufügen
+              </button>
+              <AnimatePresence>
+                {showPicker && (
+                  <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+                    className="absolute top-full mt-2 left-0 z-50 w-72 bg-[#13161C] border border-white/10 rounded-xl shadow-2xl overflow-hidden">
+                    <div className="p-3 border-b border-white/5">
+                      <input type="text" placeholder="Tool suchen..." value={query} onChange={e => setQuery(e.target.value)}
+                        className="w-full bg-white/5 rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-cyan-500/50 placeholder:text-gray-500" autoFocus />
+                    </div>
+                    <div className="max-h-56 overflow-y-auto p-2">
+                      {results.filter(t => !selected.find(s => s.id === t.id)).map(tool => (
+                        <button key={tool.id} onClick={() => addTool(tool)}
+                          className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-white/5 transition-colors text-left">
+                          <div><span className="text-sm font-medium">{tool.name}</span><span className="text-xs text-gray-500 ml-2">{tool.category}</span></div>
+                          <span className="text-xs text-gray-500">{tool.rating}★</span>
+                        </button>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          )}
+        </div>
+
+        {selected.length >= 2 ? (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+            className="bg-white/[0.02] border border-white/10 rounded-2xl overflow-hidden">
+            <div className="grid gap-px bg-white/5" style={{ gridTemplateColumns: `180px repeat(${selected.length}, 1fr)` }}>
+              <div className="bg-[#0B0D10] p-4 font-semibold text-gray-400 text-sm">Feature</div>
+              {selected.map(t => (
+                <div key={t.id} className="bg-[#0B0D10] p-4 text-center">
+                  <h3 className="font-bold text-lg">{t.name}</h3>
+                  <a href={t.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-cyan-400 hover:text-cyan-300 mt-1">
+                    Website <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
+              ))}
+
+              <div className="bg-[#0D0F14] p-4 flex items-center gap-2 text-sm text-gray-400"><DollarSign className="w-4 h-4" /> Pricing</div>
+              {selected.map(t => <div key={t.id} className="bg-[#0D0F14] p-4 flex justify-center"><PricingBadge pricing={t.pricing} /></div>)}
+
+              <div className="bg-[#0B0D10] p-4 flex items-center gap-2 text-sm text-gray-400"><Layers className="w-4 h-4" /> Kategorie</div>
+              {selected.map(t => <div key={t.id} className="bg-[#0B0D10] p-4 text-center text-sm">{t.category}</div>)}
+
+              <div className="bg-[#0D0F14] p-4 flex items-center gap-2 text-sm text-gray-400"><Star className="w-4 h-4" /> Bewertung</div>
+              {selected.map(t => <div key={t.id} className="bg-[#0D0F14] p-4"><RatingBar value={t.rating} /></div>)}
+
+              <div className="bg-[#0B0D10] p-4 text-sm text-gray-400">Beschreibung</div>
+              {selected.map(t => <div key={t.id} className="bg-[#0B0D10] p-4 text-sm text-gray-300">{t.description}</div>)}
+
+              <div className="bg-[#0D0F14] p-4 flex items-center gap-2 text-sm text-gray-400"><Tag className="w-4 h-4" /> Tags</div>
+              {selected.map(tool => (
+                <div key={tool.id} className="bg-[#0D0F14] p-4 flex flex-wrap gap-1 justify-center">
+                  {allTags.map(tag => (
+                    <span key={tag} className={`px-2 py-0.5 rounded-full text-xs ${tool.tags.includes(tag) ? 'bg-cyan-500/20 text-cyan-400' : 'bg-white/5 text-gray-600 line-through'}`}>{tag}</span>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        ) : (
+          <div className="text-center py-16 text-gray-500">
+            <ArrowLeftRight className="w-12 h-12 mx-auto mb-4 opacity-30" />
+            <p>Wähle mindestens 2 Tools zum Vergleichen</p>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+export default ToolComparison;
+
+
+--- FILE: src/components/sections/ToolOfDay.tsx ---
+import { useState, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useInView } from "framer-motion";
+import { useRef } from "react";
+import {
+  Star,
+  Check,
+  X,
+  ChevronLeft,
+  ChevronRight,
+  ExternalLink,
+} from "lucide-react";
+
+interface Tool {
+  name: string;
+  category: string;
+  description: string;
+  pros: string[];
+  cons: string[];
+  rating: number;
+  link: string;
+  gradient: string;
+  accent: string;
+}
+
+const tools: Tool[] = [
+  {
+    name: "ChatGPT",
+    category: "Textgenerierung & Chat",
+    description:
+      "ChatGPT von OpenAI ist der Pionier unter den KI-Chatbots und setzt Maßstäbe für konversationelle Intelligenz. Mit GPT-4o versteht es komplexe Zusammenhänge, schreibt Code und erstellt kreative Inhalte. Millionen Nutzer weltweit setzen es täglich für Arbeit, Lernen und Kreativität ein.",
+    pros: [
+      "Extrem vielseitig einsetzbar",
+      "Hervorragend bei Textaufgaben & Code",
+      "Riesiges Plugin-Ökosystem",
+    ],
+    cons: [
+      "Kann bei Fakten halluzinieren",
+      "Premium-Features nur im Abo",
+    ],
+    rating: 4.5,
+    link: "https://chat.openai.com",
+    gradient: "from-emerald-500/20 via-teal-500/10 to-cyan-500/20",
+    accent: "#10B981",
+  },
+  {
+    name: "Midjourney",
+    category: "Bildgenerierung",
+    description:
+      "Midjourney ist der Goldstandard für KI-generierte Kunst und Bilder. Die neueste Version liefert fotorealistische Ergebnisse und atemberaubende Illustrationen auf höchstem Niveau. Besonders beliebt bei Designern, Künstlern und Kreativagenturen weltweit.",
+    pros: [
+      "Beste Bildqualität am Markt",
+      "Einzigartiger künstlerischer Stil",
+      "Aktive Community & Inspiration",
+    ],
+    cons: [
+      "Nur über Discord bedienbar",
+      "Kein kostenloser Einstieg mehr",
+    ],
+    rating: 4.7,
+    link: "https://www.midjourney.com",
+    gradient: "from-violet-500/20 via-purple-500/10 to-fuchsia-500/20",
+    accent: "#8B5CF6",
+  },
+  {
+    name: "Cursor",
+    category: "AI Code-Editor",
+    description:
+      "Cursor revolutioniert die Softwareentwicklung als KI-nativer Code-Editor. Basierend auf VS Code bietet es nahtlose AI-Autovervollständigung, intelligentes Refactoring und kontextbewusste Codevorschläge. Ein Muss für moderne Entwickler, die produktiver arbeiten wollen.",
+    pros: [
+      "Versteht gesamte Codebasis",
+      "Nahtlose VS-Code-Integration",
+      "Multi-File-Editing mit KI",
+    ],
+    cons: [
+      "Hoher Ressourcenverbrauch",
+      "Abo für volle Leistung nötig",
+    ],
+    rating: 4.6,
+    link: "https://cursor.sh",
+    gradient: "from-blue-500/20 via-indigo-500/10 to-violet-500/20",
+    accent: "#4DA3FF",
+  },
+  {
+    name: "ElevenLabs",
+    category: "AI Voice & Audio",
+    description:
+      "ElevenLabs bietet die realistischste KI-Sprachsynthese auf dem Markt. Von Voice Cloning bis hin zu multilingualer Sprachausgabe – die Technologie ist kaum von echten Stimmen zu unterscheiden. Ideal für Content Creator, Podcaster und Unternehmen.",
+    pros: [
+      "Ultra-realistische Stimmen",
+      "Voice Cloning in Minuten",
+      "29+ Sprachen unterstützt",
+    ],
+    cons: [
+      "Free-Tier stark limitiert",
+      "Ethische Bedenken bei Voice Cloning",
+    ],
+    rating: 4.4,
+    link: "https://elevenlabs.io",
+    gradient: "from-amber-500/20 via-orange-500/10 to-yellow-500/20",
+    accent: "#F59E0B",
+  },
+  {
+    name: "Runway Gen-3",
+    category: "Videogenerierung",
+    description:
+      "Runway Gen-3 Alpha setzt neue Maßstäbe bei der KI-Videoerzeugung mit beeindruckender visueller Qualität und Konsistenz. Es ermöglicht Text-to-Video, Image-to-Video und erweiterte Bearbeitungsfunktionen. Die Zukunft der Videoproduktion hat begonnen.",
+    pros: [
+      "Führend bei AI-Videogenerierung",
+      "Intuitive Web-Oberfläche",
+      "Vielfältige Kreativ-Tools",
+    ],
+    cons: [
+      "Videos noch auf Sekunden begrenzt",
+      "Hohe Kosten bei viel Nutzung",
+    ],
+    rating: 4.3,
+    link: "https://runwayml.com",
+    gradient: "from-rose-500/20 via-pink-500/10 to-red-500/20",
+    accent: "#F43F5E",
+  },
+  {
+    name: "Perplexity",
+    category: "AI-Suchmaschine",
+    description:
+      "Perplexity kombiniert die Stärke von LLMs mit Echtzeit-Websuche und liefert fundierte Antworten mit Quellenangaben. Als AI-First-Suchmaschine bietet es eine radikal neue Art der Informationsrecherche. Perfekt für alle, die schnelle und verlässliche Antworten brauchen.",
+    pros: [
+      "Immer aktuelle Informationen",
+      "Transparente Quellenangaben",
+      "Pro-Search für Tiefenrecherche",
+    ],
+    cons: [
+      "Manchmal oberflächliche Antworten",
+      "Pro-Suchen im Free-Tier begrenzt",
+    ],
+    rating: 4.5,
+    link: "https://www.perplexity.ai",
+    gradient: "from-cyan-500/20 via-sky-500/10 to-blue-500/20",
+    accent: "#06B6D4",
+  },
+  {
+    name: "Claude",
+    category: "AI-Assistent & Analyse",
+    description:
+      "Claude von Anthropic überzeugt durch besonders lange Kontextfenster, nuanciertes Reasoning und höchste Sicherheitsstandards. Ideal für komplexe Analysen, wissenschaftliches Arbeiten und lange Dokumente. Viele Nutzer schätzen den präzisen und durchdachten Kommunikationsstil.",
+    pros: [
+      "200K Token Kontextfenster",
+      "Exzellent bei Analyse & Reasoning",
+      "Starker Fokus auf AI-Safety",
+    ],
+    cons: [
+      "Kein Internetzugang integriert",
+      "Kleineres Plugin-Ökosystem",
+    ],
+    rating: 4.6,
+    link: "https://claude.ai",
+    gradient: "from-orange-500/20 via-amber-500/10 to-yellow-500/20",
+    accent: "#D97706",
+  },
+];
+
+const dayNames = [
+  "Sonntag",
+  "Montag",
+  "Dienstag",
+  "Mittwoch",
+  "Donnerstag",
+  "Freitag",
+  "Samstag",
+];
+
+function StarRating({ rating }: { rating: number }) {
+  return (
+    <div className="flex items-center gap-1" aria-label={`${rating} von 5 Sternen`}>
+      {Array.from({ length: 5 }, (_, i) => {
+        const filled = i < Math.floor(rating);
+        const half = !filled && i < rating;
+        return (
+          <span key={i} className="relative">
+            <Star
+              className={`w-5 h-5 ${
+                filled
+                  ? "text-yellow-400 fill-yellow-400"
+                  : half
+                  ? "text-yellow-400"
+                  : "text-white/20"
+              }`}
+            />
+            {half && (
+              <span className="absolute inset-0 overflow-hidden w-[50%]">
+                <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
+              </span>
+            )}
+          </span>
+        );
+      })}
+      <span className="ml-2 text-sm text-white/60 font-medium">{rating.toFixed(1)}</span>
+    </div>
+  );
+}
+
+export function ToolOfDay() {
+  const todayIndex = new Date().getDay();
+  const [selectedIndex, setSelectedIndex] = useState(todayIndex);
+  const tool = tools[selectedIndex];
+  const ref = useRef<HTMLElement>(null);
+  const isInView = useInView(ref, { once: true, amount: 0.2 });
+
+  const isToday = selectedIndex === todayIndex;
+
+  const navigate = (dir: number) => {
+    setSelectedIndex((prev) => (prev + dir + 7) % 7);
+  };
+
+  return (
+    <section ref={ref} className="py-20 md:py-28 px-4">
+      <div className="max-w-5xl mx-auto">
+        {/* Header */}
+        <motion.div
+          className="text-center mb-12"
+          initial={{ opacity: 0, y: 30 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6 }}
+        >
+          <h2 className="text-3xl md:text-5xl font-bold text-white mb-4">
+            Tool des Tages
+          </h2>
+          <p className="text-white/50 text-lg max-w-xl mx-auto">
+            Jeden Tag ein neues AI-Highlight
+          </p>
+        </motion.div>
+
+        {/* Card */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={tool.name}
+            initial={{ opacity: 0, y: 40, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -30, scale: 0.97 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+            className={`relative rounded-3xl border border-white/10 bg-gradient-to-br ${tool.gradient} backdrop-blur-xl overflow-hidden`}
+          >
+            {/* Inner glass overlay */}
+            <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+
+            <div className="relative z-10 p-8 md:p-12">
+              {/* Top row: day badge + navigation */}
+              <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center gap-3">
+                  <span
+                    className="px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider"
+                    style={{
+                      backgroundColor: tool.accent + "22",
+                      color: tool.accent,
+                      border: `1px solid ${tool.accent}44`,
+                    }}
+                  >
+                    {dayNames[selectedIndex]}
+                  </span>
+                  {isToday && (
+                    <span className="px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider bg-white/10 text-white/70 border border-white/10">
+                      Heute
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => navigate(-1)}
+                    className="p-2 rounded-xl bg-white/5 border border-white/10 text-white/60 hover:text-white hover:bg-white/10 transition-all"
+                    aria-label="Vorheriger Tag"
+                  >
+                    <ChevronLeft className="w-5 h-5" />
+                  </button>
+                  <button
+                    onClick={() => navigate(1)}
+                    className="p-2 rounded-xl bg-white/5 border border-white/10 text-white/60 hover:text-white hover:bg-white/10 transition-all"
+                    aria-label="Nächster Tag"
+                  >
+                    <ChevronRight className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Main content grid */}
+              <div className="grid md:grid-cols-[1fr_auto] gap-8 md:gap-12">
+                {/* Left: info */}
+                <div className="space-y-6">
+                  <div>
+                    <p
+                      className="text-sm font-medium mb-2 uppercase tracking-wider"
+                      style={{ color: tool.accent }}
+                    >
+                      {tool.category}
+                    </p>
+                    <h3 className="text-3xl md:text-4xl font-bold text-white mb-4">
+                      {tool.name}
+                    </h3>
+                    <StarRating rating={tool.rating} />
+                  </div>
+
+                  <p className="text-white/60 text-base md:text-lg leading-relaxed max-w-2xl">
+                    {tool.description}
+                  </p>
+
+                  {/* Pros and Cons */}
+                  <div className="grid sm:grid-cols-2 gap-6">
+                    <div className="space-y-3">
+                      <h4 className="text-sm font-semibold text-white/80 uppercase tracking-wider">
+                        Vorteile
+                      </h4>
+                      <ul className="space-y-2">
+                        {tool.pros.map((pro) => (
+                          <li key={pro} className="flex items-start gap-2.5">
+                            <span className="mt-0.5 flex-shrink-0 w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center">
+                              <Check className="w-3 h-3 text-emerald-400" />
+                            </span>
+                            <span className="text-white/70 text-sm">{pro}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div className="space-y-3">
+                      <h4 className="text-sm font-semibold text-white/80 uppercase tracking-wider">
+                        Nachteile
+                      </h4>
+                      <ul className="space-y-2">
+                        {tool.cons.map((con) => (
+                          <li key={con} className="flex items-start gap-2.5">
+                            <span className="mt-0.5 flex-shrink-0 w-5 h-5 rounded-full bg-red-500/20 flex items-center justify-center">
+                              <X className="w-3 h-3 text-red-400" />
+                            </span>
+                            <span className="text-white/70 text-sm">{con}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+
+                  {/* CTA */}
+                  <a
+                    href={tool.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-white transition-all duration-300 hover:scale-105 group"
+                    style={{
+                      backgroundColor: tool.accent,
+                      boxShadow: `0 0 20px ${tool.accent}33`,
+                    }}
+                    onMouseEnter={(e) => {
+                      (e.currentTarget as HTMLElement).style.boxShadow = `0 0 40px ${tool.accent}66`;
+                    }}
+                    onMouseLeave={(e) => {
+                      (e.currentTarget as HTMLElement).style.boxShadow = `0 0 20px ${tool.accent}33`;
+                    }}
+                  >
+                    Tool besuchen
+                    <ExternalLink className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
+                  </a>
+                </div>
+
+                {/* Right: decorative large icon / initial */}
+                <div className="hidden md:flex items-center justify-center">
+                  <div
+                    className="w-32 h-32 rounded-3xl flex items-center justify-center text-5xl font-black"
+                    style={{
+                      backgroundColor: tool.accent + "15",
+                      color: tool.accent,
+                      border: `2px solid ${tool.accent}33`,
+                    }}
+                  >
+                    {tool.name.charAt(0)}
+                  </div>
+                </div>
+              </div>
+
+              {/* Day dots navigation */}
+              <div className="flex items-center justify-center gap-2 mt-10">
+                {tools.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setSelectedIndex(i)}
+                    className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
+                      i === selectedIndex
+                        ? "scale-125"
+                        : "bg-white/20 hover:bg-white/40"
+                    }`}
+                    style={
+                      i === selectedIndex
+                        ? { backgroundColor: tool.accent }
+                        : undefined
+                    }
+                    aria-label={`${dayNames[i]} - ${tools[i].name}`}
+                  />
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        </AnimatePresence>
+      </div>
+    </section>
+  );
+}
+
+
+--- FILE: src/components/sections/CategoryBrowser.tsx ---
+import { motion } from "framer-motion";
+import { useState } from "react";
+
+interface Category {
+  emoji: string;
+  name: string;
+  description: string;
+  toolCount: number;
+  accent: string;
+  topTools: string[];
+}
+
+const categories: Category[] = [
+  { emoji: "💬", name: "Text & Chat", description: "Chatbots, Schreibassistenten & Textgenerierung", toolCount: 45, accent: "#4DA3FF", topTools: ["ChatGPT", "Claude", "Gemini"] },
+  { emoji: "🎨", name: "Bild-Generierung", description: "AI-Kunst, Fotoeditierung & Bildbearbeitung", toolCount: 32, accent: "#E040FB", topTools: ["Midjourney", "DALL-E", "Stable Diffusion"] },
+  { emoji: "🎬", name: "Video AI", description: "Videoproduktion, Editing & Animation", toolCount: 28, accent: "#FF5252", topTools: ["Runway", "Pika", "HeyGen"] },
+  { emoji: "🎵", name: "Audio & Musik", description: "Musikgenerierung, Stimmen & Podcasts", toolCount: 24, accent: "#FF9100", topTools: ["Suno", "ElevenLabs", "Udio"] },
+  { emoji: "💻", name: "Code-Assistenten", description: "Programmierung, Debugging & Entwicklung", toolCount: 38, accent: "#69F0AE", topTools: ["Cursor", "Copilot", "Replit"] },
+  { emoji: "⚡", name: "Produktivität", description: "Workflow-Automatisierung & Organisation", toolCount: 52, accent: "#2EC4B6", topTools: ["Notion AI", "Zapier", "Otter.ai"] },
+  { emoji: "🔬", name: "Forschung", description: "Wissenschaftliche Analyse & Literaturrecherche", toolCount: 18, accent: "#7C4DFF", topTools: ["Elicit", "Consensus", "Perplexity"] },
+  { emoji: "📈", name: "Marketing", description: "Content-Marketing, SEO & Social Media", toolCount: 35, accent: "#FFAB40", topTools: ["Jasper", "Surfer SEO", "Copy.ai"] },
+  { emoji: "✏️", name: "Design", description: "UI/UX, Grafikdesign & Prototyping", toolCount: 29, accent: "#F06292", topTools: ["Figma AI", "Canva AI", "Looka"] },
+  { emoji: "📊", name: "Datenanalyse", description: "Insights, Visualisierung & Business Intelligence", toolCount: 22, accent: "#40C4FF", topTools: ["Pandas AI", "Julius", "Obviously AI"] },
+  { emoji: "🎓", name: "Bildung", description: "E-Learning, Tutoring & Wissensmanagement", toolCount: 26, accent: "#B388FF", topTools: ["Khanmigo", "Duolingo Max", "Quizlet AI"] },
+  { emoji: "🎮", name: "Gaming", description: "Spieleentwicklung, NPCs & Leveldesign", toolCount: 15, accent: "#FF6E40", topTools: ["Scenario", "Ludo.ai", "Promethean AI"] },
+  { emoji: "🤖", name: "Robotik", description: "Steuerung, Simulation & autonome Systeme", toolCount: 12, accent: "#78909C", topTools: ["NVIDIA Isaac", "ROS AI", "DeepMind"] },
+  { emoji: "🌍", name: "Übersetzung", description: "Sprachübersetzung & Lokalisierung", toolCount: 20, accent: "#26A69A", topTools: ["DeepL", "Google Translate", "Papago"] },
+  { emoji: "🏥", name: "Gesundheit", description: "Medizinische AI, Diagnostik & Wellness", toolCount: 14, accent: "#EF5350", topTools: ["Ada Health", "Glass AI", "Hippocratic AI"] },
+  { emoji: "💰", name: "Finanzen", description: "Trading, Buchhaltung & Finanzanalyse", toolCount: 16, accent: "#66BB6A", topTools: ["AlphaSense", "Truewind", "Stampli"] },
+];
+
+const containerVariants = {
+  hidden: {},
+  visible: {
+    transition: {
+      staggerChildren: 0.05,
+    },
+  },
+};
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 30 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.4, ease: "easeOut" },
+  },
+};
+
+function CategoryCard({ category }: { category: Category }) {
+  const [hovered, setHovered] = useState(false);
+
+  return (
+    <motion.div
+      variants={cardVariants}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      whileHover={{ scale: 1.03, y: -4 }}
+      transition={{ type: "spring", stiffness: 300, damping: 20 }}
+      className="group relative cursor-pointer rounded-2xl border border-white/10 bg-white/[0.04] p-5 backdrop-blur-xl transition-colors duration-300"
+      style={{
+        borderColor: hovered ? `${category.accent}66` : undefined,
+        boxShadow: hovered
+          ? `0 0 24px ${category.accent}22, 0 8px 32px rgba(0,0,0,0.3)`
+          : "0 4px 16px rgba(0,0,0,0.15)",
+      }}
+      role="link"
+      tabIndex={0}
+      aria-label={`Kategorie ${category.name} mit ${category.toolCount} Tools`}
+    >
+      {/* Accent glow on hover */}
+      <div
+        className="pointer-events-none absolute -inset-px rounded-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+        style={{
+          background: `radial-gradient(400px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), ${category.accent}12, transparent 70%)`,
+        }}
+      />
+
+      <div className="relative z-10 flex flex-col gap-3">
+        {/* Header: Emoji + Badge */}
+        <div className="flex items-start justify-between">
+          <span className="text-4xl leading-none" aria-hidden="true">
+            {category.emoji}
+          </span>
+          <span
+            className="rounded-full px-2.5 py-0.5 text-xs font-semibold"
+            style={{
+              backgroundColor: `${category.accent}22`,
+              color: category.accent,
+            }}
+          >
+            {category.toolCount} Tools
+          </span>
+        </div>
+
+        {/* Name */}
+        <h3 className="text-base font-semibold text-white">{category.name}</h3>
+
+        {/* Description */}
+        <p className="text-sm leading-relaxed text-white/50">
+          {category.description}
+        </p>
+
+        {/* Top tools on hover */}
+        <motion.div
+          initial={false}
+          animate={{
+            height: hovered ? "auto" : 0,
+            opacity: hovered ? 1 : 0,
+          }}
+          transition={{ duration: 0.25, ease: "easeOut" }}
+          className="overflow-hidden"
+        >
+          <div className="flex flex-wrap gap-1.5 pt-1">
+            {category.topTools.map((tool) => (
+              <span
+                key={tool}
+                className="rounded-md bg-white/[0.06] px-2 py-0.5 text-xs text-white/60"
+              >
+                {tool}
+              </span>
+            ))}
+          </div>
+        </motion.div>
+      </div>
+    </motion.div>
+  );
+}
+
+export function CategoryBrowser() {
+  return (
+    <section className="relative w-full py-24" aria-labelledby="category-browser-title">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        {/* Header */}
+        <div className="mb-14 text-center">
+          <motion.h2
+            id="category-browser-title"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 0.5 }}
+            className="text-3xl font-bold tracking-tight text-white sm:text-4xl"
+          >
+            Kategorien entdecken
+          </motion.h2>
+          <motion.p
+            initial={{ opacity: 0, y: 14 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="mt-4 text-base text-white/50 sm:text-lg"
+          >
+            Durchstöbere 16 AI-Kategorien mit über 400 Tools
+          </motion.p>
+        </div>
+
+        {/* Grid */}
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-60px" }}
+          className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4"
+        >
+          {categories.map((cat) => (
+            <CategoryCard key={cat.name} category={cat} />
+          ))}
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
+
+--- FILE: src/components/sections/Workflows.tsx ---
+import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { useInView } from 'react-intersection-observer';
+import { Bot, Image as ImageIcon, Video, Mic, ArrowRight } from 'lucide-react';
+import { APP_URL } from '@/lib/config';
+
+const workflowSteps = [
+  { icon: Bot,       name: "ChatGPT",    role: "Prompt Gen", accent: "#2EC4B6" },
+  { icon: ImageIcon, name: "Midjourney", role: "Image Gen",  accent: "#4DA3FF" },
+  { icon: Video,     name: "Runway",     role: "Animation",  accent: "#F2C94C" },
+  { icon: Mic,       name: "ElevenLabs", role: "Voiceover",  accent: "#FF7A59" },
+];
+
+export function Workflows() {
+  const [ref, inView] = useInView({ triggerOnce: true, threshold: 0.3 });
+  const [activeStep, setActiveStep] = useState(0);
+
+  // Sequential step highlight
+  useEffect(() => {
+    if (!inView) return;
+    const interval = setInterval(() => {
+      setActiveStep((prev) => (prev + 1) % workflowSteps.length);
+    }, 2000);
+    return () => clearInterval(interval);
+  }, [inView]);
+
+  return (
+    <section id="workflows" className="py-24 relative bg-[#0B0D10]">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-16">
+          <h2 className="text-3xl md:text-5xl font-display font-bold text-[#E6EDF3] mb-4">
+            Build AI <span className="text-gradient">Workflows</span> Visually
+          </h2>
+          <p className="text-[#9BA3AF] max-w-xl mx-auto text-sm leading-relaxed">
+            Connect tools together to automate complex tasks. See how top creators chain AI models to produce incredible results.
+          </p>
+        </div>
+
+        <div ref={ref} className="relative max-w-4xl mx-auto">
+          {/* Animated connection lines (desktop) */}
+          <div className="absolute top-[3.5rem] left-[calc(12.5%+2rem)] right-[calc(12.5%+2rem)] h-[2px] hidden md:block overflow-hidden z-0">
+            {/* Background line */}
+            <div className="absolute inset-0 bg-[#1F242D]" />
+            
+            {/* Animated pulse that flows from active step */}
+            <motion.div
+              key={activeStep}
+              initial={{ left: `${(activeStep / (workflowSteps.length - 1)) * 100}%`, width: '0%' }}
+              animate={{ 
+                left: `${(activeStep / (workflowSteps.length - 1)) * 100}%`,
+                width: `${(1 / (workflowSteps.length - 1)) * 100}%`,
+              }}
+              transition={{ duration: 1.5, ease: 'easeInOut' }}
+              className="absolute top-0 h-full"
+              style={{
+                background: `linear-gradient(90deg, ${workflowSteps[activeStep]?.accent || '#4DA3FF'}80, transparent)`,
+              }}
+            />
+
+            {/* Flowing particle */}
+            <motion.div
+              animate={{ x: ['-10%', '110%'] }}
+              transition={{ repeat: Infinity, duration: 3, ease: 'linear' }}
+              className="absolute top-1/2 -translate-y-1/2 w-8 h-[2px]"
+              style={{
+                background: `linear-gradient(90deg, transparent, ${workflowSteps[activeStep]?.accent || '#4DA3FF'}, transparent)`,
+                boxShadow: `0 0 8px ${workflowSteps[activeStep]?.accent || '#4DA3FF'}60`,
+              }}
+            />
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-5 relative z-10">
+            {workflowSteps.map((step, idx) => {
+              const isActive = idx === activeStep;
+              return (
+                <motion.div
+                  key={step.name}
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={inView ? { opacity: 1, y: 0 } : {}}
+                  transition={{ duration: 0.4, delay: idx * 0.15 }}
+                  className={`glass-card p-5 rounded-xl flex flex-col items-center text-center group transition-all cursor-pointer ${
+                    isActive ? '-translate-y-2 shadow-lg' : 'hover:-translate-y-1'
+                  }`}
+                  style={{
+                    boxShadow: isActive ? `0 8px 30px ${step.accent}20` : undefined,
+                    borderColor: isActive ? `${step.accent}40` : undefined,
+                  }}
+                >
+                  <div
+                    className="w-14 h-14 rounded-xl flex items-center justify-center mb-4 transition-all"
+                    style={{
+                      backgroundColor: isActive ? `${step.accent}25` : `${step.accent}18`,
+                      border: `1px solid ${isActive ? `${step.accent}60` : `${step.accent}30`}`,
+                      boxShadow: isActive ? `0 0 20px ${step.accent}30` : 'none',
+                    }}
+                  >
+                    <step.icon
+                      className="w-6 h-6 transition-transform"
+                      style={{
+                        color: step.accent,
+                        transform: isActive ? 'scale(1.1)' : 'scale(1)',
+                      }}
+                    />
+                  </div>
+                  <h4 className="text-[#E6EDF3] font-semibold text-sm mb-1">{step.name}</h4>
+                  <p className="text-xs transition-colors" style={{ color: isActive ? step.accent : '#9BA3AF' }}>{step.role}</p>
+                  
+                  {/* Step number indicator */}
+                  <div
+                    className="mt-3 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold transition-all"
+                    style={{
+                      backgroundColor: isActive ? step.accent : '#1A2028',
+                      color: isActive ? '#0B0D10' : '#6B7280',
+                      border: `1px solid ${isActive ? step.accent : '#232A33'}`,
+                    }}
+                  >
+                    {idx + 1}
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="mt-12 text-center">
+          <a
+            href={`${APP_URL}/workflows`}
+            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-md border border-[#232A33] hover:border-[#4DA3FF]/40 text-[#9BA3AF] hover:text-[#E6EDF3] text-sm font-medium transition-all group no-underline"
+          >
+            Explore Workflow Templates
+            <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+          </a>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+
+--- FILE: src/components/sections/Newsletter.tsx ---
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Mail, ArrowRight, ArrowLeft, Check, Sparkles } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { APP_URL } from "@/lib/config";
+
+const FOCUS_OPTIONS = ["Content", "Development", "Design", "Marketing", "Research"] as const;
+const BUDGET_OPTIONS = ["Kostenlos", "<20€/mo", "<50€/mo", "Unlimited"] as const;
+
+type Focus = (typeof FOCUS_OPTIONS)[number];
+type Budget = (typeof BUDGET_OPTIONS)[number];
+
+export function Newsletter() {
+  const [step, setStep] = useState(1);
+  const [focus, setFocus] = useState<Focus | null>(null);
+  const [budget, setBudget] = useState<Budget | null>(null);
+  const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [direction, setDirection] = useState(1);
+  const { toast } = useToast();
+
+  const progress = (step / 3) * 100;
+
+  const goNext = () => {
+    setDirection(1);
+    setStep((s) => Math.min(s + 1, 3));
+  };
+
+  const goBack = () => {
+    setDirection(-1);
+    setStep((s) => Math.max(s - 1, 1));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim() || !focus || !budget) return;
+
+    setLoading(true);
+    try {
+      const res = await fetch(`${APP_URL}/api/newsletter`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, focus, budget }),
+      });
+
+      if (res.ok) {
+        setSubmitted(true);
+      } else {
+        throw new Error("Subscription failed");
+      }
+    } catch {
+      toast({
+        title: "Etwas ist schiefgelaufen",
+        description: "Bitte versuche es in einem Moment erneut.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const slideVariants = {
+    enter: (dir: number) => ({ x: dir > 0 ? 80 : -80, opacity: 0 }),
+    center: { x: 0, opacity: 1 },
+    exit: (dir: number) => ({ x: dir > 0 ? -80 : 80, opacity: 0 }),
+  };
+
+  return (
+    <section
+      id="newsletter"
+      className="py-20 bg-[#111418] border-t border-[#1F242D]"
+      aria-label="AI-Stack Empfehlung"
+    >
+      <div className="max-w-xl mx-auto px-4 sm:px-6">
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.4 }}
+          className="rounded-2xl border border-[#232A33] bg-[#1A2028]/60 backdrop-blur-xl p-6 sm:p-8 shadow-xl"
+        >
+          {submitted ? (
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: "spring", stiffness: 200, damping: 20 }}
+              className="text-center py-8"
+            >
+              <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-[#2EC4B6]/20">
+                <Check className="h-8 w-8 text-[#2EC4B6]" aria-hidden="true" />
+              </div>
+              <h3 className="text-xl font-display font-bold text-[#E6EDF3] mb-2">
+                📧 Deine Empfehlung ist unterwegs!
+              </h3>
+              <p className="text-sm text-[#9BA3AF]">
+                Wir haben dein persönliches AI-Stack basierend auf deinen Angaben zusammengestellt.
+                Schau in dein Postfach!
+              </p>
+            </motion.div>
+          ) : (
+            <>
+              {/* Header */}
+              <div className="text-center mb-6">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#1A2028] border border-[#232A33] text-xs font-semibold text-[#9BA3AF] mb-4">
+                  <Sparkles className="w-3.5 h-3.5 text-[#2EC4B6]" aria-hidden="true" />
+                  Kostenloses PDF
+                </div>
+                <h2 className="text-2xl md:text-3xl font-display font-bold text-[#E6EDF3] mb-2">
+                  Dein persönliches AI-Stack als PDF
+                </h2>
+                <p className="text-[#9BA3AF] text-sm leading-relaxed">
+                  Beantworte 3 kurze Fragen und erhalte deine maßgeschneiderte AI-Empfehlung per
+                  E-Mail
+                </p>
+              </div>
+
+              {/* Progress bar */}
+              <div className="mb-6">
+                <div className="flex items-center justify-between text-xs text-[#6B7280] mb-1.5">
+                  <span>Schritt {step} von 3</span>
+                  <span>{Math.round(progress)}%</span>
+                </div>
+                <div className="h-1.5 w-full rounded-full bg-[#1F242D] overflow-hidden">
+                  <motion.div
+                    className="h-full rounded-full bg-gradient-to-r from-[#4DA3FF] to-[#2EC4B6]"
+                    initial={false}
+                    animate={{ width: `${progress}%` }}
+                    transition={{ duration: 0.3, ease: "easeOut" }}
+                  />
+                </div>
+              </div>
+
+              {/* Steps */}
+              <div className="relative min-h-[180px]">
+                <AnimatePresence mode="wait" custom={direction}>
+                  {step === 1 && (
+                    <motion.div
+                      key="step1"
+                      custom={direction}
+                      variants={slideVariants}
+                      initial="enter"
+                      animate="center"
+                      exit="exit"
+                      transition={{ duration: 0.25, ease: "easeInOut" }}
+                    >
+                      <p className="text-sm font-semibold text-[#E6EDF3] mb-3">
+                        Was ist dein Fokus?
+                      </p>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                        {FOCUS_OPTIONS.map((opt) => (
+                          <button
+                            key={opt}
+                            type="button"
+                            onClick={() => {
+                              setFocus(opt);
+                              goNext();
+                            }}
+                            className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-all border ${
+                              focus === opt
+                                ? "border-[#2EC4B6] bg-[#2EC4B6]/15 text-[#2EC4B6]"
+                                : "border-[#232A33] bg-[#1A2028] text-[#9BA3AF] hover:border-[#2EC4B6]/50 hover:text-[#E6EDF3]"
+                            }`}
+                            aria-pressed={focus === opt}
+                          >
+                            {opt}
+                          </button>
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {step === 2 && (
+                    <motion.div
+                      key="step2"
+                      custom={direction}
+                      variants={slideVariants}
+                      initial="enter"
+                      animate="center"
+                      exit="exit"
+                      transition={{ duration: 0.25, ease: "easeInOut" }}
+                    >
+                      <p className="text-sm font-semibold text-[#E6EDF3] mb-3">Dein Budget?</p>
+                      <div className="grid grid-cols-2 gap-2">
+                        {BUDGET_OPTIONS.map((opt) => (
+                          <button
+                            key={opt}
+                            type="button"
+                            onClick={() => {
+                              setBudget(opt);
+                              goNext();
+                            }}
+                            className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-all border ${
+                              budget === opt
+                                ? "border-[#2EC4B6] bg-[#2EC4B6]/15 text-[#2EC4B6]"
+                                : "border-[#232A33] bg-[#1A2028] text-[#9BA3AF] hover:border-[#2EC4B6]/50 hover:text-[#E6EDF3]"
+                            }`}
+                            aria-pressed={budget === opt}
+                          >
+                            {opt}
+                          </button>
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {step === 3 && (
+                    <motion.div
+                      key="step3"
+                      custom={direction}
+                      variants={slideVariants}
+                      initial="enter"
+                      animate="center"
+                      exit="exit"
+                      transition={{ duration: 0.25, ease: "easeInOut" }}
+                    >
+                      <p className="text-sm font-semibold text-[#E6EDF3] mb-3">
+                        Wohin sollen wir dein AI-Stack senden?
+                      </p>
+                      <form onSubmit={handleSubmit} className="space-y-3" aria-label="E-Mail Eingabe">
+                        <div>
+                          <label htmlFor="quiz-email" className="sr-only">
+                            E-Mail Adresse
+                          </label>
+                          <input
+                            id="quiz-email"
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder="deine@email.com"
+                            required
+                            autoComplete="email"
+                            className="w-full bg-[#1A2028] border border-[#232A33] text-[#E6EDF3] placeholder:text-[#6B7280] rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-[#2EC4B6]/50 focus:ring-1 focus:ring-[#2EC4B6]/30"
+                          />
+                        </div>
+                        <button
+                          type="submit"
+                          disabled={loading}
+                          className="w-full flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg bg-gradient-to-r from-[#2EC4B6] to-[#4DA3FF] text-[#0B0D10] text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-60 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2EC4B6] focus-visible:ring-offset-2 focus-visible:ring-offset-[#111418]"
+                          aria-busy={loading}
+                        >
+                          {loading ? (
+                            "Wird gesendet..."
+                          ) : (
+                            <>
+                              PDF anfordern{" "}
+                              <ArrowRight className="w-4 h-4" aria-hidden="true" />
+                            </>
+                          )}
+                        </button>
+                      </form>
+                      <p className="text-[10px] text-[#6B7280] mt-3 text-center">
+                        Kein Spam. Jederzeit abmeldbar. 2.400+ Abonnenten.
+                      </p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* Back button */}
+              {step > 1 && (
+                <motion.button
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  type="button"
+                  onClick={goBack}
+                  className="mt-4 flex items-center gap-1.5 text-xs text-[#6B7280] hover:text-[#9BA3AF] transition-colors"
+                  aria-label="Zurück zum vorherigen Schritt"
+                >
+                  <ArrowLeft className="w-3.5 h-3.5" aria-hidden="true" />
+                  Zurück
+                </motion.button>
+              )}
+            </>
+          )}
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
+
+--- FILE: src/components/sections/Pricing.tsx ---
+import { useState } from 'react';
+import { motion } from 'framer-motion';
+import { useInView } from 'react-intersection-observer';
+import { Check, Zap } from 'lucide-react';
+import { APP_URL } from '@/lib/config';
+
+type Plan = { name: string; monthlyPrice: string; annualPrice: string; period: string; annualPeriod: string; desc: string; features: string[]; cta: string; href: string; accent: string; highlighted: boolean };
+
+const plans: Plan[] = [
+  {
+    name: "Free",
+    monthlyPrice: "$0", annualPrice: "$0",
+    period: "forever",  annualPeriod: "forever",
+    desc: "Perfect for exploring the AI landscape.",
+    features: ["50 tool lookups / day","Basic keyword search","Category browsing","Weekly newsletter digest"],
+    cta: "Start Exploring", href: "/register",
+    accent: "#9BA3AF", highlighted: false,
+  },
+  {
+    name: "Pro",
+    monthlyPrice: "$12", annualPrice: "$9",
+    period: "per month", annualPeriod: "per month, billed annually",
+    desc: "For builders who need the full map.",
+    features: ["Unlimited tool lookups","Advanced filters & categories","Personal Stack generator","Workflow templates","API access (500 req/day)","Priority support"],
+    cta: "Get Pro", href: "/register?plan=pro",
+    accent: "#4DA3FF", highlighted: true,
+  },
+  {
+    name: "Enterprise",
+    monthlyPrice: "Custom", annualPrice: "Custom",
+    period: "contact us", annualPeriod: "contact us",
+    desc: "For teams building on top of RunAtlas.",
+    features: ["Everything in Pro","Unlimited API access","Private tool lists","Team collaboration","Custom integrations","Dedicated account manager"],
+    cta: "Contact Sales",
+    href: "mailto:&#115;&#97;&#108;&#101;&#115;&#64;&#114;&#117;&#110;&#97;&#116;&#108;&#97;&#115;&#46;&#99;&#111;&#109;",
+    accent: "#2EC4B6", highlighted: false,
+  },
+];
+
+export function Pricing() {
+  const [annual, setAnnual] = useState(false);
+  const [ref, inView] = useInView({ triggerOnce: true, threshold: 0.1 });
+
+  return (
+    <section id="pricing" className="py-24 bg-[#0B0D10] border-t border-[#1F242D]" aria-label="Pricing plans">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-10">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#1A2028] border border-[#232A33] text-xs font-semibold text-[#9BA3AF] mb-6">
+            <Zap className="w-3.5 h-3.5 text-[#4DA3FF]" aria-hidden="true" /> Simple Pricing
+          </div>
+          <h2 className="text-3xl md:text-4xl font-display font-bold text-[#E6EDF3] mb-3">
+            Start free, scale when ready
+          </h2>
+          <p className="text-[#9BA3AF] max-w-md mx-auto text-sm leading-relaxed mb-8">
+            No hidden fees. Cancel anytime. Every plan includes access to the full AI tool directory.
+          </p>
+
+          {/* Billing toggle */}
+          <div className="inline-flex items-center gap-3 bg-[#111418] border border-[#232A33] rounded-full px-2 py-1.5" role="group" aria-label="Billing period">
+            <button
+              onClick={() => setAnnual(false)}
+              aria-pressed={!annual}
+              className={`px-4 py-1 rounded-full text-xs font-semibold transition-colors ${!annual ? 'bg-[#4DA3FF] text-[#0B0D10]' : 'text-[#9BA3AF] hover:text-[#E6EDF3]'}`}
+            >
+              Monthly
+            </button>
+            <button
+              onClick={() => setAnnual(true)}
+              aria-pressed={annual}
+              className={`px-4 py-1 rounded-full text-xs font-semibold transition-colors flex items-center gap-1.5 ${annual ? 'bg-[#4DA3FF] text-[#0B0D10]' : 'text-[#9BA3AF] hover:text-[#E6EDF3]'}`}
+            >
+              Annual
+              <span className={`text-[9px] font-bold ${annual ? 'text-[#0B0D10]/70' : 'text-[#22C55E]'}`}>-25%</span>
+            </button>
+          </div>
+        </div>
+
+        <div ref={ref} className="grid grid-cols-1 md:grid-cols-3 gap-5 items-start">
+          {plans.map((plan, idx) => (
+            <motion.div
+              key={plan.name}
+              initial={{ opacity: 0, y: 20 }}
+              animate={inView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.4, delay: idx * 0.1 }}
+              className={`relative rounded-xl p-7 border transition-colors ${
+                plan.highlighted
+                  ? 'bg-[#1A2028] border-[#4DA3FF]/40 shadow-[0_0_30px_#4DA3FF15]'
+                  : 'bg-[#111418] border-[#232A33] hover:border-[#2E3440]'
+              }`}
+            >
+              {plan.highlighted && (
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                  <span className="bg-[#4DA3FF] text-[#0B0D10] text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full">
+                    Most Popular
+                  </span>
+                </div>
+              )}
+
+              <h3 className="text-base font-bold text-[#E6EDF3] mb-1">{plan.name}</h3>
+              <p className="text-xs text-[#6B7280] mb-5">{plan.desc}</p>
+
+              <div className="mb-6">
+                <motion.span
+                  key={annual ? 'annual' : 'monthly'}
+                  initial={{ opacity: 0, y: 4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="text-4xl font-display font-bold text-[#E6EDF3]"
+                >
+                  {annual ? plan.annualPrice : plan.monthlyPrice}
+                </motion.span>
+                <span className="text-xs text-[#6B7280] ml-2">
+                  {annual ? plan.annualPeriod : plan.period}
+                </span>
+              </div>
+
+              <ul className="space-y-2.5 mb-8">
+                {plan.features.map((f) => (
+                  <li key={f} className="flex items-center gap-2.5 text-sm text-[#9BA3AF]">
+                    <Check className="w-3.5 h-3.5 flex-shrink-0" style={{ color: plan.accent }} aria-hidden="true" />
+                    {f}
+                  </li>
+                ))}
+              </ul>
+
+              <a
+                href={plan.href.startsWith('mailto') ? plan.href : `${APP_URL}${plan.href}${annual ? '&billing=annual' : ''}`}
+                className={`block w-full text-center py-3 rounded-md text-sm font-semibold transition-colors no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0B0D10] ${
+                  plan.highlighted
+                    ? 'bg-[#4DA3FF] text-[#0B0D10] hover:bg-[#4DA3FF]/90 focus-visible:ring-[#4DA3FF]'
+                    : 'border border-[#232A33] bg-transparent text-[#E6EDF3] hover:bg-[#1A2028] focus-visible:ring-[#9BA3AF]'
+                }`}
+              >
+                {plan.cta}
+              </a>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+
+--- FILE: src/components/sections/FinalCTA.tsx ---
+import { motion } from 'framer-motion';
+import { useInView } from 'react-intersection-observer';
+import { Rocket } from 'lucide-react';
+import { APP_URL } from '@/lib/config';
+
+export function FinalCTA() {
+  const [ref, inView] = useInView({ triggerOnce: true, threshold: 0.4 });
+
+  return (
+    <section className="py-28 relative overflow-hidden flex items-center justify-center border-t border-[#1F242D] bg-[#0B0D10]">
+      <div className="absolute inset-0 z-0">
+        <img
+          src={`${import.meta.env.BASE_URL}images/constellation-abstract.webp`}
+          alt="Abstract Constellation"
+          loading="lazy"
+          className="w-full h-full object-cover opacity-10 mix-blend-luminosity"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0B0D10] via-[#0B0D10]/90 to-transparent" />
+      </div>
+
+      <div ref={ref} className="max-w-3xl mx-auto px-4 relative z-10 text-center">
+        <motion.div
+          initial={{ scale: 0.85, opacity: 0 }}
+          animate={inView ? { scale: 1, opacity: 1 } : {}}
+          transition={{ duration: 0.5 }}
+          className="w-14 h-14 mx-auto rounded-xl bg-[#1A2028] border border-[#232A33] flex items-center justify-center mb-8"
+        >
+          <Rocket className="w-7 h-7 text-[#4DA3FF]" />
+        </motion.div>
+
+        <motion.h2
+          initial={{ y: 16, opacity: 0 }}
+          animate={inView ? { y: 0, opacity: 1 } : {}}
+          transition={{ duration: 0.5, delay: 0.15 }}
+          className="text-4xl md:text-5xl font-display font-bold text-[#E6EDF3] mb-4"
+        >
+          Ready to map your future?
+        </motion.h2>
+
+        <motion.p
+          initial={{ y: 16, opacity: 0 }}
+          animate={inView ? { y: 0, opacity: 1 } : {}}
+          transition={{ duration: 0.5, delay: 0.25 }}
+          className="text-sm text-[#9BA3AF] mb-10 max-w-lg mx-auto leading-relaxed"
+        >
+          Join thousands of creators using RunAtlas to discover, organize, and build with the best AI tools on the planet.
+        </motion.p>
+
+        <motion.div
+          initial={{ y: 16, opacity: 0 }}
+          animate={inView ? { y: 0, opacity: 1 } : {}}
+          transition={{ duration: 0.5, delay: 0.35 }}
+          className="flex flex-col sm:flex-row justify-center gap-3"
+        >
+          <a
+            href={`${APP_URL}/register`}
+            className="px-8 py-3 rounded-md font-semibold text-sm bg-[#4DA3FF] text-[#0B0D10] hover:bg-[#4DA3FF]/90 transition-colors no-underline"
+          >
+            Create Free Account
+          </a>
+          <a
+            href={`${APP_URL}/tools`}
+            className="px-8 py-3 rounded-md font-semibold text-sm border border-[#232A33] bg-[#1A2028] text-[#E6EDF3] hover:bg-[#202733] hover:border-[#2E3440] transition-colors no-underline"
+          >
+            Explore Directory
+          </a>
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
+
+--- FILE: src/components/sections/AIRadar.tsx ---
+import { useRef, useState, useMemo } from "react";
+import { motion, useInView } from "framer-motion";
+
+interface AxisData {
+  label: string;
+  value2024: number;
+  value2025: number;
+}
+
+const axes: AxisData[] = [
+  { label: "Text", value2024: 85, value2025: 95 },
+  { label: "Image", value2024: 70, value2025: 90 },
+  { label: "Video", value2024: 40, value2025: 80 },
+  { label: "Audio", value2024: 45, value2025: 75 },
+  { label: "Code", value2024: 65, value2025: 90 },
+  { label: "Agents", value2024: 30, value2025: 70 },
+  { label: "Robotics", value2024: 20, value2025: 45 },
+  { label: "Research", value2024: 75, value2025: 88 },
+];
+
+const NUM_AXES = axes.length;
+const GRID_LEVELS = [0.33, 0.66, 1.0];
+const COLOR_2024 = "#2EC4B6";
+const COLOR_2025 = "#A855F7";
+
+function polarToCartesian(
+  cx: number,
+  cy: number,
+  radius: number,
+  angleIndex: number,
+  total: number
+): [number, number] {
+  const angle = (2 * Math.PI * angleIndex) / total - Math.PI / 2;
+  return [cx + radius * Math.cos(angle), cy + radius * Math.sin(angle)];
+}
+
+function buildPolygonPoints(
+  cx: number,
+  cy: number,
+  maxRadius: number,
+  values: number[]
+): string {
+  return values
+    .map((v, i) => {
+      const r = (v / 100) * maxRadius;
+      const [x, y] = polarToCartesian(cx, cy, r, i, values.length);
+      return `${x},${y}`;
+    })
+    .join(" ");
+}
+
+function buildGridPolygon(
+  cx: number,
+  cy: number,
+  radius: number,
+  n: number
+): string {
+  return Array.from({ length: n }, (_, i) => {
+    const [x, y] = polarToCartesian(cx, cy, radius, i, n);
+    return `${x},${y}`;
+  }).join(" ");
+}
+
+export function AIRadar() {
+  const ref = useRef<HTMLElement>(null);
+  const isInView = useInView(ref, { once: true, amount: 0.3 });
+  const [hoveredAxis, setHoveredAxis] = useState<number | null>(null);
+
+  const SIZE = 400;
+  const CX = SIZE / 2;
+  const CY = SIZE / 2;
+  const MAX_R = 160;
+
+  const values2024 = axes.map((a) => a.value2024);
+  const values2025 = axes.map((a) => a.value2025);
+
+  const polygon2024 = useMemo(
+    () => buildPolygonPoints(CX, CY, MAX_R, values2024),
+    []
+  );
+  const polygon2025 = useMemo(
+    () => buildPolygonPoints(CX, CY, MAX_R, values2025),
+    []
+  );
+
+  // Label positions with offsets for readability
+  const labelPositions = useMemo(() => {
+    return axes.map((axis, i) => {
+      const [x, y] = polarToCartesian(CX, CY, MAX_R + 28, i, NUM_AXES);
+      let textAnchor: "middle" | "start" | "end" = "middle";
+      if (x < CX - 10) textAnchor = "end";
+      else if (x > CX + 10) textAnchor = "start";
+      return { x, y, textAnchor, label: axis.label };
+    });
+  }, []);
+
+  const polygonPathLength = 2000;
+
+  return (
+    <section ref={ref} className="py-20 md:py-28 px-4">
+      <div className="max-w-4xl mx-auto">
+        {/* Header */}
+        <motion.div
+          className="text-center mb-12"
+          initial={{ opacity: 0, y: 30 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6 }}
+        >
+          <h2 className="text-3xl md:text-5xl font-bold text-white mb-4">
+            AI Trend Radar
+          </h2>
+          <p className="text-white/50 text-lg max-w-xl mx-auto">
+            Welche AI-Bereiche wachsen am schnellsten
+          </p>
+        </motion.div>
+
+        {/* Chart card */}
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="relative rounded-3xl border border-white/10 bg-white/[0.03] backdrop-blur-xl p-6 md:p-10"
+        >
+          {/* SVG Chart */}
+          <div className="flex justify-center">
+            <svg
+              viewBox={`0 0 ${SIZE} ${SIZE}`}
+              className="w-full max-w-[420px] h-auto"
+              role="img"
+              aria-label="AI Trend Radar Chart vergleicht 2024 und 2025 über 8 Kategorien"
+            >
+              <defs>
+                <radialGradient id="radar-bg" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" stopColor="white" stopOpacity="0.03" />
+                  <stop offset="100%" stopColor="white" stopOpacity="0" />
+                </radialGradient>
+              </defs>
+
+              {/* Background circle */}
+              <circle
+                cx={CX}
+                cy={CY}
+                r={MAX_R + 5}
+                fill="url(#radar-bg)"
+              />
+
+              {/* Grid levels (octagonal) */}
+              {GRID_LEVELS.map((level, li) => (
+                <polygon
+                  key={li}
+                  points={buildGridPolygon(
+                    CX,
+                    CY,
+                    MAX_R * level,
+                    NUM_AXES
+                  )}
+                  fill="none"
+                  stroke="white"
+                  strokeOpacity={0.08}
+                  strokeWidth={1}
+                />
+              ))}
+
+              {/* Axis lines */}
+              {axes.map((_, i) => {
+                const [x, y] = polarToCartesian(CX, CY, MAX_R, i, NUM_AXES);
+                return (
+                  <line
+                    key={i}
+                    x1={CX}
+                    y1={CY}
+                    x2={x}
+                    y2={y}
+                    stroke="white"
+                    strokeOpacity={0.1}
+                    strokeWidth={1}
+                  />
+                );
+              })}
+
+              {/* 2024 polygon */}
+              <motion.polygon
+                points={polygon2024}
+                fill={COLOR_2024}
+                fillOpacity={0.1}
+                stroke={COLOR_2024}
+                strokeWidth={2}
+                strokeOpacity={0.6}
+                strokeLinejoin="round"
+                strokeDasharray={polygonPathLength}
+                initial={{ strokeDashoffset: polygonPathLength, fillOpacity: 0 }}
+                animate={
+                  isInView
+                    ? { strokeDashoffset: 0, fillOpacity: 0.1 }
+                    : {}
+                }
+                transition={{ duration: 1.5, ease: "easeOut", delay: 0.4 }}
+              />
+
+              {/* 2025 polygon */}
+              <motion.polygon
+                points={polygon2025}
+                fill={COLOR_2025}
+                fillOpacity={0.12}
+                stroke={COLOR_2025}
+                strokeWidth={2.5}
+                strokeOpacity={0.9}
+                strokeLinejoin="round"
+                strokeDasharray={polygonPathLength}
+                initial={{ strokeDashoffset: polygonPathLength, fillOpacity: 0 }}
+                animate={
+                  isInView
+                    ? { strokeDashoffset: 0, fillOpacity: 0.12 }
+                    : {}
+                }
+                transition={{ duration: 1.5, ease: "easeOut", delay: 0.8 }}
+              />
+
+              {/* Data dots 2024 */}
+              {values2024.map((v, i) => {
+                const r = (v / 100) * MAX_R;
+                const [x, y] = polarToCartesian(CX, CY, r, i, NUM_AXES);
+                return (
+                  <motion.circle
+                    key={`d24-${i}`}
+                    cx={x}
+                    cy={y}
+                    r={3}
+                    fill={COLOR_2024}
+                    initial={{ opacity: 0, scale: 0 }}
+                    animate={isInView ? { opacity: 0.8, scale: 1 } : {}}
+                    transition={{ duration: 0.3, delay: 1.2 + i * 0.05 }}
+                  />
+                );
+              })}
+
+              {/* Data dots 2025 */}
+              {values2025.map((v, i) => {
+                const r = (v / 100) * MAX_R;
+                const [x, y] = polarToCartesian(CX, CY, r, i, NUM_AXES);
+                return (
+                  <motion.circle
+                    key={`d25-${i}`}
+                    cx={x}
+                    cy={y}
+                    r={4}
+                    fill={COLOR_2025}
+                    initial={{ opacity: 0, scale: 0 }}
+                    animate={isInView ? { opacity: 1, scale: 1 } : {}}
+                    transition={{ duration: 0.3, delay: 1.4 + i * 0.05 }}
+                  />
+                );
+              })}
+
+              {/* Axis labels */}
+              {labelPositions.map((pos, i) => (
+                <text
+                  key={i}
+                  x={pos.x}
+                  y={pos.y}
+                  textAnchor={pos.textAnchor}
+                  dominantBaseline="middle"
+                  className="text-[11px] md:text-xs font-medium"
+                  fill="white"
+                  fillOpacity={hoveredAxis === i ? 1 : 0.6}
+                  style={{ cursor: "default", userSelect: "none" }}
+                >
+                  {pos.label}
+                </text>
+              ))}
+
+              {/* Invisible hover zones per axis */}
+              {axes.map((_, i) => {
+                const [x, y] = polarToCartesian(CX, CY, MAX_R * 0.6, i, NUM_AXES);
+                return (
+                  <circle
+                    key={`hover-${i}`}
+                    cx={x}
+                    cy={y}
+                    r={24}
+                    fill="transparent"
+                    onMouseEnter={() => setHoveredAxis(i)}
+                    onMouseLeave={() => setHoveredAxis(null)}
+                    style={{ cursor: "pointer" }}
+                  />
+                );
+              })}
+
+              {/* Tooltip */}
+              {hoveredAxis !== null && (() => {
+                const axis = axes[hoveredAxis];
+                const growth = Math.round(
+                  ((axis.value2025 - axis.value2024) / axis.value2024) * 100
+                );
+                const [tx, ty] = polarToCartesian(
+                  CX,
+                  CY,
+                  MAX_R * 0.45,
+                  hoveredAxis,
+                  NUM_AXES
+                );
+                const tooltipWidth = 110;
+                const tooltipHeight = 52;
+                const rx = Math.max(
+                  10,
+                  Math.min(SIZE - tooltipWidth - 10, tx - tooltipWidth / 2)
+                );
+                const ry = Math.max(
+                  10,
+                  Math.min(SIZE - tooltipHeight - 10, ty - tooltipHeight - 8)
+                );
+                return (
+                  <g>
+                    <rect
+                      x={rx}
+                      y={ry}
+                      width={tooltipWidth}
+                      height={tooltipHeight}
+                      rx={8}
+                      fill="black"
+                      fillOpacity={0.85}
+                      stroke="white"
+                      strokeOpacity={0.15}
+                      strokeWidth={1}
+                    />
+                    <text
+                      x={rx + tooltipWidth / 2}
+                      y={ry + 18}
+                      textAnchor="middle"
+                      fill="white"
+                      className="text-[11px] font-semibold"
+                    >
+                      {axis.label}
+                    </text>
+                    <text
+                      x={rx + tooltipWidth / 2}
+                      y={ry + 36}
+                      textAnchor="middle"
+                      fill={COLOR_2025}
+                      className="text-[12px] font-bold"
+                    >
+                      +{growth}% Wachstum
+                    </text>
+                  </g>
+                );
+              })()}
+            </svg>
+          </div>
+
+          {/* Legend */}
+          <motion.div
+            className="flex items-center justify-center gap-8 mt-8"
+            initial={{ opacity: 0 }}
+            animate={isInView ? { opacity: 1 } : {}}
+            transition={{ duration: 0.5, delay: 1.6 }}
+          >
+            <div className="flex items-center gap-2.5">
+              <span
+                className="w-3 h-3 rounded-full"
+                style={{
+                  backgroundColor: COLOR_2024,
+                  opacity: 0.7,
+                  boxShadow: `0 0 8px ${COLOR_2024}66`,
+                }}
+              />
+              <span className="text-sm text-white/50 font-medium">2024</span>
+            </div>
+            <div className="flex items-center gap-2.5">
+              <span
+                className="w-3 h-3 rounded-full"
+                style={{
+                  backgroundColor: COLOR_2025,
+                  boxShadow: `0 0 8px ${COLOR_2025}66`,
+                }}
+              />
+              <span className="text-sm text-white/50 font-medium">2025</span>
+            </div>
+          </motion.div>
+
+          {/* Growth stats row */}
+          <motion.div
+            className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.5, delay: 1.8 }}
+          >
+            {[
+              { label: "Video", growth: "+100%" },
+              { label: "Agents", growth: "+133%" },
+              { label: "Robotics", growth: "+125%" },
+              { label: "Audio", growth: "+67%" },
+            ].map((item) => (
+              <div
+                key={item.label}
+                className="text-center py-3 px-2 rounded-xl bg-white/[0.03] border border-white/5"
+              >
+                <div
+                  className="text-lg font-bold"
+                  style={{ color: COLOR_2025 }}
+                >
+                  {item.growth}
+                </div>
+                <div className="text-xs text-white/40 mt-0.5">{item.label}</div>
+              </div>
+            ))}
+          </motion.div>
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
+
+--- FILE: src/components/sections/NewTools.tsx ---
+import { Sparkles, Bot, Image, Video, Mic, Search, Code, Database, Zap } from 'lucide-react';
+import { APP_URL } from '@/lib/config';
+
+const categoryIcons: Record<string, React.ElementType> = {
+  Agents: Bot, Video: Video, LLM: Zap, Image: Image, Search: Search, Code: Code, Audio: Mic, Data: Database,
+};
+
+const newTools = [
+  { name: "Devin",          slug: "devin",          desc: "First autonomous AI software engineer",       tag: "Agents", accent: "#2EC4B6" },
+  { name: "Sora",           slug: "sora",           desc: "OpenAI's video generation model",             tag: "Video",  accent: "#4DA3FF" },
+  { name: "Grok 1.5",       slug: "grok-15",        desc: "xAI's latest LLM with 128k context",         tag: "LLM",    accent: "#F2C94C" },
+  { name: "Stable Artisan", slug: "stable-artisan", desc: "Creative image suite by Stability AI",       tag: "Image",  accent: "#FF7A59" },
+  { name: "Claude 3.7",     slug: "claude-37",      desc: "Anthropic's most capable model yet",         tag: "LLM",    accent: "#A855F7" },
+  { name: "Gemini 2.0",     slug: "gemini-20",      desc: "Google's multimodal frontier model",         tag: "LLM",    accent: "#4DA3FF" },
+  { name: "Kling 1.6",      slug: "kling-16",       desc: "Photorealistic video by Kuaishou",           tag: "Video",  accent: "#2EC4B6" },
+  { name: "Perplexity Pro", slug: "perplexity-pro", desc: "AI answer engine with real-time citations",  tag: "Search", accent: "#22C55E" },
+];
+
+const secondRow = [
+  { name: "Cursor",         slug: "cursor",         desc: "AI-native code editor for developers",       tag: "Code",   accent: "#A855F7" },
+  { name: "Bolt.new",       slug: "bolt-new",       desc: "Full-stack web apps from a single prompt",   tag: "Code",   accent: "#FF7A59" },
+  { name: "Ideogram 2.0",   slug: "ideogram-20",    desc: "Typography-aware image generation AI",       tag: "Image",  accent: "#F2C94C" },
+  { name: "NotebookLM",     slug: "notebooklm",     desc: "Google's AI research & podcast assistant",   tag: "LLM",    accent: "#4DA3FF" },
+  { name: "Udio",           slug: "udio",           desc: "Create full songs with AI in seconds",       tag: "Audio",  accent: "#2EC4B6" },
+  { name: "Lovable",        slug: "lovable",        desc: "Ship production apps with AI pair coding",   tag: "Code",   accent: "#22C55E" },
+  { name: "Flux Pro",       slug: "flux-pro",       desc: "Black Forest Labs' frontier image model",    tag: "Image",  accent: "#FF7A59" },
+  { name: "Windsurf",       slug: "windsurf",       desc: "AI-powered IDE with Cascade flows",          tag: "Code",   accent: "#A855F7" },
+];
+
+const tickerRow1 = [...newTools, ...newTools];
+const tickerRow2 = [...secondRow, ...secondRow];
+
+function ToolCard({ tool, idx }: { tool: typeof newTools[0]; idx: number }) {
+  const Icon = categoryIcons[tool.tag] || Sparkles;
+  return (
+    <a
+      key={`${tool.slug}-${idx}`}
+      href={`${APP_URL}/tools?q=${encodeURIComponent(tool.name)}`}
+      tabIndex={-1}
+      className="flex-none w-72 bg-[#1A2028] border border-[#232A33] p-3.5 rounded-lg flex items-center gap-3 hover:bg-[#202733] hover:border-[#4DA3FF]/30 transition-all no-underline group hover:-translate-y-0.5 hover:shadow-lg hover:shadow-[#4DA3FF]/5"
+    >
+      <div
+        className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+        style={{ backgroundColor: `${tool.accent}18`, border: `1px solid ${tool.accent}30` }}
+      >
+        <Icon className="w-4 h-4" style={{ color: tool.accent }} />
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center justify-between mb-0.5">
+          <h4 className="text-[#E6EDF3] font-medium text-sm group-hover:text-[#4DA3FF] transition-colors">{tool.name}</h4>
+          <span
+            className="text-[9px] uppercase font-bold px-1.5 py-0.5 rounded ml-2 flex-shrink-0"
+            style={{ color: tool.accent, backgroundColor: `${tool.accent}18`, border: `1px solid ${tool.accent}30` }}
+          >
+            New
+          </span>
+        </div>
+        <p className="text-[11px] text-[#6B7280] truncate">{tool.desc}</p>
+      </div>
+    </a>
+  );
+}
+
+export function NewTools() {
+  return (
+    <section className="py-10 border-y border-[#1F242D] bg-[#111418] overflow-hidden relative" aria-label="Newly discovered AI tools">
+      <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-[#111418] via-[#111418]/80 to-transparent z-10 pointer-events-none" aria-hidden="true" />
+      <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-[#111418] via-[#111418]/80 to-transparent z-10 pointer-events-none" aria-hidden="true" />
+
+      <div className="flex items-center max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-5">
+        <Sparkles className="w-4 h-4 text-[#2EC4B6] mr-2" aria-hidden="true" />
+        <h3 className="text-xs font-bold text-[#9BA3AF] tracking-widest uppercase">Discovered Today</h3>
+      </div>
+
+      {/* Row 1: Normal direction */}
+      <div className="flex overflow-hidden mb-3" aria-hidden="true">
+        <div className="flex animate-ticker gap-4 px-4" style={{ width: 'max-content' }}>
+          {tickerRow1.map((tool, idx) => (
+            <ToolCard key={`r1-${tool.slug}-${idx}`} tool={tool} idx={idx} />
+          ))}
+        </div>
+      </div>
+
+      {/* Row 2: Reverse direction */}
+      <div className="flex overflow-hidden" aria-hidden="true">
+        <div className="flex animate-ticker-reverse gap-4 px-4" style={{ width: 'max-content' }}>
+          {tickerRow2.map((tool, idx) => (
+            <ToolCard key={`r2-${tool.slug}-${idx}`} tool={tool} idx={idx} />
+          ))}
+        </div>
+      </div>
+
+      {/* Accessible list */}
+      <ul className="sr-only">
+        {[...newTools, ...secondRow].map((tool) => (
+          <li key={tool.slug}>
+            <a href={`${APP_URL}/tools?q=${encodeURIComponent(tool.name)}`}>
+              {tool.name} – {tool.desc} ({tool.tag})
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+
+--- FILE: src/components/ShareButton.tsx ---
+import { useState } from 'react';
+import { Share2, Twitter, Linkedin, Copy, Check } from 'lucide-react';
+import {
+  getTwitterShareUrl,
+  getLinkedInShareUrl,
+  copyToClipboard,
+} from '../utils/social';
+import { motion, AnimatePresence } from 'framer-motion';
+
+interface ShareButtonProps {
+  toolName: string;
+  toolUrl: string;
+  description?: string;
+}
+
+export function ShareButton({
+  toolName,
+  toolUrl,
+  description,
+}: ShareButtonProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    await copyToClipboard(toolUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="p-2 hover:bg-gray-100 dark:hover:bg-gray-900 rounded-lg transition"
+        title="Share"
+      >
+        <Share2 size={20} />
+      </button>
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="absolute top-12 right-0 bg-white dark:bg-gray-900 rounded-lg shadow-lg p-2 flex gap-2 z-50"
+          >
+            <a
+              href={getTwitterShareUrl(toolUrl, toolName, description)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-2 hover:bg-blue-100 dark:hover:bg-blue-900 rounded transition"
+              title="Share on Twitter"
+            >
+              <Twitter size={18} className="text-blue-500" />
+            </a>
+            <a
+              href={getLinkedInShareUrl(toolUrl, toolName)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-2 hover:bg-blue-100 dark:hover:bg-blue-900 rounded transition"
+              title="Share on LinkedIn"
+            >
+              <Linkedin size={18} className="text-blue-700" />
+            </a>
+            <button
+              onClick={handleCopy}
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition"
+              title="Copy link"
+            >
+              {copied ? (
+                <Check size={18} className="text-green-500" />
+              ) : (
+                <Copy size={18} />
+              )}
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+
+--- FILE: src/api/toolsApi.ts ---
+// Backend Abstraction Layer — swap between static JSON and REST API
+// Currently uses static data, can switch to API by changing env
+
+import { queryKeys } from '@/lib/queryConfig';
+
+export interface ToolData {
+  id: string;
+  name: string;
+  category: string;
+  description: string;
+  rating: number;
+  pricing: 'Free' | 'Freemium' | 'Paid';
+  tags: string[];
+  url: string;
+  logo?: string;
+  sponsored?: boolean;
+}
+
+export interface BlogPost {
+  slug: string;
+  title: string;
+  excerpt: string;
+  date: string;
+  author: string;
+  image?: string;
+  tags: string[];
+}
+
+// Data fetcher abstraction
+const API_BASE = import.meta.env.VITE_API_URL || '';
+const USE_API = !!API_BASE;
+
+async function fetchFromApi<T>(endpoint: string): Promise<T> {
+  const res = await fetch(`${API_BASE}${endpoint}`);
+  if (!res.ok) throw new Error(`API error: ${res.status}`);
+  return res.json();
+}
+
+// Static data imports (tree-shaken when API is used)
+async function getStaticTools(): Promise<ToolData[]> {
+  const { TOOLS_DATA } = await import('@/data/toolsData');
+  return TOOLS_DATA;
+}
+
+async function getStaticBlogPosts(): Promise<BlogPost[]> {
+  const { BLOG_POSTS } = await import('@/data/blogData');
+  return BLOG_POSTS;
+}
+
+// Public API
+export const toolsApi = {
+  getTools: (): Promise<ToolData[]> =>
+    USE_API ? fetchFromApi<ToolData[]>('/api/tools') : getStaticTools(),
+
+  getToolById: async (id: string): Promise<ToolData | undefined> => {
+    const tools = await toolsApi.getTools();
+    return tools.find(t => t.id === id);
+  },
+
+  getCategories: async (): Promise<string[]> => {
+    const tools = await toolsApi.getTools();
+    return [...new Set(tools.map(t => t.category))].sort();
+  },
+
+  getTrending: async (limit = 10): Promise<ToolData[]> => {
+    const tools = await toolsApi.getTools();
+    return tools.sort((a, b) => b.rating - a.rating).slice(0, limit);
+  },
+
+  search: async (query: string): Promise<ToolData[]> => {
+    const tools = await toolsApi.getTools();
+    const q = query.toLowerCase();
+    return tools.filter(t =>
+      t.name.toLowerCase().includes(q) ||
+      t.description.toLowerCase().includes(q) ||
+      t.tags.some(tag => tag.includes(q))
+    );
+  },
+};
+
+export const blogApi = {
+  getPosts: (): Promise<BlogPost[]> =>
+    USE_API ? fetchFromApi<BlogPost[]>('/api/blog') : getStaticBlogPosts(),
+
+  getPost: async (slug: string): Promise<BlogPost | undefined> => {
+    const posts = await blogApi.getPosts();
+    return posts.find(p => p.slug === slug);
+  },
+};
+
+// React Query key helpers
+export { queryKeys };
+
+
+--- FILE: src/api/tools.ts ---
+import { apiClient } from './client';
+
+export interface Tool {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  url: string;
+  rating: number;
+  reviews: number;
+  tags: string[];
+  isNew: boolean;
+  isTrending: boolean;
+}
+
+export interface ToolsResponse {
+  tools: Tool[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+export const toolsApi = {
+  getTrending: async (limit = 10): Promise<Tool[]> => {
+    const { data } = await apiClient.get('/tools/trending', { params: { limit } });
+    return data.tools;
+  },
+
+  search: async (query: string, page = 1): Promise<ToolsResponse> => {
+    const { data } = await apiClient.get('/tools/search', {
+      params: { q: query, page, pageSize: 20 },
+    });
+    return data;
+  },
+
+  getByCategory: async (category: string): Promise<Tool[]> => {
+    const { data } = await apiClient.get(`/tools/category/${category}`);
+    return data.tools;
+  },
+
+  getById: async (id: string): Promise<Tool> => {
+    const { data } = await apiClient.get(`/tools/${id}`);
+    return data.tool;
+  },
+
+  getStats: async () => {
+    const { data } = await apiClient.get('/tools/stats');
+    return data;
+  },
+};
+
+
+--- FILE: src/api/newsletter.ts ---
+import { apiClient } from './client';
+
+export const newsletterApi = {
+  subscribe: async (email: string, preferences?: Record<string, boolean>) => {
+    const { data } = await apiClient.post('/newsletter/subscribe', {
+      email,
+      preferences: preferences || {
+        daily: false,
+        weekly: true,
+        monthly: false,
+      },
+      source: 'landing_page',
+    });
+    return data;
+  },
+
+  unsubscribe: async (email: string) => {
+    const { data } = await apiClient.post('/newsletter/unsubscribe', { email });
+    return data;
+  },
+};
+
+
+--- FILE: src/lib/seo.ts ---
+// Schema.org JSON-LD generator for AI tools
+export interface ToolSchemaData {
+  name: string;
+  description: string;
+  url: string;
+  category: string;
+  price?: string;
+  rating?: number;
+  image?: string;
+}
+
+export function generateToolSchema(tool: ToolSchemaData): object {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'SoftwareApplication',
+    name: tool.name,
+    description: tool.description,
+    url: tool.url,
+    applicationCategory: tool.category,
+    operatingSystem: 'Web',
+    offers: tool.price ? {
+      '@type': 'Offer',
+      price: tool.price === 'Free' ? '0' : tool.price,
+      priceCurrency: 'USD',
+    } : undefined,
+    aggregateRating: tool.rating ? {
+      '@type': 'AggregateRating',
+      ratingValue: tool.rating,
+      bestRating: 5,
+      worstRating: 1,
+    } : undefined,
+    image: tool.image,
+  };
+}
+
+export function generateWebsiteSchema(): object {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'RunAtlas',
+    url: 'https://runatlas.com',
+    description: 'Dein AI-Tool-Universum — Entdecke, vergleiche und kombiniere über 400 KI-Tools',
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: 'https://runatlas.com/search?q={search_term_string}',
+      'query-input': 'required name=search_term_string',
+    },
+  };
+}
+
+// OG Image URL generator for dynamic social sharing
+export function generateOGImageUrl(params: {
+  title: string;
+  subtitle?: string;
+  category?: string;
+  toolCount?: number;
+}): string {
+  const base = 'https://runatlas.com/api/og';
+  const searchParams = new URLSearchParams();
+  searchParams.set('title', params.title);
+  if (params.subtitle) searchParams.set('subtitle', params.subtitle);
+  if (params.category) searchParams.set('category', params.category);
+  if (params.toolCount) searchParams.set('count', String(params.toolCount));
+  return `${base}?${searchParams.toString()}`;
+}
+
+
+--- FILE: src/lib/analytics.ts ---
+// Lightweight client-side analytics — stores events locally and optionally sends to backend
+interface AnalyticsEvent {
+  name: string;
+  properties?: Record<string, string | number | boolean>;
+  timestamp: number;
+}
+
+const STORAGE_KEY = 'runatlas-analytics';
+const MAX_EVENTS = 500;
+
+function getEvents(): AnalyticsEvent[] {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+  } catch { return []; }
+}
+
+function saveEvents(events: AnalyticsEvent[]) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(events.slice(-MAX_EVENTS)));
+  } catch {}
+}
+
+export function trackEvent(name: string, properties?: Record<string, string | number | boolean>) {
+  const event: AnalyticsEvent = { name, properties, timestamp: Date.now() };
+  const events = [...getEvents(), event];
+  saveEvents(events);
+
+  // Forward to GTM / custom backend if available
+  if (typeof window.dataLayer !== 'undefined') {
+    window.dataLayer.push({ event: name, ...properties });
+  }
+
+  if (import.meta.env.DEV) {
+    console.log(`[Analytics] ${name}`, properties);
+  }
+}
+
+export function getAnalyticsSummary() {
+  const events = getEvents();
+  const now = Date.now();
+  const last24h = events.filter(e => now - e.timestamp < 86400000);
+  const last7d = events.filter(e => now - e.timestamp < 604800000);
+
+  // Count by event name
+  const counts: Record<string, number> = {};
+  events.forEach(e => { counts[e.name] = (counts[e.name] || 0) + 1; });
+
+  // Most clicked tools
+  const toolClicks = events
+    .filter(e => e.name === 'tool_click' && e.properties?.tool)
+    .reduce<Record<string, number>>((acc, e) => {
+      const tool = String(e.properties!.tool);
+      acc[tool] = (acc[tool] || 0) + 1;
+      return acc;
+    }, {});
+
+  const topTools = Object.entries(toolClicks)
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, 10);
+
+  return {
+    totalEvents: events.length,
+    last24h: last24h.length,
+    last7d: last7d.length,
+    eventCounts: counts,
+    topTools,
+  };
+}
+
+// Declare GTM dataLayer
+declare global {
+  interface Window { dataLayer?: Record<string, unknown>[]; }
+}
+
+
+--- FILE: src/lib/affiliate.ts ---
+// Utility to wrap tool URLs with UTM + affiliate parameters
+interface AffiliateConfig {
+  utmSource: string;
+  utmMedium: string;
+  utmCampaign: string;
+  affiliateId?: string;
+}
+
+const DEFAULT_CONFIG: AffiliateConfig = {
+  utmSource: 'runatlas',
+  utmMedium: 'referral',
+  utmCampaign: 'tool-discovery',
+  affiliateId: 'runatlas-001'
+};
+
+export function wrapAffiliateLink(url: string, toolName?: string, config = DEFAULT_CONFIG): string {
+  // Build URL with UTM params and optional affiliate ID
+  const u = new URL(url);
+  u.searchParams.set('utm_source', config.utmSource);
+  u.searchParams.set('utm_medium', config.utmMedium);
+  u.searchParams.set('utm_campaign', config.utmCampaign);
+  if (toolName) u.searchParams.set('utm_content', toolName.toLowerCase().replace(/\s+/g, '-'));
+  if (config.affiliateId) u.searchParams.set('ref', config.affiliateId);
+  return u.toString();
+}
+
+export function trackToolClick(toolName: string, source: string): void {
+  // Analytics event (placeholder for real analytics)
+  if (typeof window !== 'undefined' && (window as any).gtag) {
+    (window as any).gtag('event', 'tool_click', {
+      tool_name: toolName,
+      click_source: source,
+    });
+  }
+  console.log(`[RunAtlas] Tool click: ${toolName} from ${source}`);
+}
+
+
+--- FILE: src/lib/security.ts ---
+/**
+ * Obfuscates an email address to prevent spam scraping.
+ * Use in JSX: <a href={mailtoHref("hello@runatlas.com")}>Contact</a>
+ */
+export function mailtoHref(email: string): string {
+  // Encode each character as HTML entity
+  return "mailto:" + email
+    .split("")
+    .map((c) => `&#${c.charCodeAt(0)};`)
+    .join("");
+}
+
+/**
+ * Returns an obfuscated display of an email address.
+ * "hello@runatlas.com" → "hello&#64;runatlas&#46;com"
+ */
+export function obfuscateEmail(email: string): string {
+  return email
+    .replace("@", "&#64;")
+    .replace(/\./g, "&#46;");
+}
+
+
+--- FILE: src/lib/constants.ts ---
+/** Central source of truth for RunAtlas statistics */
+export const STATS = {
+  tools:     626,
+  workflows: 120,
+  models:    48,
+  weeklyNew: 12,
+} as const;
+
+/** Accent palette (synced with CSS custom properties) */
+export const ACCENTS = {
+  teal:  "#2EC4B6",
+  blue:  "#4DA3FF",
+  amber: "#F2C94C",
+  coral: "#FF7A59",
+  green: "#22C55E",
+  purple:"#A855F7",
+} as const;
+
+
+--- FILE: src/data/toolsData.ts ---
+import type { ToolData } from '@/api/toolsApi';
+
+export const TOOLS_DATA: ToolData[] = [
+  { id: 'chatgpt', name: 'ChatGPT', category: 'LLM', description: 'Vielseitiger KI-Chatbot von OpenAI', rating: 4.8, pricing: 'Freemium', tags: ['text', 'code', 'chat'], url: 'https://chat.openai.com' },
+  { id: 'claude', name: 'Claude', category: 'LLM', description: 'Anthropics KI-Assistent mit starkem Reasoning', rating: 4.7, pricing: 'Freemium', tags: ['text', 'code', 'analysis'], url: 'https://claude.ai' },
+  { id: 'midjourney', name: 'Midjourney', category: 'Image', description: 'Führende KI-Bildgenerierung', rating: 4.9, pricing: 'Paid', tags: ['image', 'art', 'design'], url: 'https://midjourney.com' },
+  { id: 'cursor', name: 'Cursor', category: 'Code', description: 'AI-first Code-Editor', rating: 4.7, pricing: 'Freemium', tags: ['code', 'ide'], url: 'https://cursor.sh' },
+  { id: 'runway', name: 'Runway', category: 'Video', description: 'Gen-3 Alpha Videogenerierung', rating: 4.5, pricing: 'Freemium', tags: ['video', 'creative'], url: 'https://runway.ml' },
+  { id: 'elevenlabs', name: 'ElevenLabs', category: 'Audio', description: 'Realistische Sprachsynthese', rating: 4.6, pricing: 'Freemium', tags: ['audio', 'voice', 'tts'], url: 'https://elevenlabs.io' },
+  { id: 'perplexity', name: 'Perplexity', category: 'LLM', description: 'KI-Suchmaschine mit Quellen', rating: 4.5, pricing: 'Freemium', tags: ['search', 'research'], url: 'https://perplexity.ai' },
+  { id: 'dalle3', name: 'DALL-E 3', category: 'Image', description: 'OpenAIs Bildgenerierung', rating: 4.4, pricing: 'Paid', tags: ['image', 'art'], url: 'https://openai.com/dall-e-3' },
+  { id: 'gemini', name: 'Gemini', category: 'LLM', description: 'Googles multimodales KI-Modell', rating: 4.5, pricing: 'Freemium', tags: ['text', 'multimodal'], url: 'https://gemini.google.com' },
+  { id: 'suno', name: 'Suno', category: 'Audio', description: 'KI-Musikgenerierung aus Text', rating: 4.3, pricing: 'Freemium', tags: ['audio', 'music'], url: 'https://suno.com' },
+  { id: 'stable-diffusion', name: 'Stable Diffusion', category: 'Image', description: 'Open-Source Bildgenerierung', rating: 4.4, pricing: 'Free', tags: ['image', 'open-source'], url: 'https://stability.ai' },
+  { id: 'copilot', name: 'Copilot', category: 'Code', description: 'GitHub KI-Pair-Programmer', rating: 4.6, pricing: 'Paid', tags: ['code', 'developer'], url: 'https://github.com/features/copilot' },
+  { id: 'n8n', name: 'n8n', category: 'Automation', description: 'Open-Source Workflow-Automation', rating: 4.3, pricing: 'Freemium', tags: ['automation', 'workflow'], url: 'https://n8n.io' },
+  { id: 'make', name: 'Make.com', category: 'Automation', description: 'Visual Automation Platform', rating: 4.4, pricing: 'Freemium', tags: ['automation', 'nocode'], url: 'https://make.com' },
+  { id: 'heygen', name: 'HeyGen', category: 'Video', description: 'KI-Avatar-Videos', rating: 4.2, pricing: 'Freemium', tags: ['video', 'avatar'], url: 'https://heygen.com' },
+  { id: 'deepl', name: 'DeepL', category: 'Productivity', description: 'KI-Übersetzung in 30+ Sprachen', rating: 4.8, pricing: 'Freemium', tags: ['translation', 'text'], url: 'https://deepl.com' },
+  { id: 'bolt', name: 'Bolt.new', category: 'Code', description: 'Full-Stack Apps per Prompt', rating: 4.3, pricing: 'Freemium', tags: ['code', 'webapp'], url: 'https://bolt.new' },
+  { id: 'flux', name: 'Flux Pro', category: 'Image', description: 'Hochwertige Bildgenerierung', rating: 4.5, pricing: 'Paid', tags: ['image', 'art'], url: 'https://blackforestlabs.ai' },
+  { id: 'otter', name: 'Otter.ai', category: 'Productivity', description: 'KI-Meeting-Transkription', rating: 4.3, pricing: 'Freemium', tags: ['transcription', 'meetings'], url: 'https://otter.ai' },
+  { id: 'zapier', name: 'Zapier', category: 'Automation', description: 'Automation mit KI-Workflows', rating: 4.4, pricing: 'Freemium', tags: ['automation', 'integration'], url: 'https://zapier.com' },
+];
+
+
+--- FILE: src/data/blogData.ts ---
+import type { BlogPost } from '@/api/toolsApi';
+
+export const BLOG_POSTS: BlogPost[] = [
+  { slug: 'best-ai-tools-2026', title: 'Die besten AI Tools 2026', excerpt: 'Unser umfassender Guide zu den Top AI-Tools des Jahres.', date: '2026-03-10', author: 'RunAtlas Team', tags: ['guide', 'tools'] },
+  { slug: 'chatgpt-vs-claude', title: 'ChatGPT vs Claude: Der große Vergleich', excerpt: 'Welcher KI-Assistent ist besser? Wir testen beide im Detail.', date: '2026-03-05', author: 'RunAtlas Team', tags: ['comparison', 'llm'] },
+  { slug: 'ai-workflow-automation', title: 'AI Workflow Automation Guide', excerpt: 'Wie du mit n8n, Make & Zapier deine Arbeit automatisierst.', date: '2026-02-28', author: 'RunAtlas Team', tags: ['automation', 'guide'] },
+  { slug: 'midjourney-prompts', title: '50 Midjourney Prompts die begeistern', excerpt: 'Die besten Prompt-Techniken für atemberaubende KI-Bilder.', date: '2026-02-20', author: 'RunAtlas Team', tags: ['image', 'prompts'] },
+  { slug: 'ai-coding-tools', title: 'AI Coding Tools im Test', excerpt: 'Cursor, Copilot, Bolt.new — welches Tool macht Entwickler produktiver?', date: '2026-02-15', author: 'RunAtlas Team', tags: ['code', 'review'] },
+];
+
+
+--- FILE: src/hooks/useTools.ts ---
+import { useQuery } from '@tanstack/react-query';
+import { toolsApi } from '../api/tools';
+
+export function useTrendingTools(limit = 10) {
+  return useQuery({
+    queryKey: ['tools', 'trending', limit],
+    queryFn: () => toolsApi.getTrending(limit),
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+export function useSearchTools(query: string, enabled = true) {
+  return useQuery({
+    queryKey: ['tools', 'search', query],
+    queryFn: () => toolsApi.search(query),
+    enabled: enabled && query.length > 0,
+    staleTime: 60 * 1000,
+  });
+}
+
+export function useToolsByCategory(category: string) {
+  return useQuery({
+    queryKey: ['tools', 'category', category],
+    queryFn: () => toolsApi.getByCategory(category),
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+export function useToolStats() {
+  return useQuery({
+    queryKey: ['tools', 'stats'],
+    queryFn: () => toolsApi.getStats(),
+    staleTime: 60 * 60 * 1000,
+  });
+}
+
+
+--- FILE: src/hooks/useScrollReveal.ts ---
+import { useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
+
+export function useScrollReveal() {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('animate-in');
+          observer.unobserve(entry.target);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (ref.current) {
+      observer.observe(ref.current);
+    }
+
+    return () => {
+      if (ref.current) {
+        observer.unobserve(ref.current);
+      }
+    };
+  }, []);
+
+  return ref;
+}
+
+
+--- FILE: src/hooks/useParallax.ts ---
+import { useEffect, useRef } from 'react';
+
+export function useParallax(depth = 0.5) {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!ref.current) return;
+      const scrollY = window.scrollY;
+      ref.current.style.transform = `translateY(${scrollY * depth}px)`;
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [depth]);
+
+  return ref;
+}
+
+
+--- FILE: src/utils/seo.ts ---
+// ⭐ SEO Meta Tags Management
+import React from "react";
+
+interface SEOMeta {
+  title: string;
+  description: string;
+  keywords?: string;
+  canonical?: string;
+  ogImage?: string;
+  ogType?: string;
+  twitterCard?: string;
+  author?: string;
+  robots?: string;
+}
+
+/**
+ * ⭐ Utility für SEO Meta Tags
+ * Ersetzt alle Meta Tags automatisch
+ */
+export function setSEOMeta({
+  title,
+  description,
+  keywords = "runatlas, tools, productivity",
+  canonical,
+  ogImage = "https://runatlas.com/og-default.png",
+  ogType = "website",
+  twitterCard = "summary_large_image",
+  author = "RunAtlas",
+  robots = "index, follow",
+}: SEOMeta) {
+  // ⭐ Title
+  document.title = `${title} | RunAtlas`;
+
+  // ⭐ Meta Tags setzen/aktualisieren
+  const setMetaTag = (name: string, content: string) => {
+    let element = document.querySelector(`meta[name="${name}"]`) as HTMLMetaElement;
+    if (!element) {
+      element = document.createElement("meta");
+      element.name = name;
+      document.head.appendChild(element);
+    }
+    element.content = content;
+  };
+
+  const setPropertyTag = (property: string, content: string) => {
+    let element = document.querySelector(
+      `meta[property="${property}"]`
+    ) as HTMLMetaElement;
+    if (!element) {
+      element = document.createElement("meta");
+      element.setAttribute("property", property);
+      document.head.appendChild(element);
+    }
+    element.content = content;
+  };
+
+  // Standard Meta Tags
+  setMetaTag("description", description);
+  setMetaTag("keywords", keywords);
+  setMetaTag("author", author);
+  setMetaTag("robots", robots);
+
+  // OpenGraph Tags
+  setPropertyTag("og:title", title);
+  setPropertyTag("og:description", description);
+  setPropertyTag("og:image", ogImage);
+  setPropertyTag("og:type", ogType);
+  setPropertyTag("og:url", window.location.href);
+
+  // Twitter Card Tags
+  setMetaTag("twitter:card", twitterCard);
+  setMetaTag("twitter:title", title);
+  setMetaTag("twitter:description", description);
+  setMetaTag("twitter:image", ogImage);
+
+  // Canonical URL
+  if (canonical) {
+    let link = document.querySelector('link[rel="canonical"]') as HTMLLinkElement;
+    if (!link) {
+      link = document.createElement("link");
+      link.rel = "canonical";
+      document.head.appendChild(link);
+    }
+    link.href = canonical;
+  }
+}
+
+/**
+ * ⭐ Hook für SEO Meta Tags (für React Components)
+ */
+export function usePageMeta(meta: SEOMeta) {
+  React.useEffect(() => {
+    setSEOMeta(meta);
+  }, [meta]);
+}
+
+// ⭐ Schema.org strukturierte Daten
+export function setStructuredData(data: Record<string, any>) {
+  let script = document.querySelector(
+    'script[type="application/ld+json"]'
+  ) as HTMLScriptElement;
+  if (!script) {
+    script = document.createElement("script");
+    script.type = "application/ld+json";
+    document.head.appendChild(script);
+  }
+  script.textContent = JSON.stringify(data);
+}
+
+
+--- FILE: src/utils/shareStack.ts ---
+// Stack sharing via URL parameters (Base64 encoded)
+
+export interface SharedStack {
+  name: string;
+  toolIds: string[];
+  created: string;
+}
+
+export function encodeStack(stack: SharedStack): string {
+  const json = JSON.stringify(stack);
+  return btoa(encodeURIComponent(json));
+}
+
+export function decodeStack(encoded: string): SharedStack | null {
+  try {
+    const json = decodeURIComponent(atob(encoded));
+    return JSON.parse(json);
+  } catch { return null; }
+}
+
+export function generateShareUrl(stack: SharedStack): string {
+  const base = typeof window !== 'undefined' ? window.location.origin : '';
+  return `${base}/?stack=${encodeStack(stack)}`;
+}
+
+export function getStackFromUrl(): SharedStack | null {
+  if (typeof window === 'undefined') return null;
+  const params = new URLSearchParams(window.location.search);
+  const encoded = params.get('stack');
+  if (!encoded) return null;
+  return decodeStack(encoded);
+}
+
+export async function shareStack(stack: SharedStack): Promise<boolean> {
+  const url = generateShareUrl(stack);
+  try {
+    if (navigator.share) {
+      await navigator.share({ title: `RunAtlas Stack: ${stack.name}`, text: `Mein AI-Tool Stack mit ${stack.toolIds.length} Tools`, url });
+      return true;
+    }
+    await navigator.clipboard.writeText(url);
+    return true;
+  } catch { return false; }
+}
+
+
+--- FILE: src/utils/ogImage.ts ---
+/**
+ * ⭐ Dynamische OG Image Generierung
+ * Nutzt Satori für HTML → PNG Konvertierung
+ * 
+ * Verwendung auf Server-Side (Node.js/Edge Function):
+ * const ogUrl = await generateOgImage({ title, description, image });
+ */
+
+interface OGImageParams {
+  title: string;
+  description?: string;
+  author?: string;
+  image?: string;
+  color?: string;
+}
+
+/**
+ * ⭐ Server-Side: OG Image als Buffer generieren
+ * Für Edge Functions (Vercel, Netlify) oder API Routes
+ */
+export async function generateOgImageBuffer({
+  title,
+  description = "Entdecke RunAtlas – Deine perfekte Tool-Suite",
+  author = "RunAtlas",
+  color = "#6366f1",
+}: OGImageParams) {
+  // Nur auf Server verfügbar
+  if (typeof window !== "undefined") {
+    console.warn("generateOgImageBuffer sollte nur Server-Side genutzt werden");
+    return null;
+  }
+
+  try {
+    const { Satori } = await import("satori");
+    const sharp = await import("sharp");
+
+    const svg = await Satori(
+      {
+        type: "div",
+        key: "og-image",
+        props: {
+          children: [
+            {
+              type: "div",
+              props: {
+                style: {
+                  display: "flex",
+                  flexDirection: "column",
+                  width: "100%",
+                  height: "100%",
+                  background: `linear-gradient(135deg, ${color} 0%, #1e1b4b 100%)`,
+                  padding: "60px",
+                  justifyContent: "space-between",
+                },
+                children: [
+                  {
+                    type: "h1",
+                    props: {
+                      style: {
+                        fontSize: "60px",
+                        fontWeight: "bold",
+                        color: "#ffffff",
+                        margin: "0",
+                        maxWidth: "800px",
+                        lineHeight: "1.2",
+                      },
+                      children: title,
+                    },
+                  },
+                  {
+                    type: "div",
+                    props: {
+                      style: {
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                      },
+                      children: [
+                        {
+                          type: "p",
+                          props: {
+                            style: {
+                              fontSize: "24px",
+                              color: "#e0e7ff",
+                              margin: "0",
+                            },
+                            children: description,
+                          },
+                        },
+                        {
+                          type: "p",
+                          props: {
+                            style: {
+                              fontSize: "28px",
+                              fontWeight: "600",
+                              color: "#ffffff",
+                            },
+                            children: "🚀 RunAtlas",
+                          },
+                        },
+                      ],
+                    },
+                  },
+                ],
+              },
+            },
+          ],
+          style: {
+            width: "1200px",
+            height: "630px",
+            display: "flex",
+          },
+        },
+      },
+      {
+        width: 1200,
+        height: 630,
+        fonts: [
+          {
+            name: "Inter",
+            data: await fetch(
+              "https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_nVMrMxCcQoGD40riFdx3sDraw.woff2"
+            ).then((r) => r.arrayBuffer()),
+            weight: 400,
+            style: "normal",
+          },
+          {
+            name: "Inter",
+            data: await fetch(
+              "https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_nVMrMxCcQoGD40riFdx3sDraw.woff2"
+            ).then((r) => r.arrayBuffer()),
+            weight: 600,
+            style: "normal",
+          },
+        ],
+      }
+    );
+
+    const pngBuffer = await sharp.default(svg).png().toBuffer();
+    return pngBuffer;
+  } catch (error) {
+    console.error("OG Image Generierung fehlgeschlagen:", error);
+    return null;
+  }
+}
+
+/**
+ * ⭐ Client-Side: OG Image URL generieren
+ * Nutzt externe Service oder API
+ */
+export function generateOgImageUrl({
+  title,
+  description,
+  author,
+  image,
+  color = "#6366f1",
+}: OGImageParams): string {
+  // ⭐ Option 1: Eigene API Route
+  const params = new URLSearchParams({
+    title,
+    description: description || "RunAtlas",
+    author: author || "RunAtlas",
+    color,
+    ...(image && { image }),
+  });
+
+  return `/api/og-image?${params.toString()}`;
+}
+
+/**
+ * ⭐ Vorkonfigurierte OG Images für häufige Pages
+ */
+export const OG_IMAGES = {
+  home: "https://runatlas.com/og-home.png",
+  pricing: "https://runatlas.com/og-pricing.png",
+  blog: "https://runatlas.com/og-blog.png",
+  tools: "https://runatlas.com/og-tools.png",
+  default: "https://runatlas.com/og-default.png",
+} as const;
+
+
+--- FILE: src/index.css ---
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme inline {
+  --font-sans: 'DM Sans', sans-serif;
+  --font-display: 'Space Grotesk', sans-serif;
+
+  --color-background:         hsl(var(--background));
+  --color-foreground:         hsl(var(--foreground));
+  --color-surface:            hsl(var(--surface));
+  --color-panel:              hsl(var(--panel));
+  --color-card:               hsl(var(--card));
+  --color-card-foreground:    hsl(var(--card-foreground));
+  --color-hover:              hsl(var(--hover));
+  --color-border:             hsl(var(--border));
+  --color-border-soft:        hsl(var(--border-soft));
+  --color-ring:               hsl(var(--ring));
+
+  --color-primary:            hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary:          hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted:              hsl(var(--muted));
+  --color-muted-foreground:   hsl(var(--muted-foreground));
+  --color-accent:             hsl(var(--accent));
+  --color-accent-foreground:  hsl(var(--accent-foreground));
+  --color-destructive:        hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+
+  --color-data-teal:   #2EC4B6;
+  --color-data-blue:   #4DA3FF;
+  --color-data-amber:  #F2C94C;
+  --color-data-coral:  #FF7A59;
+  --color-data-green:  #22C55E;
+}
+
+:root {
+  --background:  214 19% 5%;
+  --surface:     213 17% 8%;
+  --panel:       214 22% 10%;
+  --card:        214 21% 13%;
+  --hover:       218 23% 16%;
+
+  --border:      215 19% 17%;
+  --border-soft: 215 19% 15%;
+
+  --foreground:         210 35% 93%;
+  --card-foreground:    210 35% 93%;
+  --muted-foreground:   213 11% 65%;
+
+  --primary:            210 100% 65%;
+  --primary-foreground: 214 19% 5%;
+
+  --secondary:            214 22% 10%;
+  --secondary-foreground: 210 35% 93%;
+
+  --muted:            214 22% 10%;
+
+  --accent:            175 62% 47%;
+  --accent-foreground: 214 19% 5%;
+
+  --destructive:            0 72% 51%;
+  --destructive-foreground: 210 35% 93%;
+
+  --ring: 210 100% 65%;
+}
+
+/* ── Base reset ── */
+@layer base {
+  *, *::before, *::after {
+    border-color: hsl(var(--border));
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: var(--font-sans);
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    @apply font-bold tracking-tight;
+  }
+}
+
+/* ── Utility classes ── */
+@layer utilities {
+  .text-gradient {
+    background: linear-gradient(135deg, #4DA3FF 0%, #2EC4B6 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Feature #3: Glassmorphism 2.0 */
+  .glass-card {
+    background: linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--card) / 0.8) 100%);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid transparent;
+    background-clip: padding-box;
+    position: relative;
+    transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .glass-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(135deg, hsl(var(--border)) 0%, hsl(var(--border-soft)) 100%);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    transition: background 300ms;
+  }
+  .glass-card:hover {
+    background: linear-gradient(135deg, hsl(var(--hover)) 0%, hsl(var(--hover) / 0.9) 100%);
+    box-shadow: 0 0 20px -5px rgba(77, 163, 255, 0.15), inset 0 1px 0 rgba(255,255,255,0.03);
+    transform: translateY(-2px);
+  }
+  .glass-card:hover::before {
+    background: linear-gradient(135deg, rgba(77,163,255,0.4) 0%, rgba(46,196,182,0.3) 100%);
+  }
+
+  .glass-panel {
+    background-color: hsl(var(--panel));
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid hsl(var(--border));
+  }
+
+  .glow-teal { box-shadow: 0 0 20px -4px rgba(46, 196, 182, 0.4); }
+  .glow-blue { box-shadow: 0 0 20px -4px rgba(77, 163, 255, 0.35); }
+
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+  .focus-ring:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(77, 163, 255, 0.35);
+  }
+
+  /* Feature #27: 3D Tilt support */
+  .tilt-card {
+    transform-style: preserve-3d;
+    perspective: 1000px;
+    transition: transform 0.15s ease-out;
+  }
+  .tilt-card-inner {
+    transform-style: preserve-3d;
+  }
+  .tilt-card-shine {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(255,255,255,0.06) 0%, transparent 60%);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .tilt-card:hover .tilt-card-shine {
+    opacity: 1;
+  }
+}
+
+/* ── Feature #4: Animated Gradient Mesh Background ── */
+@keyframes mesh-drift {
+  0%   { transform: translate(0%, 0%) scale(1); }
+  25%  { transform: translate(5%, -3%) scale(1.05); }
+  50%  { transform: translate(-3%, 5%) scale(0.98); }
+  75%  { transform: translate(-5%, -2%) scale(1.03); }
+  100% { transform: translate(0%, 0%) scale(1); }
+}
+@keyframes mesh-drift-2 {
+  0%   { transform: translate(0%, 0%) scale(1.02); }
+  33%  { transform: translate(-4%, 4%) scale(0.97); }
+  66%  { transform: translate(3%, -5%) scale(1.04); }
+  100% { transform: translate(0%, 0%) scale(1.02); }
+}
+.hero-mesh-bg {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  z-index: 0;
+}
+.hero-mesh-bg::before,
+.hero-mesh-bg::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(120px);
+  opacity: 0.15;
+}
+.hero-mesh-bg::before {
+  width: 60%;
+  height: 60%;
+  top: -10%;
+  left: -10%;
+  background: radial-gradient(circle, #4DA3FF 0%, transparent 70%);
+  animation: mesh-drift 20s ease-in-out infinite;
+}
+.hero-mesh-bg::after {
+  width: 50%;
+  height: 50%;
+  bottom: -10%;
+  right: -10%;
+  background: radial-gradient(circle, #2EC4B6 0%, transparent 70%);
+  animation: mesh-drift-2 25s ease-in-out infinite;
+}
+.hero-mesh-orb-1 {
+  position: absolute;
+  width: 40%;
+  height: 40%;
+  top: 30%;
+  left: 50%;
+  border-radius: 50%;
+  background: radial-gradient(circle, #A855F7 0%, transparent 70%);
+  filter: blur(100px);
+  opacity: 0.08;
+  animation: mesh-drift 30s ease-in-out infinite reverse;
+  pointer-events: none;
+}
+.hero-mesh-orb-2 {
+  position: absolute;
+  width: 35%;
+  height: 35%;
+  top: 60%;
+  left: 20%;
+  border-radius: 50%;
+  background: radial-gradient(circle, #F2C94C 0%, transparent 70%);
+  filter: blur(100px);
+  opacity: 0.06;
+  animation: mesh-drift-2 22s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* ── Ticker ── */
+@keyframes ticker {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+@keyframes ticker-reverse {
+  0%   { transform: translateX(-50%); }
+  100% { transform: translateX(0); }
+}
+.animate-ticker { animation: ticker 30s linear infinite; }
+.animate-ticker:hover { animation-play-state: paused; }
+.animate-ticker-reverse { animation: ticker-reverse 35s linear infinite; }
+.animate-ticker-reverse:hover { animation-play-state: paused; }
+
+/* ── Subtle pulse dot ── */
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+.animate-pulse-dot { animation: pulse-dot 2s ease-in-out infinite; }
+
+/* ── Feature #24: Page Load Intro Sequence ── */
+@keyframes page-intro-fade {
+  0%   { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes page-intro-logo {
+  0%   { opacity: 0; transform: scale(0.8); }
+  50%  { opacity: 1; transform: scale(1.05); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.page-intro-logo {
+  animation: page-intro-logo 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+.page-intro-content {
+  opacity: 0;
+  animation: page-intro-fade 0.5s ease-out 0.3s forwards;
+}
+.page-intro-sections {
+  opacity: 0;
+  animation: page-intro-fade 0.6s ease-out 0.5s forwards;
+}
+
+/* ── Feature #25: Custom Cursor Glow ── */
+.hero-cursor-glow {
+  position: fixed;
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(77,163,255,0.08) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 1;
+  transform: translate(-50%, -50%);
+  transition: opacity 0.3s;
+  mix-blend-mode: screen;
+}
+
+/* ── Feature #26: Theme Ripple Transition ── */
+@keyframes theme-ripple {
+  0%   { transform: translate(-50%,-50%) scale(0); opacity: 1; }
+  100% { transform: translate(-50%,-50%) scale(4); opacity: 0; }
+}
+.theme-ripple {
+  position: fixed;
+  width: 100vmax;
+  height: 100vmax;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9998;
+  animation: theme-ripple 0.6s ease-out forwards;
+}
+
+/* ── Workflow pulse animation ── */
+@keyframes flow-pulse {
+  0%   { opacity: 0; transform: translateX(-100%); }
+  50%  { opacity: 1; }
+  100% { opacity: 0; transform: translateX(200%); }
+}
+.animate-flow-pulse {
+  animation: flow-pulse 2s ease-in-out infinite;
+}
+
+/* ── Radar chart spin ── */
+@keyframes radar-spin {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+.animate-radar-spin {
+  animation: radar-spin 8s linear infinite;
+}
+
+/* ── Light-mode tokens ── */
+.light {
+  --background:  0 0% 98%;
+  --surface:     0 0% 96%;
+  --panel:       0 0% 94%;
+  --card:        0 0% 100%;
+  --hover:       210 20% 94%;
+
+  --border:      215 15% 85%;
+  --border-soft: 215 15% 90%;
+
+  --foreground:         215 25% 15%;
+  --card-foreground:    215 25% 15%;
+  --muted-foreground:   213 11% 45%;
+
+  --primary:            210 100% 50%;
+  --primary-foreground: 0 0% 100%;
+
+  --secondary:            214 22% 93%;
+  --secondary-foreground: 215 25% 15%;
+
+  --muted:            214 22% 94%;
+
+  --accent:            175 62% 35%;
+  --accent-foreground: 0 0% 100%;
+
+  --destructive:            0 72% 51%;
+  --destructive-foreground: 0 0% 100%;
+
+  --ring: 210 100% 50%;
+}
+
+/* ── Smooth scrolling ── */
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+}
+
+/* ── prefers-reduced-motion ── */
+@media (prefers-reduced-motion: reduce) {
+  .animate-ticker, .animate-ticker-reverse {
+    animation: none !important;
+    overflow-x: auto;
+  }
+  .animate-pulse-dot { animation: none !important; opacity: 1; }
+  .hero-mesh-bg::before, .hero-mesh-bg::after,
+  .hero-mesh-orb-1, .hero-mesh-orb-2 {
+    animation: none !important;
+  }
+  .hero-cursor-glow { display: none !important; }
+  .theme-ripple { animation: none !important; display: none !important; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@keyframes count-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-count-up { animation: count-up 0.5s ease-out forwards; }
+
+#scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #4DA3FF, #2EC4B6);
+  z-index: 9999;
+  transform-origin: left;
+  transition: transform 0.1s linear;
+}
+
+#back-to-top {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 100;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.5rem;
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s, background 0.2s, color 0.2s;
+}
+#back-to-top.visible { opacity: 1; pointer-events: auto; }
+#back-to-top:hover { background: hsl(var(--hover)); color: hsl(var(--foreground)); }
+
+.scroll-indicator { width: 0%; transition: width 0.1s linear; }
+
+/* ── Command Palette Overlay ── */
+@keyframes cmd-fade-in {
+  from { opacity: 0; transform: scale(0.95) translateY(-10px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+.cmd-palette-enter {
+  animation: cmd-fade-in 0.15s ease-out forwards;
+}
+
+
+--- FILE: README.md ---
+# RunAtlas Landing Page
+
+> **The Map of the AI Universe** — marketing / landing site for [RunAtlas](https://runatlas.com).
+
+Built with **Vite 6**, **React 19**, **TypeScript**, **Tailwind CSS v4**, and **Framer Motion**.
+
+## Quick Start
+
+```bash
+# Clone and install
+cp .env.example .env    # fill in VITE_APP_URL and VITE_SITE_URL
+npm install
+npm run dev             # → http://localhost:5173
+```
+
+## Available Scripts
+
+| Script           | Action                          |
+|------------------|---------------------------------|
+| `npm run dev`    | Start development server        |
+| `npm run build`  | Production build (to `dist/`)   |
+| `npm run preview`| Preview production build        |
+| `npm run lint`   | Run ESLint                      |
+| `npm run format` | Format with Prettier            |
+
+## Project Structure
+
+```
+src/
+├── components/
+│   ├── layout/    Navbar, Footer
+│   ├── sections/  Hero, NewTools, TrendingTools, PersonalStack,
+│   │              UniverseMap, Insights, Testimonials, Pricing ...
+│   └── ui/        Starfield, ErrorBoundary, ScrollProgress, BackToTop ...
+├── hooks/         useScrollPosition, useMediaQuery, useDebounce
+├── lib/           config.ts, constants.ts, utils.ts
+└── pages/         Home.tsx, not-found.tsx
+```
+
+## Deployment
+
+### Vercel
+```bash
+npx vercel
+```
+SPA routing is handled via `vercel.json`.
+
+### Netlify
+```bash
+npm run build
+netlify deploy --prod --dir=dist
+```
+SPA routing is handled via `public/_redirects`.
+
+## Environment Variables
+
+| Variable         | Default                         | Required |
+|------------------|---------------------------------|----------|
+| `VITE_APP_URL`   | `https://app.runatlas.com`      | Yes      |
+| `VITE_SITE_URL`  | `https://runatlas.com`          | Yes      |
+
+## License
+
+© RunAtlas. All rights reserved.
+
+
+--- FILE: tailwind.config.ts ---
+import type { Config } from "tailwindcss";
+
+const config: Config = {
+  darkMode: "class",
+  content: ["./index.html", "./src/**/*.{ts,tsx}"],
+  theme: {
+    extend: {
+      fontFamily: {
+        display: ["Space Grotesk", "DM Sans", "sans-serif"],
+        sans:    ["DM Sans", "sans-serif"],
+      },
+      colors: {
+        border:      "hsl(var(--border))",
+        background:  "hsl(var(--background))",
+        foreground:  "hsl(var(--foreground))",
+        muted:       { DEFAULT: "hsl(var(--muted))", foreground: "hsl(var(--muted-foreground))" },
+        card:        { DEFAULT: "hsl(var(--card))",  foreground: "hsl(var(--card-foreground))" },
+        primary:     { DEFAULT: "hsl(var(--primary))",     foreground: "hsl(var(--primary-foreground))" },
+        secondary:   { DEFAULT: "hsl(var(--secondary))",   foreground: "hsl(var(--secondary-foreground))" },
+        accent:      { DEFAULT: "hsl(var(--accent))",      foreground: "hsl(var(--accent-foreground))" },
+        destructive: { DEFAULT: "hsl(var(--destructive))", foreground: "hsl(var(--destructive-foreground))" },
+        ring:        "hsl(var(--ring))",
+        brand: {
+          teal:  "#2EC4B6",
+          blue:  "#4DA3FF",
+          amber: "#F2C94C",
+          coral: "#FF7A59",
+          green: "#22C55E",
+        },
+      },
+      animation: {
+        ticker:          "ticker 40s linear infinite",
+        "ticker-reverse":"ticker-reverse 45s linear infinite",
+        "pulse-dot":     "pulse-dot 2s ease-in-out infinite",
+        "mesh-drift":    "mesh-drift 20s ease-in-out infinite",
+        "flow-pulse":    "flow-pulse 2s ease-in-out infinite",
+        "radar-spin":    "radar-spin 8s linear infinite",
+      },
+      keyframes: {
+        ticker: {
+          "0%":   { transform: "translateX(0)" },
+          "100%": { transform: "translateX(-50%)" },
+        },
+        "ticker-reverse": {
+          "0%":   { transform: "translateX(-50%)" },
+          "100%": { transform: "translateX(0)" },
+        },
+        "pulse-dot": {
+          "0%, 100%": { opacity: "1" },
+          "50%":      { opacity: "0.3" },
+        },
+        "mesh-drift": {
+          "0%":   { transform: "translate(0%, 0%) scale(1)" },
+          "50%":  { transform: "translate(-3%, 5%) scale(0.98)" },
+          "100%": { transform: "translate(0%, 0%) scale(1)" },
+        },
+        "flow-pulse": {
+          "0%":   { opacity: "0", transform: "translateX(-100%)" },
+          "50%":  { opacity: "1" },
+          "100%": { opacity: "0", transform: "translateX(200%)" },
+        },
+        "radar-spin": {
+          "0%":   { transform: "rotate(0deg)" },
+          "100%": { transform: "rotate(360deg)" },
+        },
+      },
+      screens: {
+        xs: "480px",
+      },
+      borderRadius: {
+        "4xl": "2rem",
+      },
+    },
+  },
+  plugins: [],
+  safelist: [
+    { pattern: /text-(teal|blue|amber|coral|green)-[0-9]+/ },
+  ],
+};
+
+export default config;
+
+
+--- FILE: vite.config.ts ---
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
+import path from "path";
+
+const port     = Number(process.env.PORT     ?? "5173");
+const basePath = process.env.BASE_PATH       ?? "/";
+
+export default defineConfig({
+  base: basePath,
+  plugins: [react(), tailwindcss()],
+  resolve: {
+    alias: { "@": path.resolve(import.meta.dirname, "src") },
+    dedupe: ["react", "react-dom"],
+  },
+  root: path.resolve(import.meta.dirname),
+  build: {
+    outDir:     path.resolve(import.meta.dirname, "dist"),
+    emptyOutDir: true,
+    target: "esnext",  // ⭐ Weniger Polyfills = kleinerer Bundle
+    minify: "terser",
+    cssCodeSplit: true,  // ⭐ Critical CSS inline
+    sourcemap: false,  // ⭐ Kleinere Production Builds
+    
+    // ⭐ Aggressives Chunk Splitting für besseres Caching
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          "vendor-react":   ["react", "react-dom", "wouter"],
+          "vendor-motion":  ["framer-motion"],
+          "vendor-query":   ["@tanstack/react-query"],
+          "vendor-ui":      ["lucide-react", "next-themes", "clsx", "tailwind-merge"],
+          "vendor-i18n":    ["i18next", "react-i18next"],
+          "vendor-form":    ["zustand"],
+          "vendor-http":    ["axios", "sonner"],
+        },
+      },
+    },
+    
+    // ⭐ Bessere Kompression
+    chunkSizeWarningLimit: 250,  // Kleinere Limit für bessere Performance
+    reportCompressedSize: true,
+  },
+  
+  // ⭐ Optimierte Entwicklungseinstellungen
+  server:  { 
+    port, 
+    host: "0.0.0.0", 
+    allowedHosts: true,
+    cors: true,
+    hmr: true,  // Hot Module Replacement
+  },
+  preview: { port, host: "0.0.0.0", allowedHosts: true },
+  
+  // ⭐ Environment Variablen für Production
+  define: {
+    __DEV__: JSON.stringify(process.env.NODE_ENV !== 'production'),
+  },
+});
+
+
+================================================================================
+ENDE — ATLAS COMPLETE MASTER DOCUMENT
+================================================================================

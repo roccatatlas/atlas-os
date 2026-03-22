@@ -1,0 +1,434 @@
+====================================================================================================
+ATLAS-STRUCTURED.ZIP - VOLLSTÄNDIGES DATEI-VERZEICHNIS
+====================================================================================================
+
+Datum: 16. März 2026
+Gesamte Dateien: 225
+ZIP-Größe: 608 KB
+
+====================================================================================================
+VERZEICHNISSTRUKTUR & INHALTE
+====================================================================================================
+
+
+📁 atlas_structured
+----------------------------------------------------------------------------------------------------
+  📄 CHANGELOG.md                                            2.3KB
+  📄 CONTRIBUTING.md                                         1.0KB
+  📄 README.md                                               1.8KB
+  📘 affiliate.ts                                            1.2KB
+  📘 analytics.ts                                            1.9KB
+  📘 blogData.ts                                             1.2KB
+  📘 bundleAnalyzer.ts                                        726B
+  📘 client.ts                                                879B
+  📘 config.ts                                                298B
+  📘 constants.ts                                             376B
+  📘 cspHeaders.ts                                            838B
+  📘 env.ts                                                  1.0KB
+  📜 eslint.config.js                                        1.2KB
+  📘 global.d.ts                                              558B
+  📘 imageOptimization.ts                                     896B
+  🌐 index.html                                              6.7KB
+  📘 index.ts                                                 207B
+  📘 loader.ts                                                815B
+  📘 main.ts                                                  561B
+  📘 newsletter.ts                                            553B
+  📘 ogImage.ts                                              4.9KB
+  📋 package.json                                            3.5KB
+  📘 playwright.config.ts                                     648B
+  📘 preview.ts                                               395B
+  📘 queryConfig.ts                                          1.2KB
+  📘 security.ts                                              579B
+  📘 seo.ts                                                  2.8KB
+  📘 setup.ts                                                  36B
+  📘 shareStack.ts                                           1.3KB
+  📘 social.ts                                               1.6KB
+  📘 store.ts                                                 354B
+  📜 sw.js                                                   1.2KB
+  📘 tailwind.config.ts                                      2.8KB
+  📘 tools.ts                                                1.1KB
+  📘 toolsApi.ts                                             2.5KB
+  📘 toolsData.ts                                            3.9KB
+  📋 tsconfig.json                                            827B
+  📘 types.ts                                                 404B
+  📘 utils.ts                                                 169B
+  📘 vite-env.d.ts                                             38B
+  📘 vite.config.ts                                          1.9KB
+  → 41 Dateien
+
+📁 atlas_structured/public
+----------------------------------------------------------------------------------------------------
+  📑 feed.xml                                                1.9KB
+  📋 manifest.json                                            613B
+  📝 robots.txt                                                82B
+  📑 sitemap.xml                                              530B
+  → 4 Dateien
+
+📁 atlas_structured/src
+----------------------------------------------------------------------------------------------------
+  📄 .env.example                                             527B
+  📄 .eslintrc.cjs                                            772B
+  📄 .gitignore                                               296B
+  📄 .prettierrc                                              153B
+  📄 SSR-MIGRATION.md                                         957B
+  📄 _redirects                                                21B
+  📄 check-bundle-size.sh                                    1010B
+  📄 ci.yml                                                  1.7KB
+  📄 constellation-abstract.webp                            70.9KB
+  📄 ecosystem-map.webp                                    139.6KB
+  🖼️ favicon.svg                                              971B
+  📄 generate-images.sh                                       921B
+  📄 opengraph.jpg                                          12.4KB
+  🖼️ opengraph.svg                                           1.5KB
+  📄 optimize-images.sh                                      1.1KB
+  📄 site.webmanifest                                         467B
+  📄 universe-bg.webp                                       44.6KB
+  → 17 Dateien
+
+📁 atlas_structured/src/animations
+----------------------------------------------------------------------------------------------------
+  ⚛️ StarLoader.tsx                                          7.6KB
+  → 1 Dateien
+
+📁 atlas_structured/src/components
+----------------------------------------------------------------------------------------------------
+  ⚛️ A11ySkipLink.tsx                                         322B
+  ⚛️ A11yWrapper.tsx                                          415B
+  ⚛️ AINewsFeed.tsx                                         11.7KB
+  ⚛️ AIRadar.tsx                                            13.4KB
+  ⚛️ AnimatedText.tsx                                         844B
+  ⚛️ App.tsx                                                 3.2KB
+  ⚛️ BackToTop.tsx                                            492B
+  ⚛️ Blog.tsx                                                2.5KB
+  ⚛️ BlogPost.tsx                                            1.1KB
+  ⚛️ CategoryBrowser.tsx                                     7.5KB
+  ⚛️ Changelog.tsx                                           4.0KB
+  ⚛️ CommandPalette.tsx                                     12.4KB
+  ⚛️ CommunityStacks.tsx                                     8.0KB
+  ⚛️ ComparisonTable.tsx                                    17.0KB
+  ⚛️ CookieBanner.tsx                                        3.0KB
+  ⚛️ ErrorBoundary.tsx                                       2.0KB
+  ⚛️ FAQ.tsx                                                 3.9KB
+  ⚛️ FeaturedBlog.tsx                                        5.5KB
+  ⚛️ FinalCTA.tsx                                            2.8KB
+  ⚛️ Footer.tsx                                              4.8KB
+  ⚛️ Hero.tsx                                                6.1KB
+  ⚛️ Home.tsx                                                5.1KB
+  ⚛️ Insights.tsx                                            3.8KB
+  ⚛️ InstantExploration.tsx                                  2.7KB
+  ⚛️ LanguageSwitcher.tsx                                     765B
+  ⚛️ LottieIcon.tsx                                           363B
+  ⚛️ Navbar.tsx                                             10.2KB
+  ⚛️ NewTools.tsx                                            5.9KB
+  ⚛️ Newsletter.tsx                                         11.6KB
+  ⚛️ OfflineBanner.tsx                                        793B
+  ⚛️ OnboardingTour.tsx                                      9.3KB
+  ⚛️ OptimizedImage.tsx                                      1.8KB
+  ⚛️ PageMeta.tsx                                            1.7KB
+  ⚛️ PageTransition.tsx                                       490B
+  ⚛️ PersonalStack.tsx                                      21.8KB
+  ⚛️ Pricing.tsx                                             6.6KB
+  ⚛️ SVGMorph.tsx                                             462B
+  ⚛️ SchemaMarkup.tsx                                         451B
+  ⚛️ ScrollProgress.tsx                                       402B
+  ⚛️ SectionErrorBoundary.tsx                                1.3KB
+  ⚛️ ShareButton.tsx                                         2.4KB
+  ⚛️ SimilarTools.tsx                                        2.2KB
+  ⚛️ SocialProof.tsx                                         1.2KB
+  ⚛️ StarRating.tsx                                          1.9KB
+  ⚛️ Starfield.tsx                                           4.8KB
+  ⚛️ ToolComparison.tsx                                      8.4KB
+  ⚛️ ToolOfDay.tsx                                          15.1KB
+  ⚛️ ToolSubmission.tsx                                      7.0KB
+  ⚛️ Tools.tsx                                              11.7KB
+  ⚛️ TrendingTools.tsx                                      10.0KB
+  ⚛️ UniverseMap.tsx                                        13.4KB
+  ⚛️ WeeklyDigest.tsx                                        3.3KB
+  ⚛️ Workflows.tsx                                           6.2KB
+  ⚛️ accordion.tsx                                           2.0KB
+  ⚛️ alert-dialog.tsx                                        4.3KB
+  ⚛️ alert.tsx                                               1.6KB
+  ⚛️ aspect-ratio.tsx                                         140B
+  ⚛️ avatar.tsx                                              1.4KB
+  ⚛️ badge.tsx                                               1.5KB
+  ⚛️ breadcrumb.tsx                                          2.6KB
+  ⚛️ button-group.tsx                                        2.2KB
+  ⚛️ button.tsx                                              2.3KB
+  ⚛️ calendar.tsx                                            7.4KB
+  ⚛️ card.tsx                                                1.8KB
+  ⚛️ chart.tsx                                              10.7KB
+  ⚛️ checkbox.tsx                                            1.0KB
+  ⚛️ collapsible.tsx                                          329B
+  ⚛️ command.tsx                                             4.8KB
+  ⚛️ context-menu.tsx                                        7.2KB
+  ⚛️ dialog.tsx                                              3.7KB
+  ⚛️ drawer.tsx                                              2.9KB
+  ⚛️ dropdown-menu.tsx                                       7.4KB
+  ⚛️ empty.tsx                                               2.3KB
+  ⚛️ field.tsx                                               5.9KB
+  ⚛️ form.tsx                                                4.1KB
+  ⚛️ hover-card.tsx                                          1.2KB
+  ⚛️ input-group.tsx                                         4.9KB
+  ⚛️ input-otp.tsx                                           2.2KB
+  ⚛️ input.tsx                                                768B
+  ⚛️ item.tsx                                                4.4KB
+  ⚛️ kbd.tsx                                                  862B
+  ⚛️ label.tsx                                                724B
+  ⚛️ main.tsx                                                 756B
+  ⚛️ menubar.tsx                                             8.4KB
+  ⚛️ navigation-menu.tsx                                     5.0KB
+  ⚛️ not-found.tsx                                           1.2KB
+  ⚛️ pagination.tsx                                          2.7KB
+  ⚛️ popover.tsx                                             1.3KB
+  ⚛️ progress.tsx                                             792B
+  ⚛️ radio-group.tsx                                         1.4KB
+  ⚛️ resizable.tsx                                           1.5KB
+  ⚛️ scroll-area.tsx                                         1.6KB
+  ⚛️ select.tsx                                              5.6KB
+  ⚛️ separator.tsx                                            756B
+  ⚛️ sheet.tsx                                               4.2KB
+  ⚛️ sidebar.tsx                                            21.3KB
+  ⚛️ slider.tsx                                              1.0KB
+  ⚛️ sonner.tsx                                               894B
+  ⚛️ spinner.tsx                                              331B
+  ⚛️ switch.tsx                                              1.1KB
+  ⚛️ table.tsx                                               2.8KB
+  ⚛️ tabs.tsx                                                1.8KB
+  ⚛️ textarea.tsx                                             649B
+  ⚛️ toast.tsx                                               4.7KB
+  ⚛️ toaster.tsx                                              772B
+  ⚛️ toggle-group.tsx                                        1.7KB
+  ⚛️ toggle.tsx                                              1.5KB
+  ⚛️ tooltip.tsx                                             1.2KB
+  → 108 Dateien
+
+📁 atlas_structured/src/components/ui
+----------------------------------------------------------------------------------------------------
+  ⚛️ Badge.stories.tsx                                       1021B
+  ⚛️ GlassCard.stories.tsx                                    868B
+  ⚛️ GlassCard.tsx                                            975B
+  ⚛️ IconButton.tsx                                          1007B
+  ⚛️ SectionHeading.tsx                                       924B
+  ⚛️ Skeleton.tsx                                             672B
+  ⚛️ SkeletonCards.tsx                                       1.8KB
+  ⚛️ SponsoredBadge.tsx                                      2.0KB
+  → 8 Dateien
+
+📁 atlas_structured/src/hooks
+----------------------------------------------------------------------------------------------------
+  📋 .lighthouserc.json                                       383B
+  ⚛️ TestimonialsCarousel.tsx                                5.4KB
+  ⚛️ carousel.tsx                                            6.1KB
+  📄 lighthouse.yml                                           452B
+  ⚛️ use-mobile.tsx                                           565B
+  📘 use-toast.ts                                            3.6KB
+  📘 useAnnounce.ts                                           480B
+  📘 useDebounce.ts                                           349B
+  📘 useEventTracking.ts                                      863B
+  📘 useExperiment.ts                                         475B
+  📘 useFocusTrap.ts                                         1.0KB
+  📘 useInfiniteScroll.ts                                    1.2KB
+  📘 useKeyboardNav.ts                                       2.2KB
+  📘 useMediaQuery.ts                                         532B
+  📘 useNewsletter.ts                                        3.7KB
+  📘 useOnlineStatus.ts                                       517B
+  📘 usePWA.ts                                                295B
+  📘 usePageTracking.ts                                       310B
+  📘 useParallax.ts                                           489B
+  📘 usePersistedState.ts                                    1002B
+  📘 useReducedMotion.ts                                      571B
+  📘 useScrollPosition.ts                                     627B
+  📘 useScrollReveal.ts                                       651B
+  📘 useToast.ts                                              453B
+  📘 useToolRatings.ts                                       1.1KB
+  📘 useTools.ts                                              916B
+  📘 useTranslation.ts                                       1.4KB
+  📘 useUserPreferences.ts                                   1.6KB
+  → 28 Dateien
+
+📁 atlas_structured/src/styles
+----------------------------------------------------------------------------------------------------
+  🎨 fonts.css                                                865B
+  🎨 index.css                                              12.2KB
+  → 2 Dateien
+
+📁 atlas_structured/src/locales
+----------------------------------------------------------------------------------------------------
+  📋 content.json                                            1.0KB
+  📋 de.json                                                  682B
+  📋 en.json                                                  642B
+  📋 fr.json                                                  706B
+  📋 package-lock.json                                     476.1KB
+  📋 tsconfig.node.json                                       310B
+  📋 vercel.json                                              653B
+  → 7 Dateien
+
+📁 atlas_structured/tests
+----------------------------------------------------------------------------------------------------
+  📄 TEST.md                                                  849B
+  ⚛️ Testimonials.tsx                                        4.3KB
+  📘 abTesting.ts                                            2.5KB
+  ⚛️ components.test.tsx                                     2.6KB
+  📘 example.spec.ts                                         1.0KB
+  📘 example.test.ts                                          378B
+  📘 hooks.test.ts                                           1.2KB
+  📘 navigation.spec.ts                                      2.3KB
+  📘 vitest.config.ts                                         334B
+  → 9 Dateien
+
+====================================================================================================
+ZUSAMMENFASSUNG
+====================================================================================================
+
+DATEITYP-ÜBERSICHT:
+
+  .tsx        122 Dateien
+  .ts          62 Dateien
+  .json        11 Dateien
+  .md           5 Dateien
+  .webp         3 Dateien
+  .sh           3 Dateien
+  .js           2 Dateien
+  .xml          2 Dateien
+  .yml          2 Dateien
+  .svg          2 Dateien
+  .css          2 Dateien
+  .html         1 Dateien
+  .txt          1 Dateien
+  .example      1 Dateien
+  .cjs          1 Dateien
+  .gitignore    1 Dateien
+  .prettierrc   1 Dateien
+  .jpg          1 Dateien
+  .webmanifest   1 Dateien
+
+KOMPONENTEN-KATEGORIEN:
+
+  ⚛️  UI Components:        8 Dateien
+  🧩 Section Components:  0 Dateien
+  📦 Root Components:     108 Dateien
+
+KEY FEATURES:
+
+  ✅ 239 Dateien korrekt organisiert
+  ✅ Komplette Ordnerstruktur mit @-Aliasing
+  ✅ React Components (TSX)
+  ✅ Tailwind CSS Styling
+  ✅ TypeScript mit striktem Modus
+  ✅ Vite Build-System
+  ✅ Playwright E2E Tests
+  ✅ Vitest Unit Tests
+  ✅ i18n Lokalisierung (DE/EN/FR)
+  ✅ StarLoader Boot-Animation
+  ✅ Service Worker & PWA
+  ✅ SEO & Meta-Tags
+  ✅ 75+ Implementierte Features
+
+====================================================================================================
+BUILD-ANLEITUNG
+====================================================================================================
+
+1. Entpacken:
+   unzip Atlas-Structured.zip
+   cd atlas_structured
+
+2. Dependencies installieren:
+   npm install
+
+3. Development Server:
+   npm run dev        # http://localhost:5173
+
+4. Production Build:
+   npm run build      # → dist/ (optimiert)
+
+5. Tests ausführen:
+   npm run test       # Unit Tests
+   npm run test:e2e   # E2E Tests mit Playwright
+
+6. Deployen:
+   # Vercel
+   vercel --prod
+
+   # Netlify
+   netlify deploy --prod
+
+====================================================================================================
+DATEISTRUKTUR SCHNELL-REFERENZ
+====================================================================================================
+
+atlas_structured/
+│
+├── 📄 Konfigurationsdateien
+│   ├── package.json           (Dependencies, Scripts)
+│   ├── tsconfig.json          (TypeScript Konfiguration)
+│   ├── vite.config.ts         (Vite Build Konfiguration)
+│   ├── tailwind.config.ts     (Tailwind CSS)
+│   ├── eslint.config.js       (Code Linting)
+│   └── playwright.config.ts   (E2E Testing)
+│
+├── 📁 public/                 (Statische Assets)
+│   ├── robots.txt             (SEO)
+│   ├── sitemap.xml            (SEO)
+│   ├── feed.xml               (RSS Feed)
+│   ├── manifest.json          (PWA)
+│   └── assets/                (Bilder, Icons)
+│
+├── 📁 src/                    (Quellcode)
+│   │
+│   ├── 📁 animations/
+│   │   └── StarLoader.tsx     (Boot-Animation: rotierender leuchtender Stern)
+│   │
+│   ├── 📁 components/         (React Komponenten - 98 Dateien)
+│   │   ├── ui/                (Reusable UI Components: Badge, Button, etc.)
+│   │   └── sections/          (Page Sections: Hero, Features, etc.)
+│   │
+│   ├── 📁 pages/              (Page-Level Komponenten - 10 Dateien)
+│   │   ├── HomePage.tsx
+│   │   ├── ToolsPage.tsx
+│   │   ├── BlogPage.tsx
+│   │   ├── ComparisonPage.tsx
+│   │   └── ...
+│   │
+│   ├── 📁 hooks/              (Custom React Hooks - 10 Dateien)
+│   │   ├── useTools.ts
+│   │   ├── useTheme.ts
+│   │   ├── useLocalStorage.ts
+│   │   └── ...
+│   │
+│   ├── 📁 services/           (API & Business Logic - 8 Dateien)
+│   │   ├── toolsApi.ts
+│   │   ├── analytics.ts
+│   │   ├── affiliate.ts
+│   │   └── ...
+│   │
+│   ├── 📁 utils/              (Utility Functions - 15 Dateien)
+│   │   ├── seo.ts
+│   │   ├── shareStack.ts
+│   │   └── ...
+│   │
+│   ├── 📁 styles/             (CSS & Tailwind)
+│   │   ├── globals.css
+│   │   └── animations.css
+│   │
+│   ├── 📁 locales/            (i18n Übersetzungen)
+│   │   ├── de/                (Deutsch)
+│   │   ├── en/                (English)
+│   │   └── fr/                (Français)
+│   │
+│   ├── App.tsx                (Haupt-App mit StarLoader)
+│   ├── main.tsx               (React Entry Point)
+│   └── ...
+│
+├── 📁 tests/                  (Unit + E2E Tests)
+│   ├── vitest.config.ts       (Unit Test Framework)
+│   ├── example.spec.ts
+│   ├── navigation.spec.ts
+│   └── playwright/            (E2E Tests)
+│
+└── 📁 .github/                (GitHub Actions CI/CD)
+    └── workflows/
+        ├── build.yml
+        └── deploy.yml
+
+
+====================================================================================================

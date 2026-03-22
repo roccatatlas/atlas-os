@@ -1,0 +1,1206 @@
+================================================================================
+ATLAS — ALLE VISIONEN: DARSTELLUNG, FARBEN, DESIGN, MOTION, UI
+Vollständig extrahiert & ausgearbeitet aus RUNATLAS_CLEAN_STRUCTURE
+Firma: AIAstralis | Produkt: ATLAS
+================================================================================
+
+INHALTSVERZEICHNIS
+──────────────────
+1.  CORE VISION — Was Atlas visuell sein soll
+2.  COLOR SYSTEM — Vollständige Farbpalette
+3.  TYPOGRAPHY — Schrift & Hierarchie
+4.  PIXEL SYSTEM — Spacing & Grid
+5.  DESIGN PRINZIPIEN (20 Parameter-System)
+6.  TRAE-ANALYSE — Was macht eine $500M AI-Site aus
+7.  DIE 7 TEUERSTEN DESIGN-TRICKS
+8.  STAR ATLAS ANALYSE — Cinematic Universe Design
+9.  $1B VISUAL FRAMEWORK — 3 Kern-Prinzipien
+10. WEBSITE STRUKTUR — Szenen-Architektur
+11. MOTION SYSTEM — Animations-Regeln
+12. SCROLL ARCHITEKTUR — Cinematic Scroll
+13. GALAXY MAP VISUAL SYSTEM
+14. TECH STACK — Implementierung (3 Libraries)
+15. VOLLSTÄNDIGE VARIABLE-PARAMETER (20 Kategorien)
+16. FERTIGE PROMPTS (direkt nutzbar)
+
+
+================================================================================
+1. CORE VISION — WAS ATLAS VISUELL SEIN SOLL
+================================================================================
+
+KERN-AUSSAGE:
+  Atlas soll sich nicht wie eine Website anfühlen.
+  Atlas soll sich anfühlen wie eine Karte des AI-Universums.
+
+IDENTITÄT:
+  Atlas ≠ Tool Directory
+  Atlas ≠ SaaS Landing Page
+  Atlas  = Navigationssystem des AI-Universums
+  Atlas  = AI Infrastructure Layer
+
+DAS PRODUKT-GEFÜHL:
+  Der Nutzer soll denken:
+  "Ich navigiere ein System" — nicht "Ich lese eine Landingpage"
+
+REFERENZ-MIX:
+  Figma (Graph Navigation)
+  + GitHub Dependency Graph (Relationen)
+  + Star Atlas Galaxy Map (Universe Feeling)
+  + Vercel / Linear / OpenAI (Developer Aesthetic)
+  + Apple (Spatial Design, Leere)
+  + SpaceX (Cinematic Scale)
+
+MASTER METAPHER:
+  Internet    = Universum
+  AI Models   = Sterne
+  Workflows   = Routen
+  Atlas       = Navigationssystem
+  Nodes       = Stars
+  Clusters    = Konstellationen
+  Connections = Orbits
+  Core Hub    = Navigation Center
+
+PSYCHOLOGISCHES ZIEL:
+  Awe (Ehrfurcht) → Discovery → Belonging → Control
+  → Nutzer fühlt: Dieses System ist größer als ich
+
+
+================================================================================
+2. COLOR SYSTEM — VOLLSTÄNDIGE FARBPALETTE
+================================================================================
+
+PRIMÄRE PALETTE:
+
+  Background:     #0B0B0C   near black (dominiert, erzeugt Tiefe + Unendlichkeit)
+  Surface/Cards:  #111214   dark grey (Container, Cards)
+  Borders:        #1E1F23   subtle grey (sehr subtil, thin 1px)
+  Primary Text:   #FFFFFF   white (Headlines, primärer Content)
+  Secondary Text: #8F8F93   muted grey (Subtexte, Labels, sekundäre Infos)
+
+ACCENT FARBEN (sparsam einsetzen):
+  Option A:       Electric Blue   #3B82F6 mit 60–80% opacity  → Technology
+  Option B:       Cosmic Purple   #7C3AED mit 60–80% opacity  → Mystery / Future
+  Glow-Effekt:    box-shadow: 0 0 20px rgba(59,130,246,0.15)  → hover state
+
+NODE-FARBEN (Galaxy Map — nach Kategorie):
+  LLMs / Language:    #7C3AED  purple
+  Image Generation:   #3B82F6  blue
+  Automation:         #10B981  green
+  Coding Tools:       #14B8A6  teal
+  Video Generation:   #F59E0B  amber
+  Audio / Speech:     #EC4899  pink
+  Agents:             #6366F1  indigo
+  Data / Analytics:   #06B6D4  cyan
+
+LICHT-FARBEN (Atmosphäre):
+  Neon Blau:          #00BFFF  → Interface-Highlights, Linien
+  Cosmic Purple:      #9B59B6  → Mystische Stimmung, Background-Glow
+  Star Light White:   #FFFFFF  → Typografie, Fokus
+  Nebula Violet:      #4A0E8F  → Background-Atmosphäre
+
+FARB-PSYCHOLOGIE:
+  Schwarz    → Tiefe, Unendlichkeit, Fokus auf Licht
+  Neon-Blau  → Technology, Intelligence, Trust
+  Violett    → Mystery, Future, Alien, Kosmos
+  Weiß       → Information, Fokus, Präzision (minimaler Einsatz)
+  Grün       → Growth, Organic, Automation
+  Grau       → Struktur, Neutral, sekundär
+
+FARBREGELN:
+  Accent-Farbe nur bei interaktiven Elementen (max 5% der Fläche)
+  Kein buntes Gradient als Hauptgestaltungselement
+  Hintergrund dominiert immer (70–85% der Fläche = Dark)
+  Farbe kodiert Bedeutung (Kategorie = Farbe), nicht Dekoration
+
+
+================================================================================
+3. TYPOGRAPHY — SCHRIFT & HIERARCHIE
+================================================================================
+
+FONT-EMPFEHLUNG:
+  Primary:    Inter          → universell, clean, developer-fokussiert
+  Alternative: Geist         → von Vercel, sehr modern
+  Alternative: Satoshi       → etwas organischer, trotzdem tech
+  Monospace:  JetBrains Mono → Code, Terminal, Daten
+
+FONT WEIGHTS:
+  Nur zwei Gewichte: 400 (regular) und 700 (bold)
+  Kein 500, kein 600 — wirkt zu mittelmäßig
+  Kontrast zwischen Headlines (bold) und Body (regular) ist der Trick
+
+TYPOGRAFIE-HIERARCHIE:
+
+  Hero Headline:    64–80px  font-weight: 700  letter-spacing: -0.02em  line-height: 1.1
+  Section Headline: 40–56px  font-weight: 700  letter-spacing: -0.01em  line-height: 1.2
+  Subheadline:      24–32px  font-weight: 400  letter-spacing: 0        line-height: 1.4
+  Body Text:        16px     font-weight: 400  letter-spacing: 0        line-height: 1.6
+  Label / Tag:      12–13px  font-weight: 500  letter-spacing: 0.05em   UPPERCASE
+  Code / Mono:      14px     JetBrains Mono    letter-spacing: 0
+
+TYPOGRAFIE-PRINZIPIEN:
+  "Huge headline, short subline, minimal body text"
+  Sehr viel Whitespace um Headlines
+  Text kommuniziert Vision, nicht Features
+  Wenige Wörter pro Section (je weniger, desto premium)
+  Kein Dense Text — niemals lange Absätze in Hero-Bereich
+
+HERO-BEISPIELE (aus dem Dokument):
+  "Navigate the AI Universe."
+  "The Navigation Layer of Artificial Intelligence."
+  "Every model. Every tool. One atlas."
+  "AI is exploding. But no one knows where anything is."
+
+PSYCHOLOGIE:
+  Große Headlines = Größe kommunizieren
+  Die Seite verkauft Vision durch Typografie, nicht durch Text-Menge
+
+
+================================================================================
+4. PIXEL SYSTEM — SPACING & GRID
+================================================================================
+
+BASE UNIT: 8px
+
+SPACING SCALE:
+  xs:   8px   → inline padding, icon gaps
+  sm:   16px  → interne Card-Abstände
+  md:   24px  → Card-Padding, kleine Gaps
+  lg:   32px  → Component-Abstände
+  xl:   48px  → Section-interne Abstände
+  2xl:  64px  → größere Trennungen
+  3xl:  96px  → große Sections
+  4xl:  120px → Section-Spacing Standard
+  5xl:  160px → großzügige Section-Abstände
+
+LAYOUT GRID:
+  Columns:      12 Spalten
+  Max Width:    1200px
+  Gutter:       24px
+
+MARGINS:
+  Mobile:       24px links/rechts
+  Tablet:       40px links/rechts
+  Desktop:      auto center (1200px max-width)
+
+SECTION SPACING:
+  Standard:     120px–160px zwischen Sections
+  Hero:         70–90vh Höhe
+
+CARD SYSTEM:
+  border-radius:  12px
+  border:         1px solid #1E1F23
+  padding:        24px–32px
+  background:     #111214
+  hover:          border-color #2E2F33 + glow
+
+NAVBAR:
+  height:         64px
+  backdrop-blur:  blur(12px)
+  border-bottom:  1px solid #1E1F23
+  position:       sticky top
+
+LEERREGEL (wichtigste Regel):
+  Empty Space Ratio ≥ 70% der Fläche
+  Content Density = LOW
+  Wenige Elemente, viel Raum = Premium Signal
+
+
+================================================================================
+5. DESIGN PRINZIPIEN — 20 KERN-REGELN
+================================================================================
+
+PRINZIP 01 — ENVIRONMENT > INTERFACE
+  Die Seite ist kein UI. Die Seite ist ein Raum.
+  Nutzer betritt eine Umgebung, keine Website.
+
+PRINZIP 02 — SCALE > INFORMATION
+  80% Raum, 20% Content.
+  Objekte sind klein, Umgebung ist riesig.
+  Das erzeugt: "Dieses System ist größer als ich."
+
+PRINZIP 03 — NARRATIVE > NAVIGATION
+  Scrollen = Story erleben, nicht navigieren.
+  Jede Section = Kapitel, nicht Feature-List.
+
+PRINZIP 04 — HERO = 1 MESSAGE
+  Eine Headline. Ein Satz. Eine CTA.
+  Kein Bullet-Point-Hero. Keine Feature-Aufzählung.
+
+PRINZIP 05 — MAXIMAL 1 PRIMÄRER CTA PRO SECTION
+  Klarheit durch Fokus.
+  Mehr Optionen = mehr Unsicherheit = weniger Klicks.
+
+PRINZIP 06 — DARK UI = DEVELOPER SIGNAL
+  Dark Interfaces kommunizieren:
+  Präzision, Kontrolle, technische Kompetenz.
+  Vercel, Linear, GitHub, Raycast — alle dark.
+
+PRINZIP 07 — NEGATIVE SPACE = PREMIUM SIGNAL
+  Apple, Stripe, Linear — alle nutzen massiv Leerraum.
+  Volle Seiten wirken billig. Leere Seiten wirken teuer.
+
+PRINZIP 08 — SECTIONS = EVOLUTION, NICHT FEATURES
+  Nicht: "Feature A, Feature B, Feature C"
+  Sondern: "Tool → Copilot → Agent → Ecosystem"
+  User versteht Wachstum, nicht Liste.
+
+PRINZIP 09 — PRODUKT VISUELL ERKLÄREN
+  Screenshots, UI-Previews, Galaxy Map als Hero Visual
+  User versteht Produkt durch Bilder, nicht Text.
+
+PRINZIP 10 — MOTION SPEED = WERTIGKEIT
+  Langsame Animationen = Premium, teuer
+  Schnelle Animationen = billig, busy
+  Cinematic Motion: 600–1200ms transitions, ease-in-out
+
+PRINZIP 11 — FARBE KODIERT BEDEUTUNG
+  Farbe identifiziert Kategorien (nicht Dekoration)
+  Konsistenz: Image Gen immer blau, LLMs immer purple
+
+PRINZIP 12 — TIEFENILLUSION = IMMERSION
+  Background + Midground + Foreground
+  Parallax erzeugt 3D-Raumtiefe ohne echtes 3D
+  Stars (langsam) → Nebula (mittel) → UI (schnell)
+
+PRINZIP 13 — LICHT AUS DER MITTE
+  Eye Attraction Point = Bildmitte
+  Glow, Nodes, Headlines → immer mittig
+  Blick wird automatisch dorthin gezogen
+
+PRINZIP 14 — WORLD FIRST
+  Universe → Immersion → Information
+  Nicht: Interface → Content
+  User fühlt Welt zuerst, liest danach
+
+PRINZIP 15 — MINIMAL NAVIGATION
+  Nur: Product | Atlas | Tools | Docs | Get Started
+  Kein Mega-Menu. Keine komplexen Dropdowns.
+  Simplicität = Confidence
+
+PRINZIP 16 — AGENT TRANSPARENCY
+  Zeige: Plan → Execution → Output
+  Macht AI-Prozesse sichtbar und vertrauenswürdig
+
+PRINZIP 17 — GRAIN / NOISE OVERLAY
+  Film Grain CSS Overlay (opacity: 0.04–0.06)
+  Erzeugt sofort: Film Look, Depth, Premium Feeling
+  Einer der günstigsten Tricks mit größtem visuellen Effekt
+
+PRINZIP 18 — STARS = AI TOOLS
+  Visuelle Metapher: AI Modelle sind Sternbilder
+  GPT Constellation, Image Gen Constellation
+  Atlas = Sternenkarte des AI-Universums
+
+PRINZIP 19 — KONSTELLATIONEN = KATEGORIEN
+  Cluster von Tools = Sternbilder
+  Verbindungslinien = Workflows / Routen
+  Zoom Navigation = Reise durch das Universum
+
+PRINZIP 20 — MASTER FORMEL
+  Environment + Extreme Scale + Cinematic Motion
+  + Narrative Scroll + Network Visualization
+  = Infrastructure Perception
+  → Nutzer denkt: "Atlas ist der Layer über der AI-Industrie"
+
+
+================================================================================
+6. TRAE-ANALYSE — WAS EINE $500M AI-SITE AUSMACHT
+================================================================================
+
+DESIGN-PHILOSOPHIE VON TRAE:
+  Kein klassisches SaaS-Landing
+  Folgt einem AI-Product-Narrative Layout
+  Vergleich: Cursor, Vercel, Linear
+  Kern: "AI Engineer statt Tool"
+
+HERO-FORMEL (TRAE):
+  ┌─────────────────────────────────────────┐
+  │  Logo              Nav                  │
+  │                                         │
+  │            HEADLINE                     │
+  │   "Understand. Execute. Deliver."       │
+  │                                         │
+  │   TRAE is your 10x AI Engineer         │
+  │                                         │
+  │            [Download]                   │
+  └─────────────────────────────────────────┘
+  Charakteristik: extrem minimal, viel Leerraum,
+  klare Typografie, nur eine Hauptaktion
+
+STORY FLOW (TRAE):
+  PLUGIN → IDE → AI AGENT → MULTI AGENT SYSTEM
+  → Progression Storytelling (Evolution, nicht Features)
+
+INTERFACE VISUAL STYLE (TRAE):
+  Farben: #0B0B0C / #111214 / #1E1F23 / #FFFFFF / #8F8F93
+  Fonts:  Inter / Geist / Satoshi
+  Layout: 12 Column Grid, max 1200px, 120–160px Section-Spacing
+
+WARUM DIE SEITE SO GUT FUNKTIONIERT:
+  Minimalismus   → Premium-Signal
+  Dark UI        → Developer-Signal
+  Story Flow     → Verständnis
+  Screenshots    → Vertrauen
+  Single CTA     → Klarheit
+
+DIE 5 WICHTIGSTEN DESIGN-REGELN (TRAE):
+  Rule 1: Hero = 1 Message
+  Rule 2: Maximal 1 CTA
+  Rule 3: Sections = Story (Evolution, nicht Feature-Liste)
+  Rule 4: Produkt wird visuell erklärt
+  Rule 5: High-End Tech Aesthetic (clean, dark, calm, technical)
+
+UX-PRINZIPIEN (TRAE):
+  1. Minimal Navigation (Product / Blog / Docs / Download — keine Komplexität)
+  2. Fokus auf Execution (Idea → Code → Product — immer sichtbar)
+  3. Agent Transparency (Plan → Execution → Output — baut Vertrauen auf)
+  4. High-End Tech Aesthetic (clean, dark, calm, technical, developer-focused)
+
+
+================================================================================
+7. DIE 7 TEUERSTEN DESIGN-TRICKS (die eine Seite wie $500M wirken lassen)
+================================================================================
+
+TRICK 1 — NOISE / GRAIN OVERLAY
+  Was: Ein Film-Grain CSS Overlay über die gesamte Seite
+  Code:
+    body::after {
+      content: "";
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: url(noise.png);
+      opacity: 0.05;
+      pointer-events: none;
+    }
+  Effekt: Sofort Film Look, Tiefe, Premium Feeling
+  Kosten: 0. Eine CSS-Zeile.
+
+TRICK 2 — SEHR LANGSAME ANIMATIONEN
+  Was: Alle Transitions auf 600–1200ms setzen (statt Standard 200ms)
+  Effekt: Seite fühlt sich teuer und kalkuliert an
+  Formel: Duration = Budget-Signal. Langsam = teuer.
+
+TRICK 3 — MASSIVER LEERRAUM (EMPTY SPACE)
+  Was: 70–85% der Fläche ist leer
+  Objekte klein, Umgebung groß
+  Effekt: Luxus-Signal. Apple, Linear, Stripe machen genau das.
+
+TRICK 4 — LICHT AUS DEM ZENTRUM
+  Was: Glow-Effekte immer aus der Bildmitte
+  Star-Nodes pulsieren von innen
+  Effekt: Eye Attraction Point, Tiefe, natürlicher Fokus
+
+TRICK 5 — DARK + ONE ACCENT GLOW
+  Was: 99% Dark, 1% electric blue oder purple glow
+  Nur interaktive Elemente bekommen die Accent-Farbe
+  Effekt: Extrem fokussiert. Jedes leuchtende Element wirkt wichtig.
+
+TRICK 6 — HERO OHNE SCREENSHOT
+  Was: Hero zeigt keine UI-Screenshots sondern abstraktes System-Visual
+  AI Galaxy Map / Konstellations-Netzwerk / Node-Graph
+  Effekt: Produkt wirkt wie Infrastruktur, nicht wie Tool
+
+TRICK 7 — PARALLAX MIT NUR 3 LAYERN
+  Was: Background (stars/nebula, 0.2x speed)
+       Midground (particles/lines, 0.5x speed)
+       Foreground (UI/text, 1x speed)
+  Effekt: 3D Raumtiefe ohne echtes 3D
+  Kosten: Minimal CSS + GSAP ScrollTrigger
+
+
+================================================================================
+8. STAR ATLAS ANALYSE — CINEMATIC UNIVERSE DESIGN
+================================================================================
+
+GRUNDPRINZIP:
+  Die Seite ist kein UI. Sie ist ein:
+  Cinematic Interface
+  = Sci-Fi HUD Interfaces + AAA Game Cinematics + Luxury Tech Branding
+  Fühlt sich an wie eine Raumschiff-Konsole.
+
+FARBSTRATEGIE (STAR ATLAS):
+  Schwarz / Deep Space Black    → dominierender Hintergrund
+  Blau / Electric Blue          → Technologie-Highlights
+  Violett / Cosmic Purple       → Mystery, Alien, Future
+  Weiß / Star Light             → Typografie, minimaler Einsatz
+
+  Funktion:
+  Schwarz   → Tiefe, Unendlichkeit, Fokus auf Licht
+  Blau      → Blue = Technology, Intelligence, Trust
+  Violett   → kosmische Stimmung, Unbekanntes
+  Weiß      → nur für Fokus, verhindert visuelle Überladung
+
+TIEFENILLUSION (der wichtigste technische Trick):
+  Parallax Scrolling — 3 Layer:
+    Stars    (langsam)  → Background
+    Nebula   (mittel)   → Midground
+    UI/Text  (schnell)  → Foreground
+  Effekt: Nutzer fühlt sich wie in einem Raumflug
+
+LICHTDESIGN:
+  Typische Lichtquellen: Sterne, Energiekerne, Nebula Glow, Engine Trails
+  Wichtige Regel: Licht kommt fast immer aus dem Bildzentrum
+  → Eye Attraction Point, Blick wird automatisch dorthin gezogen
+
+TYPOGRAFIE (STAR ATLAS STIL):
+  Sans Serif, futuristisch, sehr dünne Linien
+  Struktur: Huge Headline → Short Subline → Minimal Body Text
+  Warum: Große Headlines kommunizieren Vision, verkaufen Größe
+
+BILDKOMPOSITION:
+  Center-Weighted Composition (Schiff / Node / Headline immer mittig)
+  Augenbewegung: Bild → Objekt → Text
+
+MOTION (STAR ATLAS):
+  Slow Drift:     Sterne bewegen sich minimal → Universum wirkt lebendig
+  Ship Flythrough: Objekte gleiten durch Szenen → Direction + Story
+  UI Fade-ins:    Opacity + slight vertical movement → Cinematic Timing
+
+SCROLL ARCHITEKTUR:
+  Scroll = Filmschnitt (nicht Navigation)
+  Jeder Scroll = Neue Szene, neue Kameraperspektive
+  = Narrative Scroll Architecture
+
+SPATIAL UI:
+  Interface-Elemente sehen aus wie Radar / Navigation / Ship Dashboard
+  Nutzer fühlt sich: nicht wie Besucher — sondern wie Pilot
+
+BILDSPRACHE:
+  Motive: Massive Spaceships, Planet Horizons, Space Stations, Galactic Nebula
+  Skalierungstrick: Schiff = 2–5% der Szene. Space = 95–98%.
+  → Universum wirkt endlos
+
+GERÄUSCHLOSE IMMERSION:
+  Vermeidet: aggressive Farben, UI clutter, laute Kontraste
+  Stattdessen: Dark, Slow, Massive
+  = Meditative Sci-Fi Atmosphäre
+
+DESIGN-PHILOSOPHIE:
+  "World First"
+  Universe → Immersion → Information
+  (nicht: Interface → Content)
+
+ATLAS-ÜBERTRAGUNG:
+  Dark Space           → Hintergrund für Atlas
+  AI Nodes als Sterne  → Tools sind Nodes
+  Datenströme als Linien → Workflows
+  Modelle = Konstellationen → Kategorien
+  Atlas Core Hub       → Navigation Center
+
+PSYCHOLOGISCHE TRIGGER (alle gleichzeitig aktiv):
+  Scale Bias:     Universe, Galaxy, Lightyears → wirkt riesig
+  Ownership:      Dein Stack, dein Workflow, deine Tools
+  Status:         "Ich navigiere das AI-Universum"
+  Discovery:      Unknown territory → Exploration Drive
+  Belonging:      Teil eines Systems sein
+
+
+================================================================================
+9. $1B VISUAL FRAMEWORK — DIE 3 KERN-PRINZIPIEN
+================================================================================
+
+WARUM DIESE 3 PRINZIPIEN $1B WIRKEN:
+  Normale Startups zeigen Produkte.
+  $1B Startups zeigen Infrastruktur.
+  Visuelle Botschaft: "Dieses System ist größer als du."
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PRINZIP 1: ENVIRONMENT DESIGN statt WEB DESIGN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Normale Seiten zeigen Inhalte.
+  $1B Seiten zeigen eine Welt.
+
+  Visuelle Umsetzung:
+  → Riesiger dunkler Hintergrund (95% der Fläche)
+  → Nebel / Sterne / Atmosphären
+  → Extrem viel leere Fläche
+  → Elemente schweben im Raum
+
+  Der Bildschirm wirkt wie: Interface in einem Universum
+  Das Gehirn interpretiert es nicht als UI, sondern als Umgebung.
+
+  Referenzen: Tesla UI, Apple Vision Pro, SpaceX, Figma Multiplayer Canvas
+
+  Für Atlas konkret:
+  → Dunkler Canvas
+  → AI Nodes als Sterne
+  → Datenströme als Linien
+  → Modelle als Konstellationen
+  → Nutzer navigiert ein System
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PRINZIP 2: EXTREME SCALE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Die Seite vermittelt permanent: Das System ist riesig.
+
+  Visuelle Tricks:
+  → Kleine Objekte: Node/Schiff = 2–5% der Szene
+  → Massiver Hintergrund: 95–98%
+  → 80% Empty Space überall
+
+  Leere Fläche erzeugt: Größe, Luxus, Kontrolle
+  (Referenz: Apple, Stripe, Linear machen genau das)
+
+  Horizont-Komposition:
+  → Planet Horizon → epische Dimension
+  → Statt kleiner Icons → riesiger Canvas, wenige große Elemente
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PRINZIP 3: CINEMATIC MOTION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Größter Unterschied zu normalen Seiten:
+  Scrollen ist nicht Navigation — Scrollen ist Kamerabewegung.
+
+  Motion-Regeln:
+  → Alles bewegt sich langsam (stars drift, nebula flows, objects glide)
+  → Langsame Bewegung = teuer, premium, kalkuliert
+  → Schnelle UI-Animation = billig, busy
+
+  Layer Motion:
+  → Background / Midground / Foreground bewegen sich unterschiedlich
+  → Erzeugt 3D Raum ohne echtes 3D
+
+  Scene Transition:
+  → Scroll = Szenenwechsel (Scene 1 → Scene 2 → Scene 3)
+  → Gehirn interpretiert: Erlebnis, nicht Navigation
+
+
+================================================================================
+10. WEBSITE STRUKTUR — SZENEN-ARCHITEKTUR
+================================================================================
+
+ATLAS CINEMATIC SCENE FLOW:
+
+  SCENE 0 — NAVBAR
+  ─────────────────
+  Logo (Atlas) | Product  Atlas  Tools  Docs | Sign in  [Get Started]
+  Height: 64px, backdrop-blur, 1px border-bottom
+
+  SCENE 1 — HERO: THE SYSTEM CORE
+  ────────────────────────────────
+  Visual:    Schwarzer Raum + Tausende kleine AI-Nodes (Sterne)
+             Linien verbinden Modelle
+             In der Mitte: leuchtender Atlas-Core
+  Headline:  "Navigate the AI Universe."
+  Subline:   "Discover, connect and build with every AI tool in one atlas."
+  CTAs:      [Explore Atlas]  [Start Building]
+  Motion:    Nodes bewegen sich minimal, Datenströme pulsieren,
+             Maus bewegt Kamera leicht (Parallax)
+  Gefühl:    Du betrittst ein System. Nicht eine Website.
+
+  SCENE 2 — THE AI EXPLOSION (Problem)
+  ──────────────────────────────────────
+  Visual:    Raum zoomt raus.
+             Tausende AI-Nodes. Unstrukturierte Verbindungen. Chaos.
+  Text:      "AI is exploding. But no one knows where anything is."
+  Motion:    Neue Nodes erscheinen, Linien überlagern sich, leichte Unruhe
+  Gefühl:    AI Chaos → User versteht das Problem
+
+  SCENE 3 — ATLAS ACTIVATES (Lösung)
+  ────────────────────────────────────
+  Visual:    Atlas-Core beginnt zu pulsieren.
+             Linien ordnen sich. Nodes gruppieren sich.
+             Chaotische Linien werden zu structured constellations.
+  Text:      "Atlas maps the entire AI universe."
+  Gefühl:    Ordnung entsteht → Atlas ist die Lösung
+
+  SCENE 4 — AI ROUTING (Funktion)
+  ─────────────────────────────────
+  Visual:    Nodes verbinden sich dynamisch.
+             Lichtstrahl wandert durch: LLM → Image → Vector DB → Automation
+  Text:      "Route intelligence across the AI stack."
+  Gefühl:    Atlas ist ein Netzwerkrouter, kein Tool-Verzeichnis
+
+  SCENE 5 — THE AI ECOSYSTEM (Größe)
+  ────────────────────────────────────
+  Visual:    Zoom raus. Komplette AI Galaxy.
+             Nodes: OpenAI, Anthropic, Stability, HuggingFace, Tools, Agents
+  Text:      "Every model. Every tool. One atlas."
+  Gefühl:    Das ganze AI-Ökosystem ist sichtbar und navigierbar
+
+  SCENE 6 — INTERACTIVE SYSTEM MAP (Gamechanger)
+  ─────────────────────────────────────────────────
+  Visual:    Interaktive Galaxy Map (Three.js)
+             Cluster: LLMs / Image Models / Agents / Vector DB /
+                      Automation / Speech / Video / Coding
+  Interaction: User klickt Nodes → Routen sehen → Workflows entdecken
+  Gefühl:    Das ist Infrastruktur. Kein Tool.
+
+  SCENE 7 — ATLAS ROUTES (Use Cases)
+  ────────────────────────────────────
+  Visual:    Workflow-Konstellationen. Nodes leuchten nacheinander.
+  Beispiele: Build an AI Agent / Create a video pipeline /
+             Automate customer support / Generate apps with AI
+  Gefühl:    AI wird navigierbar und planbar
+
+  SCENE 8 — PLATFORM STATS (Skala)
+  ──────────────────────────────────
+  Stats-Cards: 10.000+ AI Tools / 200+ Categories /
+               Daily Discovery Engine / AI Generated Insights
+  Design: Minimal Statistic Cards, Dark Surface
+
+  SCENE 9 — THE NETWORK EFFECT ($1B Message)
+  ─────────────────────────────────────────────
+  Visual:    Immer mehr Nodes erscheinen. Neue Linien entstehen.
+  Text:      "Every new AI system expands the atlas."
+  Subline:   "The map grows with the intelligence of the internet."
+  Gefühl:    Atlas wird zum Standard — wie npm für JavaScript
+
+  SCENE 10 — FINAL CTA: ENTER THE ATLAS
+  ──────────────────────────────────────
+  Visual:    Kamera zoomt zurück zum Atlas-Core
+  Headline:  "Build your AI stack."
+  Subline:   "Discover the tools shaping the future of AI."
+  CTA:       [Start Exploring Atlas]
+  Button:    [Launch Atlas]
+
+
+================================================================================
+11. MOTION SYSTEM — ANIMATIONS-REGELN
+================================================================================
+
+MOTION PHILOSOPHIE:
+  Slow + Smooth + Minimal = Premium
+  Fast + Busy + Overloaded = Cheap
+
+MOTION TYPEN:
+
+  Background Drift:
+    Was: Sterne / Partikel bewegen sich minimal im Hintergrund
+    Speed: sehr langsam (0.02px/frame)
+    Effekt: Universum wirkt lebendig, nicht statisch
+
+  Parallax (3 Layer):
+    Layer 1 (Background): 0.2× Scroll-Speed  → Stars, Nebula
+    Layer 2 (Midground):  0.5× Scroll-Speed  → Particles, Lines
+    Layer 3 (Foreground): 1.0× Scroll-Speed  → UI, Text
+    Effekt: 3D Raumtiefe ohne echtes 3D
+
+  Node Pulse:
+    Was: AI-Nodes pulsieren sanft (scale 1.0 → 1.05 → 1.0)
+    Duration: 2000–3000ms ease-in-out, infinite
+    Effekt: Nodes wirken lebendig, wie Sterne
+
+  Section Reveal:
+    Was: Sections erscheinen beim Scroll (opacity 0→1, y 40→0)
+    Duration: 800ms ease-out
+    Trigger: "top 80%" des Viewports
+    Library: GSAP ScrollTrigger
+
+  Card Hover:
+    Was: Cards heben sich leicht an (translateY -2px) + glow
+    Duration: 200ms ease
+    box-shadow: 0 0 20px rgba(59,130,246,0.15)
+
+  Data Stream:
+    Was: Verbindungslinien zwischen Nodes pulsen (stroke-dashoffset animation)
+    Speed: 1.5s linear infinite
+    Farbe: Electric Blue, opacity 0.4–0.8
+
+  Cursor Parallax:
+    Was: Kamera bewegt sich leicht mit Mausbewegung
+    Strength: ±15px auf X und Y
+    Effekt: Hero fühlt sich wie ein lebendiger Raum an
+
+ANIMATIONS-STACK:
+  GSAP + ScrollTrigger  → Scroll-getriggerte Szenen
+  Framer Motion         → UI Micro-Interactions (Cards, Buttons, Hover)
+  CSS Keyframes         → Node Pulse, Background Drift
+  Three.js              → Galaxy Rotation, Node Movement
+
+TIMING REGELN:
+  Hover:      150–200ms ease
+  Reveal:     600–900ms ease-out
+  Scene Trans: 1000–1500ms ease-in-out
+  Background: 2000–4000ms (sehr langsam)
+
+
+================================================================================
+12. SCROLL ARCHITEKTUR — CINEMATIC SCROLL
+================================================================================
+
+KONZEPT:
+  Scroll ≠ Navigation
+  Scroll = Kamerafahrt durch eine Welt
+
+TECHNISCHE IMPLEMENTATION:
+  Library: GSAP + ScrollTrigger
+  Optionales Smooth-Scroll: Lenis
+
+SCENE STRUCTURE:
+  Scene 1 → Hero (System Core)
+  Scene 2 → Problem (AI Chaos)
+  Scene 3 → System Activation
+  Scene 4 → AI Routing / Funktion
+  Scene 5 → AI Ecosystem / Größe
+  Scene 6 → Interactive System Map
+  Scene 7 → Network Effect
+  Scene 8 → Enter Atlas (Conversion)
+
+SCROLL-TRIGGER PATTERN:
+  gsap.from(".section", {
+    opacity: 0,
+    y: 100,
+    duration: 1,
+    scrollTrigger: {
+      trigger: ".section",
+      start: "top 80%"
+    }
+  })
+
+SCROLL PSYCHOLOGIE:
+  Emotion (Scene 1–2) → Identity (Scene 3–4) →
+  Fantasy (Scene 5–6) → Power (Scene 7) → Conversion (Scene 8)
+
+NARRATIVE SCROLL FORMEL:
+  Chaos → Ordnung → Netzwerk → Infrastruktur → Access
+
+
+================================================================================
+13. GALAXY MAP VISUAL SYSTEM
+================================================================================
+
+VISUAL KONZEPT:
+  Die Galaxy Map ist das Herzstück von Atlas.
+  Keine statische Liste — ein lebendiges Netzwerk.
+  User navigiert das AI-Universum wie Sterne.
+
+STRUKTUR:
+  Category Cluster  = Galaxy (Gruppe von Tools)
+  Tool Node         = Planet / Stern (Sphere)
+  Tag               = Orbit (kreisförmiger Path)
+  Integration Edge  = Verbindungslinie zwischen Tools
+  Atlas Core        = leuchtender Mittelpunkt
+
+ZOOM LEVELS:
+  Level 1: Gesamtes Universum
+           Alle Kategorien als separate Galaxien
+           LLMs | Image Gen | Automation | Coding | Media | Agents
+  Level 2: Kategorie öffnet sich
+           z.B. "Media AI" → Midjourney, Runway, Pika, Leonardo erscheinen
+  Level 3: Tool-Node gewählt
+           Quick-Info: Name, Category, Rating, kompatible Tools
+  Level 4: Workflow-Graph
+           Midjourney → Notion → Zapier (Verbindungslinien aktiv)
+
+BEISPIEL KONSTELLATION:
+            GPT
+             │
+    Midjourney ─── Notion
+        │           │
+     Zapier ─── Make
+            │
+         Runway
+
+NODE DESIGN:
+  Sphere Geometry (Three.js)
+  Größe = proportional zu Tool-Popularität
+  Farbe = Kategorie (konsistent)
+  Hover: Glow + scale 1.1
+  Active: Pulsing Glow + Verbindungslinien leuchten auf
+
+EDGE DESIGN:
+  integration   → hell, stark (1.5px Electric Blue)
+  workflow      → mittel (1px Purple)
+  competitor    → schwach, gestrichelt (0.5px Grey)
+  Opacity:      proportional zu Verbindungsstärke
+
+HINTERGRUND:
+  Stars-Particle-System (THREE.js)
+  5.000 Punkte, zufällig verteilt, langsame Rotation
+  Farbe: #FFFFFF mit 0.6–1.0 opacity (variiert)
+
+PERFORMANCE:
+  LOD (Level of Detail): weit entfernte Nodes = einfachere Geometry
+  Frustum Culling: nur sichtbare Nodes rendern
+  Instanced Mesh: alle Tool-Nodes als eine Render-Instanz
+  Max gleichzeitig: 500 Nodes (Rest ausgeblendet)
+
+INTERAKTION:
+  hover node          → Quick-Info Card erscheint
+  click tool node     → öffnet Tool-Profil (Sidebar)
+  select 2+ nodes     → startet Comparison
+  select nodes + Enter → generiert Workflow Stack
+  double-click cluster → zoom in
+  scroll/pinch        → zoom in/out
+
+
+================================================================================
+14. TECH STACK — IMPLEMENTIERUNG (3 LIBRARIES = 90% DER ÄSTHETIK)
+================================================================================
+
+DIE 3 LIBRARIES:
+
+  1. THREE.JS
+     Zweck:    3D Hintergrund, Galaxy Map, Partikel, Neural-Grid
+     Einsatz:  Hero Background, Galaxy Interface
+     Effekte:  Sternenhimmel, AI-Node-Netzwerk, Metaverse Background
+
+  2. GSAP + SCROLLTRIGGER
+     Zweck:    Cinematic Scroll, Scene Transitions, Parallax
+     Einsatz:  Alle Scroll-getriggerten Animationen
+     Effekte:  Sections fade in, Parallax, Story-Scroll
+
+  3. FRAMER MOTION
+     Zweck:    UI Micro-Interactions
+     Einsatz:  Cards, Buttons, Tool-Grid, Hover-States
+     Effekte:  Smooth hover, micro-interactions, modernes UI
+
+FINALER TECH STACK:
+  Next.js 14      → Framework (App Router)
+  Tailwind CSS    → Styling (utility-first)
+  Three.js        → 3D / Galaxy
+  GSAP            → Scroll Animation
+  Framer Motion   → UI Animation
+  Vercel          → Hosting
+
+PROJEKTSTRUKTUR:
+  atlas/
+  ├── app/
+  │   └── page.tsx
+  ├── components/
+  │   ├── Hero.tsx
+  │   ├── GalaxyMap.tsx
+  │   ├── ToolGrid.tsx
+  │   ├── Navbar.tsx
+  │   └── BackgroundScene.tsx
+
+THREE.JS — PARTIKEL SETUP:
+  const geometry = new THREE.BufferGeometry()
+  const vertices = []
+  for (let i = 0; i < 5000; i++) {
+    vertices.push(
+      (Math.random() - 0.5) * 2000,
+      (Math.random() - 0.5) * 2000,
+      (Math.random() - 0.5) * 2000
+    )
+  }
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3))
+  const material = new THREE.PointsMaterial({ color: 0xffffff, size: 1.5 })
+  const points = new THREE.Points(geometry, material)
+  scene.add(points)
+
+GSAP SCROLL REVEAL:
+  gsap.registerPlugin(ScrollTrigger)
+  gsap.from(".section", {
+    opacity: 0,
+    y: 100,
+    duration: 1,
+    scrollTrigger: { trigger: ".section", start: "top 80%" }
+  })
+
+FRAMER MOTION CARD:
+  <motion.div
+    whileHover={{ scale: 1.02, y: -2 }}
+    whileTap={{ scale: 0.98 }}
+    transition={{ duration: 0.2 }}
+    style={{ boxShadow: "0 0 20px rgba(59,130,246,0.1)" }}
+  >
+    Tool Card
+  </motion.div>
+
+NOISE OVERLAY (Trick #1 — Größter visueller Effekt für 0 Code):
+  body::after {
+    content: "";
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: url(/noise.png);
+    opacity: 0.05;
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+
+================================================================================
+15. VOLLSTÄNDIGES PARAMETER-SYSTEM (20 VARIABLE-KATEGORIEN)
+================================================================================
+
+1 — CORE POSITIONING
+  ProductType          = Infrastructure
+  InterfaceMetaphor    = Universe
+  SystemMetaphor       = Atlas
+  NavigationConcept    = Map
+  UserRole             = Explorer | Navigator | Builder
+  PrimaryEmotion       = Awe
+  SecondaryEmotion     = Discovery
+
+2 — VISUAL ENVIRONMENT
+  EnvironmentType      = Cosmic Space
+  BackgroundType       = Infinite Canvas
+  SpatialDepth         = High
+  ContentDensity       = Low
+  EmptySpaceRatio      = 70–85%
+  CanvasSize           = Very Large
+
+3 — OBJECT SCALE
+  ForegroundObjects    = Very Small (2–5% viewport)
+  EnvironmentScale     = Massive (95%)
+  ScaleContrast        = Extreme
+
+4 — COLOR PARAMETERS
+  Primary              = #0B0B0C (Deep Space Black)
+  Surface              = #111214
+  Border               = #1E1F23
+  TextPrimary          = #FFFFFF
+  TextSecondary        = #8F8F93
+  AccentA              = Electric Blue #3B82F6
+  AccentB              = Cosmic Purple #7C3AED
+  BackgroundContrast   = Low
+  HighlightContrast    = High
+  ColorUsage           = Minimal
+
+5 — LIGHTING
+  LightSources         = StarGlow, EnergyCore, NebulaLight
+  PrimaryLightOrigin   = Center
+  LightPurpose         = FocusGuidance + DepthCreation
+
+6 — TYPOGRAPHY PARAMETERS
+  FontFamily           = Inter / Geist / Satoshi
+  HeadlineSize         = 64–80px bold
+  SublineSize          = 24–32px regular
+  BodyText             = 16px regular
+  LetterSpacing        = -0.02em (headlines)
+  TextDensity          = Low
+
+7 — MOTION PARAMETERS
+  MotionStyle          = Cinematic
+  MotionSpeed          = Slow (600–1200ms)
+  MotionDensity        = Low
+  Layer1               = Background (stars drift, 0.2× speed)
+  Layer2               = Midground (nebula, 0.5× speed)
+  Layer3               = Foreground (UI, 1.0× speed)
+
+8 — SCROLL ARCHITECTURE
+  ScrollType           = Cinematic Camera
+  NavigationMode       = Scene Transition
+  SceneCount           = 8–10 Scenes
+  EmotionFlow          = Chaos → Order → Network → Infrastructure → Access
+
+9 — OBJECT TYPES
+  CoreObjects          = AtlasCore, AI Nodes, Data Streams, Constellations
+  EnvironmentObjects   = Stars, Nebula, Background Particles
+  InterfaceObjects     = Navigation Lines, Pulse Signals, Hover Cards
+
+10 — NETWORK VISUALIZATION
+  NodeType             = AI Model | Tool | Agent | Framework
+  NodeSymbol           = Star / Sphere
+  NodeCluster          = Constellation (Category)
+  EdgeType             = Integration / Workflow / Competitor
+  ActiveProcess        = Light Pulse along Edge
+
+11 — SCALE VARIABLES
+  UniverseSize         = Massive
+  NodeCount            = High (500–10.000)
+  NetworkDensity       = Expanding
+
+12 — PSYCHOLOGICAL TRIGGERS
+  CognitiveBias        = Scale Bias, Discovery Drive, Ownership
+  EmotionalTriggers    = Awe, Curiosity, Exploration, Power, Belonging
+
+13 — USER ROLE DESIGN
+  Visitor              = Explorer
+  User                 = Navigator
+  Customer             = Citizen
+  Scrolling            = Flying
+  Clicking             = Navigating
+  Selecting            = Charting Route
+
+14 — PRODUCT STORY
+  NarrativeStructure   = Chaos → Order → Network → Infrastructure
+  StoryLayer1          = Universe
+  StoryLayer2          = System
+  StoryLayer3          = Function
+  StoryLayer4          = Network
+  StoryLayer5          = Access
+
+15 — CONVERSION DESIGN
+  CTAPosition          = End of Narrative
+  CTAEmotion           = Discovery
+  CTAConcept           = Entry (not "Buy", not "Sign up" — "Enter", "Explore")
+  Examples             = "Enter Atlas", "Explore the AI Universe", "Launch Atlas"
+
+16 — TECH RENDERING
+  GraphicsEngine       = WebGL
+  3DLibrary            = Three.js
+  ScrollAnimation      = GSAP + ScrollTrigger
+  UIAnimation          = Framer Motion
+  FPSTarget            = 60
+
+17 — SYSTEM METAPHOR
+  Internet             = Universe
+  AI Models            = Stars
+  Workflows            = Routes / Orbits
+  Atlas                = Navigation System
+  Connections          = Constellation Lines
+
+18 — QUALITY INDICATORS
+  PremiumSignals       = Slow Motion, Low Density, High Detail, Controlled Contrast
+  CheapSignals (avoid) = UI Clutter, Fast Animations, Small Canvas, High Text Density
+
+19 — DESIGN PRINCIPLES (KOMPAKT)
+  Environment > Interface
+  Scale > Information
+  Narrative > Navigation
+  Slow > Fast
+  Empty > Full
+
+20 — MASTER FORMEL
+  Environment + Extreme Scale + Cinematic Motion
+  + Narrative Scroll + Network Visualization
+  = Infrastructure Perception
+  = Nutzer denkt: "Atlas ist der Layer über der AI-Industrie"
+
+
+================================================================================
+16. FERTIGE PROMPTS — DIREKT NUTZBAR IN V0 / LOVABLE / TRAE / CURSOR
+================================================================================
+
+[PROMPT A — MINIMAL STARTER]
+─────────────────────────────
+Design a dark AI-native website for "ATLAS" — an interactive map of the AI ecosystem.
+Not a directory. Not a landing page. A universe you can navigate.
+Dark background #0B0B0C, cards #111214, borders #1E1F23.
+Font: Inter or Geist. Headlines 64-80px bold tight.
+Style: Vercel × Linear × OpenAI. Calm, developer-focused, futuristic.
+One hero headline: "Navigate the AI Universe."
+Single CTA: [Explore Atlas].
+Sections tell a story: Problem → System → Map → Stacks → CTA.
+No bright colors. No marketing gradients. No feature lists.
+
+
+[PROMPT B — VOLLSTÄNDIG MIT GALAXY MAP]
+─────────────────────────────────────────
+Generate a complete AI-native product website UI for "ATLAS" by AIAstralis.
+
+CONCEPT: Atlas is not a directory. It is an interactive AI ecosystem map.
+Users navigate AI tools like a galaxy — zoom into clusters, click nodes,
+generate workflow stacks.
+
+COLORS:
+bg #0B0B0C / cards #111214 / borders #1E1F23
+text #FFFFFF / secondary #8F8F93
+accent: electric blue #3B82F6 OR cosmic purple #7C3AED (glow only)
+
+TYPOGRAPHY: Inter or Geist. Headlines 64-80px bold -0.02em tracking.
+Body 16px regular 1.6 line-height.
+
+PIXEL SYSTEM: 8px base. Section spacing 120-160px.
+Cards: radius 12px, border 1px solid #1E1F23, padding 24-32px.
+
+NAV: Logo | Product Atlas Tools Docs | Sign in [Get Started]
+Height 64px, backdrop-blur, thin border-bottom.
+
+HERO:
+Headline: "Navigate the AI Universe."
+Subtext: "Discover, compare and build with AI tools."
+CTAs: [Explore Atlas] [Start Building]
+Visual: AI Galaxy constellation (dark space + glowing nodes + connection lines)
+
+GALAXY MAP:
+Navigable constellation network. Categories = clusters. Tools = nodes.
+Example: GPT → Midjourney → Notion → Zapier → Make
+Users: zoom clusters / click nodes / compare tools / generate stacks
+
+SCENES:
+1. Hero (Galaxy Visual)
+2. Evolution: Tool → Copilot → Agent → Ecosystem
+3. Interactive Galaxy Map (large product preview)
+4. AI Tool Cards (name, category, description, tags, rating)
+5. Tool Comparison UI (Tool/Price/Capabilities/Integrations)
+6. Workflow Builder (visual node graph)
+7. Platform Stats (10,000+ tools / 200+ categories / daily engine)
+8. CTA: "Build your AI stack." / [Start Exploring Atlas]
+
+MOCKUPS: Realistic SaaS previews for galaxy map, tool cards, comparison, workflow builder.
+
+ANIMATIONS: soft node glow / constellation connections / smooth zoom / slow drift.
+
+FEELING: Futuristic developer platform. Digital universe. Infrastructure, not marketing.
+
+
+[PROMPT C — GALAXY MAP COMPONENT ONLY]
+────────────────────────────────────────
+Build an interactive 3D AI Galaxy Map using Three.js and React Three Fiber.
+
+Concept: AI ecosystem as navigable galaxy.
+Categories = clusters. Tools = planet nodes. Integrations = edges.
+
+Requirements:
+- OrbitControls (zoom, pan, rotate)
+- Click nodes: open tool info sidebar
+- Hover nodes: show name + category tag
+- Node size = proportional to popularity
+- Node color = by category
+  (LLMs=purple, ImageGen=blue, Automation=green, Coding=teal, Video=amber)
+- Background: black space with 5000 particle stars
+- Edge opacity = integration strength
+- Start: zoomed out, all clusters visible
+- On click: smooth zoom to tool
+
+Tech: Three.js, React Three Fiber, @react-three/drei, WebGL.
+Performance: Instanced Mesh, LOD, max 500 visible nodes.
+
+
+[PROMPT D — YUGA-INSPIRED BUT FUNCTIONAL (Atlas Version)]
+────────────────────────────────────────────────────────────
+Design a modern futuristic website UI for "ATLAS" — an AI-powered ecosystem map.
+
+Inspiration: Cinematic Web3 websites (Star Atlas, Yuga Labs) adapted for a
+functional AI product platform. Immersive AND structured.
+
+Core philosophy: cinematic atmosphere + futuristic minimalism + clear product UI.
+
+Color: Deep black background / charcoal grey surfaces / white text /
+one subtle neon accent (electric blue OR soft violet).
+
+Layout: Full-viewport sections. Each = visual chapter. Large typography. Minimal UI.
+Structure: Hero → AI Universe Introduction → Featured Tools →
+           Atlas Navigation → Trending Tools → Community → Footer.
+
+Hero: Subtle animated background (particles/neural grid/constellation).
+Large headline. Short tagline. Primary search bar.
+Example: "Explore the Atlas of Artificial Intelligence."
+
+Motion: Smooth scroll reveal. Fade-in sections. Light parallax. Hover animations.
+(NOT heavy WebGL — support usability, not dominate it)
+
+UI Components: Tool cards (dark surface, glow on hover, icon+title+description),
+category grid, search interface, filters, tags.
+
+Visual Elements: Neural networks, constellation patterns, atlas grid, AI nodes.
+Avoid: Cartoon characters, NFT art, gaming avatars.
+
+Tech: Next.js + Tailwind + Framer Motion compatible.
+
+Goal: "The Atlas of the AI Universe" — cinematic tech aesthetic +
+structured product UI + clean futuristic design.
+
+
+================================================================================
+ZUSAMMENFASSUNG — WAS ATLAS VISUELL SEIN MUSS
+================================================================================
+
+IN EINEM SATZ:
+  Atlas ist die Sternenkarte des AI-Universums —
+  dunkel, strukturiert, lebendig, navigierbar.
+
+DIE 5 WICHTIGSTEN VISUELLEN ENTSCHEIDUNGEN:
+  1. Hintergrund: #0B0B0C — kein Weiß, kein Grau, kein Gradient
+  2. Accent: nur 1 Glow-Farbe (Electric Blue oder Cosmic Purple), max 5% der Fläche
+  3. Typografie: Inter/Geist, Headlines 64-80px bold, sehr viel Whitespace
+  4. Motion: langsam, smooth, cinematic — kein Fast-UI
+  5. Hero Visual: AI Galaxy Constellation — kein Screenshot, kein Feature-Grid
+
+DAS EINE DING DAS ALLES ÄNDERT:
+  Noise/Grain Overlay (CSS, opacity 0.05)
+  → Erzeugt sofort Film Look, Depth, Premium Feeling. 1 Zeile CSS.
+
+================================================================================
+ATLAS — VISUAL DESIGN BIBLE
+AIAstralis | ATLAS | 2026
+================================================================================

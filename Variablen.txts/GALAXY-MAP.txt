@@ -1,0 +1,402 @@
+import { useEffect, useRef, useState } from "react";
+
+const CLUSTERS = [
+  { id:"llm",        label:"Language Models", color:"#06b6d4", x:0,    y:0,    r:90,  tools:["GPT-4o","Claude 3.7","Gemini 2.0","Mistral","Llama 4","Grok 3"] },
+  { id:"image",      label:"Image Gen",       color:"#8b5cf6", x:220,  y:-80,  r:70,  tools:["Midjourney","DALL·E 3","Stable Diff","Firefly","Ideogram"] },
+  { id:"video",      label:"Video Gen",       color:"#ec4899", x:200,  y:130,  r:65,  tools:["Runway","Pika","Sora","Kling","HeyGen"] },
+  { id:"audio",      label:"Audio & Voice",   color:"#22c55e", x:-200, y:-100, r:60,  tools:["ElevenLabs","Murf","Suno","Udio","LOVO"] },
+  { id:"coding",     label:"Coding Agents",   color:"#f59e0b", x:-180, y:120,  r:75,  tools:["Cursor","Copilot","Devin","Codeium","Replit"] },
+  { id:"automation", label:"Automation",      color:"#3b82f6", x:20,   y:230,  r:60,  tools:["Zapier","Make","n8n","Activepieces"] },
+  { id:"research",   label:"Research",        color:"#06b6d4", x:-20,  y:-230, r:55,  tools:["Perplexity","Elicit","Consensus","Storm"] },
+  { id:"agents",     label:"AI Agents",       color:"#f97316", x:320,  y:20,   r:58,  tools:["AutoGPT","CrewAI","LangGraph","AgentGPT"] },
+];
+
+const ATLAS_CORE = { x:0, y:0, label:"ATLAS CORE" };
+
+function rand(min, max) { return Math.random() * (max - min) + min; }
+
+function genStars(n) {
+  return Array.from({length:n}, (_,i) => ({
+    id:i, x:rand(0,100), y:rand(0,100),
+    size:rand(0.5,2.2), opacity:rand(0.2,0.9),
+    speed:rand(0.0002,0.001),
+  }));
+}
+
+function genNodes(clusters) {
+  const nodes = [];
+  clusters.forEach(cl => {
+    cl.tools.forEach((tool, i) => {
+      const angle = (i / cl.tools.length) * Math.PI * 2 + rand(-0.3,0.3);
+      const dist  = cl.r * rand(0.4,0.95);
+      nodes.push({
+        id:`${cl.id}-${i}`, label:tool,
+        x: cl.x + Math.cos(angle) * dist,
+        y: cl.y + Math.sin(angle) * dist,
+        color:cl.color, cluster:cl.id, r:rand(3,6),
+        pulseOffset:rand(0, Math.PI*2),
+      });
+    });
+  });
+  return nodes;
+}
+
+const STARS = genStars(260);
+const NODES = genNodes(CLUSTERS);
+
+export default function GalaxyMap() {
+  const canvasRef  = useRef(null);
+  const rafRef     = useRef(null);
+  const timeRef    = useRef(0);
+  const offsetRef  = useRef({x:0, y:0});
+  const zoomRef    = useRef(1);
+  const dragRef    = useRef(null);
+  const [hovered,  setHovered]  = useState(null);
+  const [selected, setSelected] = useState(null);
+  const [info,     setInfo]     = useState(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const ctx    = canvas.getContext("2d");
+    let W, H;
+
+    function resize() {
+      W = canvas.width  = canvas.offsetWidth;
+      H = canvas.height = canvas.offsetHeight;
+    }
+    resize();
+    window.addEventListener("resize", resize);
+
+    // world → screen
+    function ws(x, y) {
+      return [
+        W/2 + (x + offsetRef.current.x) * zoomRef.current,
+        H/2 + (y + offsetRef.current.y) * zoomRef.current,
+      ];
+    }
+
+    function draw(t) {
+      timeRef.current = t * 0.001;
+      ctx.clearRect(0, 0, W, H);
+
+      // ── Background ───────────────────────────────────────
+      const bg = ctx.createRadialGradient(W/2,H/2,0,W/2,H/2,Math.max(W,H)*0.7);
+      bg.addColorStop(0,  "#03091a");
+      bg.addColorStop(0.5,"#020817");
+      bg.addColorStop(1,  "#010610");
+      ctx.fillStyle = bg;
+      ctx.fillRect(0,0,W,H);
+
+      // ── Stars ─────────────────────────────────────────────
+      STARS.forEach(s => {
+        const sx = (s.x/100)*W;
+        const sy = (s.y/100)*H;
+        const twinkle = 0.5 + 0.5 * Math.sin(timeRef.current * s.speed * 1000 + s.id);
+        ctx.beginPath();
+        ctx.arc(sx, sy, s.size * twinkle, 0, Math.PI*2);
+        ctx.fillStyle = `rgba(148,163,184,${s.opacity * twinkle})`;
+        ctx.fill();
+      });
+
+      // ── Nebula glows ──────────────────────────────────────
+      CLUSTERS.forEach(cl => {
+        const [cx,cy] = ws(cl.x, cl.y);
+        const pulse = 1 + 0.08 * Math.sin(timeRef.current * 0.4 + cl.x * 0.01);
+        const grd = ctx.createRadialGradient(cx,cy,0,cx,cy,cl.r*zoomRef.current*2.4*pulse);
+        grd.addColorStop(0, cl.color + "28");
+        grd.addColorStop(0.5,cl.color + "0a");
+        grd.addColorStop(1, "transparent");
+        ctx.beginPath();
+        ctx.arc(cx,cy,cl.r*zoomRef.current*2.4*pulse,0,Math.PI*2);
+        ctx.fillStyle = grd;
+        ctx.fill();
+      });
+
+      // ── Connection lines (cluster → ATLAS core) ───────────
+      CLUSTERS.forEach(cl => {
+        const [cx,cy] = ws(cl.x, cl.y);
+        const [ax,ay] = ws(0, 0);
+        const alpha = 0.08 + 0.04 * Math.sin(timeRef.current * 0.5 + cl.x * 0.02);
+        ctx.beginPath();
+        ctx.moveTo(ax,ay);
+        ctx.lineTo(cx,cy);
+        ctx.strokeStyle = cl.color + Math.round(alpha*255).toString(16).padStart(2,"0");
+        ctx.lineWidth = 0.5;
+        ctx.setLineDash([4,8]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      });
+
+      // ── Cluster node-to-node lines ────────────────────────
+      NODES.forEach(n => {
+        const cl = CLUSTERS.find(c=>c.id===n.cluster);
+        if(!cl) return;
+        const [nx,ny] = ws(n.x, n.y);
+        const [cx,cy] = ws(cl.x, cl.y);
+        ctx.beginPath();
+        ctx.moveTo(nx,ny);
+        ctx.lineTo(cx,cy);
+        ctx.strokeStyle = n.color + "18";
+        ctx.lineWidth = 0.4;
+        ctx.stroke();
+      });
+
+      // ── Cluster centers ───────────────────────────────────
+      CLUSTERS.forEach(cl => {
+        const [cx,cy] = ws(cl.x, cl.y);
+        const pulse = 1 + 0.15 * Math.sin(timeRef.current * 0.6 + cl.x * 0.015);
+        const rr = 9 * zoomRef.current * pulse;
+
+        // outer ring
+        ctx.beginPath();
+        ctx.arc(cx,cy,rr*1.8,0,Math.PI*2);
+        ctx.strokeStyle = cl.color + "30";
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        // core
+        const g = ctx.createRadialGradient(cx,cy,0,cx,cy,rr);
+        g.addColorStop(0,"#fff");
+        g.addColorStop(0.3,cl.color);
+        g.addColorStop(1,cl.color+"00");
+        ctx.beginPath();
+        ctx.arc(cx,cy,rr,0,Math.PI*2);
+        ctx.fillStyle = g;
+        ctx.fill();
+
+        // label (only if zoom > 0.6)
+        if(zoomRef.current > 0.5) {
+          ctx.font = `bold ${Math.max(9,11*zoomRef.current)}px system-ui`;
+          ctx.textAlign = "center";
+          ctx.fillStyle = "#f1f5f9cc";
+          ctx.fillText(cl.label, cx, cy + rr*2.2);
+        }
+      });
+
+      // ── Tool nodes ────────────────────────────────────────
+      NODES.forEach(n => {
+        const [nx,ny] = ws(n.x, n.y);
+        const pulse = 1 + 0.2 * Math.sin(timeRef.current * 1.2 + n.pulseOffset);
+        const isHov = hovered === n.id;
+        const isSel = selected === n.id;
+        const rr = n.r * zoomRef.current * (isHov||isSel ? 2.2 : pulse);
+
+        if(isHov || isSel) {
+          ctx.beginPath();
+          ctx.arc(nx,ny,rr*2.5,0,Math.PI*2);
+          ctx.fillStyle = n.color + "22";
+          ctx.fill();
+        }
+
+        ctx.beginPath();
+        ctx.arc(nx,ny,rr,0,Math.PI*2);
+        ctx.fillStyle = isHov||isSel ? n.color : n.color+"bb";
+        ctx.fill();
+
+        if(isHov||isSel || zoomRef.current>1.2) {
+          ctx.font = `${Math.max(8,9*zoomRef.current)}px system-ui`;
+          ctx.textAlign = "center";
+          ctx.fillStyle = isHov||isSel ? "#ffffff" : "#94a3b8";
+          ctx.fillText(n.label, nx, ny - rr - 4);
+        }
+      });
+
+      // ── ATLAS CORE ────────────────────────────────────────
+      const [ax,ay] = ws(0,0);
+      const cp = 1 + 0.2 * Math.sin(timeRef.current * 0.8);
+
+      // outer rings
+      [40,28,18].forEach((r,i) => {
+        const alpha = [0.06,0.12,0.20][i];
+        ctx.beginPath();
+        ctx.arc(ax,ay,r*zoomRef.current*cp,0,Math.PI*2);
+        ctx.strokeStyle = `rgba(6,182,212,${alpha})`;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      });
+
+      // core glow
+      const cg = ctx.createRadialGradient(ax,ay,0,ax,ay,14*zoomRef.current*cp);
+      cg.addColorStop(0,"#ffffff");
+      cg.addColorStop(0.3,"#06b6d4");
+      cg.addColorStop(0.7,"#3b82f6");
+      cg.addColorStop(1,"transparent");
+      ctx.beginPath();
+      ctx.arc(ax,ay,14*zoomRef.current*cp,0,Math.PI*2);
+      ctx.fillStyle = cg;
+      ctx.fill();
+
+      // ATLAS label
+      ctx.font = `bold ${Math.max(10,13*zoomRef.current)}px system-ui`;
+      ctx.textAlign = "center";
+      ctx.fillStyle = "#f1f5f9";
+      ctx.fillText("ATLAS", ax, ay + 24*zoomRef.current);
+
+      rafRef.current = requestAnimationFrame(draw);
+    }
+
+    rafRef.current = requestAnimationFrame(draw);
+    return () => {
+      cancelAnimationFrame(rafRef.current);
+      window.removeEventListener("resize", resize);
+    };
+  }, [hovered, selected]);
+
+  // ── Mouse interaction ─────────────────────────────────────
+  function getWorldPos(e) {
+    const rect = canvasRef.current.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+    const W = canvasRef.current.offsetWidth;
+    const H = canvasRef.current.offsetHeight;
+    return {
+      wx: (mx - W/2) / zoomRef.current - offsetRef.current.x,
+      wy: (my - H/2) / zoomRef.current - offsetRef.current.y,
+    };
+  }
+
+  function findNode(wx, wy) {
+    let closest = null, minD = Infinity;
+    NODES.forEach(n => {
+      const d = Math.hypot(n.x - wx, n.y - wy);
+      if(d < n.r*3 + 8 && d < minD) { minD = d; closest = n; }
+    });
+    CLUSTERS.forEach(cl => {
+      const d = Math.hypot(cl.x - wx, cl.y - wy);
+      if(d < 18 && d < minD) { minD = d; closest = {id:"cl-"+cl.id, isCluster:true, ...cl}; }
+    });
+    return closest;
+  }
+
+  function onMouseMove(e) {
+    if(dragRef.current) {
+      const dx = e.clientX - dragRef.current.lastX;
+      const dy = e.clientY - dragRef.current.lastY;
+      offsetRef.current.x += dx / zoomRef.current;
+      offsetRef.current.y += dy / zoomRef.current;
+      dragRef.current.lastX = e.clientX;
+      dragRef.current.lastY = e.clientY;
+      return;
+    }
+    const {wx,wy} = getWorldPos(e);
+    const n = findNode(wx,wy);
+    setHovered(n?.id || null);
+    canvasRef.current.style.cursor = n ? "pointer" : "grab";
+  }
+
+  function onMouseDown(e) {
+    dragRef.current = { lastX: e.clientX, lastY: e.clientY };
+    canvasRef.current.style.cursor = "grabbing";
+  }
+
+  function onMouseUp(e) {
+    const moved = dragRef.current &&
+      Math.hypot(e.clientX-dragRef.current.lastX, e.clientY-dragRef.current.lastY) < 4;
+    dragRef.current = null;
+    canvasRef.current.style.cursor = "grab";
+    if(moved) {
+      const {wx,wy} = getWorldPos(e);
+      const n = findNode(wx,wy);
+      if(n) {
+        setSelected(s => s===n.id ? null : n.id);
+        setInfo(n.isCluster
+          ? { type:"cluster", name:n.label, color:n.color, tools:n.tools, count:n.tools.length }
+          : { type:"node",    name:n.label, color:n.color, cluster:CLUSTERS.find(c=>c.id===n.cluster)?.label }
+        );
+      } else { setSelected(null); setInfo(null); }
+    }
+  }
+
+  function onWheel(e) {
+    e.preventDefault();
+    const factor = e.deltaY < 0 ? 1.12 : 0.89;
+    zoomRef.current = Math.min(3, Math.max(0.3, zoomRef.current * factor));
+  }
+
+  function resetView() {
+    offsetRef.current = {x:0,y:0};
+    zoomRef.current = 1;
+  }
+
+  return (
+    <div style={{background:"#010610",minHeight:"100vh",display:"flex",flexDirection:"column",fontFamily:"system-ui,sans-serif",color:"#f1f5f9"}}>
+
+      {/* Header */}
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"14px 20px",borderBottom:"1px solid #0a1628",background:"#02081799",backdropFilter:"blur(20px)",zIndex:10}}>
+        <div style={{display:"flex",alignItems:"center",gap:10}}>
+          <div style={{width:26,height:26,borderRadius:6,background:"linear-gradient(135deg,#06b6d4,#3b82f6)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:900,color:"#fff",boxShadow:"0 0 12px #06b6d433"}}>A</div>
+          <span style={{fontWeight:900,fontSize:15}}>ATLAS</span>
+          <span style={{fontSize:9,color:"#1e293b",fontWeight:700,letterSpacing:1}}>OS</span>
+          <span style={{background:"#06b6d420",color:"#06b6d4",border:"1px solid #06b6d433",borderRadius:4,padding:"1px 8px",fontSize:10,fontWeight:700}}>Galaxy Map</span>
+        </div>
+        <div style={{display:"flex",gap:8,alignItems:"center"}}>
+          <div style={{fontSize:11,color:"#334155"}}>Scroll to zoom · Drag to pan · Click to explore</div>
+          <button onClick={resetView} style={{background:"#0f172a",border:"1px solid #1e293b",color:"#64748b",borderRadius:6,padding:"5px 12px",fontSize:11,cursor:"pointer"}}>Reset View</button>
+        </div>
+      </div>
+
+      {/* Canvas */}
+      <div style={{flex:1,position:"relative",overflow:"hidden"}}>
+        <canvas ref={canvasRef} style={{width:"100%",height:"100%",display:"block",cursor:"grab"}}
+          onMouseMove={onMouseMove} onMouseDown={onMouseDown} onMouseUp={onMouseUp}
+          onMouseLeave={()=>{setHovered(null);dragRef.current=null;}}
+          onWheel={onWheel}/>
+
+        {/* Legend */}
+        <div style={{position:"absolute",bottom:20,left:20,background:"#0f172a99",backdropFilter:"blur(12px)",border:"1px solid #1e293b",borderRadius:12,padding:"12px 16px"}}>
+          <div style={{fontSize:10,color:"#334155",fontWeight:700,marginBottom:8,letterSpacing:.5}}>CLUSTERS</div>
+          <div style={{display:"flex",flexDirection:"column",gap:5}}>
+            {CLUSTERS.map(cl=>(
+              <div key={cl.id} style={{display:"flex",alignItems:"center",gap:7}}>
+                <div style={{width:8,height:8,borderRadius:"50%",background:cl.color,boxShadow:`0 0 4px ${cl.color}`}}/>
+                <span style={{fontSize:10,color:"#64748b"}}>{cl.label}</span>
+                <span style={{fontSize:9,color:"#334155"}}>({cl.tools.length})</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Info panel */}
+        {info && (
+          <div style={{position:"absolute",top:20,right:20,background:"#0f172a",border:`1px solid ${info.color}44`,borderRadius:12,padding:"16px 20px",minWidth:220,boxShadow:`0 0 30px ${info.color}18`,animation:"fadeIn .2s ease"}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10}}>
+              <div>
+                <div style={{fontSize:14,fontWeight:800,color:"#f1f5f9"}}>{info.name}</div>
+                {info.cluster && <div style={{fontSize:11,color:"#475569",marginTop:2}}>in {info.cluster}</div>}
+              </div>
+              <button onClick={()=>{setSelected(null);setInfo(null);}} style={{background:"none",border:"none",color:"#334155",cursor:"pointer",fontSize:14,lineHeight:1}}>✕</button>
+            </div>
+            {info.type==="cluster" && (
+              <>
+                <div style={{fontSize:10,color:"#334155",fontWeight:700,marginBottom:6}}>{info.count} TOOLS</div>
+                <div style={{display:"flex",flexWrap:"wrap",gap:4}}>
+                  {info.tools.map(t=>(
+                    <span key={t} style={{background:info.color+"18",color:info.color,border:`1px solid ${info.color}33`,borderRadius:4,padding:"2px 7px",fontSize:10,fontWeight:600}}>{t}</span>
+                  ))}
+                </div>
+              </>
+            )}
+            {info.type==="node" && (
+              <div style={{fontSize:12,color:"#64748b",lineHeight:1.6}}>
+                AI Tool in the <strong style={{color:info.color}}>{info.cluster}</strong> cluster.
+                <br/>Click to view details →
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Stats overlay */}
+        <div style={{position:"absolute",top:20,left:20,display:"flex",gap:8}}>
+          {[["Clusters",CLUSTERS.length],["Nodes",NODES.length],["Edges",CLUSTERS.length+NODES.length]].map(([l,v])=>(
+            <div key={l} style={{background:"#0f172a99",backdropFilter:"blur(8px)",border:"1px solid #1e293b",borderRadius:8,padding:"6px 12px",textAlign:"center"}}>
+              <div style={{fontSize:14,fontWeight:900,color:"#06b6d4"}}>{v}</div>
+              <div style={{fontSize:9,color:"#334155"}}>{l}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <style>{`@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}`}</style>
+    </div>
+  );
+}

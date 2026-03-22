@@ -1,0 +1,1840 @@
+<!DOCTYPE html><html><head><meta charset="UTF-8"><title>ATLAS OS — 18 Features</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#020817;color:#f1f5f9;font-family:system-ui,sans-serif;padding:24px;min-height:100vh}
+h1{font-size:17px;font-weight:900;margin-bottom:4px;background:linear-gradient(135deg,#06b6d4,#3b82f6);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.sub{font-size:11px;color:#334155;margin-bottom:20px}
+.progress{height:3px;background:#1e293b;border-radius:2px;margin-bottom:20px}
+.bar{height:100%;background:linear-gradient(90deg,#06b6d4,#3b82f6);border-radius:2px;width:0%;transition:width .3s}
+button.main{background:linear-gradient(135deg,#06b6d4,#3b82f6);border:none;color:#fff;border-radius:9px;padding:13px;font-weight:800;font-size:13px;cursor:pointer;width:100%;margin-bottom:8px}
+.note{font-size:10px;color:#1e293b;text-align:center;margin-bottom:20px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
+.card{background:#0f172a;border:1px solid #1e293b;border-radius:10px;padding:14px;transition:border-color .2s}
+.card:hover{border-color:#06b6d444}
+.badge{display:inline-block;border-radius:4px;padding:1px 7px;font-size:9px;font-weight:700;margin-bottom:8px}
+.amber{background:#f59e0b22;color:#f59e0b;border:1px solid #f59e0b33}
+.coral{background:#f9731622;color:#f97316;border:1px solid #f9731633}
+.teal{background:#22c55e22;color:#22c55e;border:1px solid #22c55e33}
+.purple{background:#8b5cf622;color:#8b5cf6;border:1px solid #8b5cf633}
+.title{font-weight:800;font-size:12px;color:#f1f5f9;margin-bottom:3px}
+.desc{font-size:10px;color:#475569;line-height:1.6;margin-bottom:10px}
+.files{font-size:9px;color:#334155;margin-bottom:8px;line-height:1.8}
+.dl-btn{background:transparent;border:1px solid #1e293b;color:#64748b;border-radius:6px;padding:5px 10px;font-size:10px;font-weight:700;cursor:pointer;width:100%;transition:all .2s}
+.dl-btn:hover{border-color:#06b6d444;color:#06b6d4}
+.dl-btn.done{background:#22c55e18;border-color:#22c55e33;color:#22c55e}
+</style></head><body>
+<h1>ATLAS OS — 18 fehlende Features</h1>
+<p class="sub">AIAstralis · Version 20.0 · Product + Growth + Infrastructure + Phase 2</p>
+<div class="progress"><div class="bar" id="bar"></div></div>
+<button class="main" onclick="dlAll()">⬇️ Alle 18 als eine TXT herunterladen</button>
+<p class="note">atlas-os-missing-18.txt · Alle Features · Vollständiger TypeScript/SQL Code</p>
+<div class="grid" id="grid"></div>
+
+<script>
+const FILES = [
+{id:1,cat:"amber",label:"Product",title:"Stripe Payments",desc:"Builder $12/mo + Enterprise $99/mo mit Supabase Sync",files:"lib/stripe.ts · app/api/checkout/route.ts · app/api/webhook/route.ts · components/UpgradeBtn.tsx",content:`// ============================================================
+// ATLAS OS — Feature 1: Stripe Payments
+// Builder $12/mo · Enterprise $99/mo
+// npm install stripe @stripe/stripe-js
+// ============================================================
+
+// FILE: lib/stripe.ts
+import Stripe from "stripe";
+export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: "2024-04-10" });
+export const PLANS = {
+  builder:    { priceId: process.env.STRIPE_BUILDER_PRICE_ID!,    amount: 12,  name: "Builder"    },
+  enterprise: { priceId: process.env.STRIPE_ENTERPRISE_PRICE_ID!, amount: 99,  name: "Enterprise" },
+};
+
+// FILE: app/api/checkout/route.ts
+import { NextRequest, NextResponse } from "next/server";
+import { stripe, PLANS } from "@/lib/stripe";
+import { createClient } from "@/lib/supabase-server";
+export async function POST(req: NextRequest) {
+  const { plan } = await req.json();
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const planData = PLANS[plan as keyof typeof PLANS];
+  if (!planData) return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
+  const session = await stripe.checkout.sessions.create({
+    mode: "subscription",
+    payment_method_types: ["card"],
+    line_items: [{ price: planData.priceId, quantity: 1 }],
+    customer_email: user.email,
+    metadata: { userId: user.id, plan },
+    success_url: process.env.NEXT_PUBLIC_SITE_URL + "/dashboard?upgraded=true",
+    cancel_url:  process.env.NEXT_PUBLIC_SITE_URL + "/pricing",
+  });
+  return NextResponse.json({ url: session.url });
+}
+
+// FILE: app/api/webhook/route.ts
+import { NextRequest, NextResponse } from "next/server";
+import { stripe } from "@/lib/stripe";
+import { supabase } from "@/lib/supabase";
+export async function POST(req: NextRequest) {
+  const body = await req.text();
+  const sig  = req.headers.get("stripe-signature")!;
+  let event;
+  try { event = stripe.webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET!); }
+  catch { return NextResponse.json({ error: "Invalid signature" }, { status: 400 }); }
+  if (event.type === "checkout.session.completed") {
+    const session = event.data.object as any;
+    const { userId, plan } = session.metadata;
+    await supabase.from("profiles").update({ plan, stripe_customer_id: session.customer }).eq("id", userId);
+  }
+  if (event.type === "customer.subscription.deleted") {
+    const sub = event.data.object as any;
+    const { data: profile } = await supabase.from("profiles").select("id").eq("stripe_customer_id", sub.customer).single();
+    if (profile) await supabase.from("profiles").update({ plan: "explorer" }).eq("id", profile.id);
+  }
+  return NextResponse.json({ received: true });
+}
+
+// FILE: components/UpgradeBtn.tsx
+"use client";
+import { useState } from "react";
+export function UpgradeBtn({ plan, label }: { plan: string; label: string }) {
+  const [loading, setLoading] = useState(false);
+  async function checkout() {
+    setLoading(true);
+    const res = await fetch("/api/checkout", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ plan }) });
+    const { url } = await res.json();
+    if (url) window.location.href = url;
+    setLoading(false);
+  }
+  return (
+    <button onClick={checkout} disabled={loading}
+      className="w-full py-2.5 rounded-lg font-bold text-sm text-white bg-gradient-to-r from-cyan-400 to-blue-500 disabled:opacity-40">
+      {loading ? "Redirecting..." : label}
+    </button>
+  );
+}
+
+// SQL: Add to profiles table
+// alter table profiles add column if not exists stripe_customer_id text;
+// alter table profiles add column if not exists stripe_subscription_id text;
+
+// .env.local additions:
+// STRIPE_SECRET_KEY=sk_live_...
+// STRIPE_BUILDER_PRICE_ID=price_...
+// STRIPE_ENTERPRISE_PRICE_ID=price_...
+// STRIPE_WEBHOOK_SECRET=whsec_...`
+},
+{id:2,cat:"amber",label:"Product",title:"Newsletter System",desc:"Email capture, Welcome sequence, Weekly AI digest",files:"app/api/newsletter/route.ts · components/NewsletterForm.tsx · lib/email.ts",content:`// ============================================================
+// ATLAS OS — Feature 2: Newsletter System
+// npm install resend
+// ============================================================
+
+// FILE: lib/email.ts
+import { Resend } from "resend";
+export const resend = new Resend(process.env.RESEND_API_KEY);
+export const AUDIENCE_ID = process.env.RESEND_AUDIENCE_ID!;
+
+export async function sendWelcomeEmail(email: string, name?: string) {
+  return resend.emails.send({
+    from: "ATLAS OS <hello@atlas-os.com>",
+    to: email,
+    subject: "Welcome to ATLAS OS — The AI Workflow Infrastructure",
+    html: \`
+      <div style="background:#020817;color:#f1f5f9;padding:40px;font-family:system-ui;max-width:600px;margin:0 auto">
+        <div style="font-size:24px;font-weight:900;color:#06b6d4;margin-bottom:16px">ATLAS OS</div>
+        <h1 style="font-size:28px;font-weight:900;margin-bottom:12px">Welcome\${name?", "+name:""}! 🚀</h1>
+        <p style="color:#94a3b8;line-height:1.7;margin-bottom:24px">
+          You're now part of the AI Workflow Infrastructure. ATLAS converts your goal into a complete AI system — the right tools, in the right order, instantly.
+        </p>
+        <a href="\${process.env.NEXT_PUBLIC_SITE_URL}/generate" style="background:linear-gradient(135deg,#06b6d4,#3b82f6);color:#fff;padding:12px 28px;border-radius:8px;font-weight:700;text-decoration:none;display:inline-block">
+          Generate Your First Stack →
+        </a>
+        <p style="color:#334155;font-size:12px;margin-top:32px">
+          Google indexed the web. Atlas indexes intelligence.<br>
+          <a href="\${process.env.NEXT_PUBLIC_SITE_URL}/unsubscribe?email=\${email}" style="color:#475569">Unsubscribe</a>
+        </p>
+      </div>
+    \`,
+  });
+}
+
+export async function sendWeeklyDigest(emails: string[], tools: any[], stacks: any[]) {
+  return resend.batch.send(emails.map(email => ({
+    from: "ATLAS OS <weekly@atlas-os.com>",
+    to: email,
+    subject: "🚀 This week in AI — ATLAS Weekly Digest",
+    html: \`
+      <div style="background:#020817;color:#f1f5f9;padding:40px;font-family:system-ui;max-width:600px;margin:0 auto">
+        <div style="font-size:20px;font-weight:900;color:#06b6d4;margin-bottom:24px">ATLAS Weekly</div>
+        <h2 style="font-size:20px;font-weight:700;margin-bottom:16px">Top AI Tools this week</h2>
+        \${tools.slice(0,5).map((t:any) => \`
+          <div style="background:#0f172a;border:1px solid #1e293b;border-radius:10px;padding:14px;margin-bottom:10px">
+            <div style="font-weight:700">\${t.name}</div>
+            <div style="color:#64748b;font-size:13px;margin-top:4px">\${t.description}</div>
+            <div style="color:#22c55e;font-size:12px;margin-top:6px">\${t.pricing}</div>
+          </div>
+        \`).join("")}
+        <a href="\${process.env.NEXT_PUBLIC_SITE_URL}/generate" style="background:linear-gradient(135deg,#06b6d4,#3b82f6);color:#fff;padding:12px 28px;border-radius:8px;font-weight:700;text-decoration:none;display:inline-block;margin-top:16px">
+          Generate Your Stack →
+        </a>
+      </div>
+    \`,
+  })));
+}
+
+// FILE: app/api/newsletter/route.ts
+import { NextRequest, NextResponse } from "next/server";
+import { resend, AUDIENCE_ID, sendWelcomeEmail } from "@/lib/email";
+import { supabase } from "@/lib/supabase";
+export async function POST(req: NextRequest) {
+  const { email, name } = await req.json();
+  if (!email) return NextResponse.json({ error: "Email required" }, { status: 400 });
+  const { error } = await supabase.from("newsletter_subscribers").upsert({ email, name, subscribed: true });
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  await resend.contacts.create({ email, firstName: name, audienceId: AUDIENCE_ID });
+  await sendWelcomeEmail(email, name);
+  return NextResponse.json({ success: true });
+}
+
+// FILE: components/NewsletterForm.tsx
+"use client";
+import { useState } from "react";
+export function NewsletterForm({ variant = "inline" }: { variant?: "inline" | "card" }) {
+  const [email, setEmail] = useState(""); const [name, setName] = useState(""); const [loading, setLoading] = useState(false); const [done, setDone] = useState(false);
+  async function submit(e: React.FormEvent) {
+    e.preventDefault(); setLoading(true);
+    await fetch("/api/newsletter", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, name }) });
+    setDone(true); setLoading(false);
+  }
+  if (done) return <div className="text-emerald-400 text-sm font-bold">✓ You're in! Check your inbox.</div>;
+  return (
+    <form onSubmit={submit} className="flex gap-2 flex-wrap">
+      <input value={email} onChange={e=>setEmail(e.target.value)} type="email" placeholder="Your email" required className="flex-1 min-w-[200px] bg-[#0f172a] border border-[#1e293b] rounded-lg px-4 py-2 text-sm text-slate-100 outline-none focus:border-cyan-400/40"/>
+      <button type="submit" disabled={loading} className="px-5 py-2 rounded-lg font-bold text-sm text-white bg-gradient-to-r from-cyan-400 to-blue-500 disabled:opacity-40">
+        {loading ? "..." : "Subscribe →"}
+      </button>
+    </form>
+  );
+}
+
+// SQL: create table newsletter_subscribers (id bigserial primary key, email text unique not null, name text, subscribed boolean default true, created_at timestamptz default now());`
+},
+{id:3,cat:"amber",label:"Product",title:"Tool Submission",desc:"User-submitted AI tools mit Review-Pipeline",files:"app/submit/page.tsx · app/api/submit-tool/route.ts",content:`// ============================================================
+// ATLAS OS — Feature 3: Tool Submission System
+// ============================================================
+
+// FILE: app/submit/page.tsx
+"use client";
+import { useState } from "react";
+import Link from "next/link";
+export default function SubmitToolPage() {
+  const [form, setForm] = useState({ name:"", url:"", description:"", category:"", email:"" });
+  const [loading, setLoading] = useState(false); const [done, setDone] = useState(false); const [err, setErr] = useState("");
+  const CATS = ["Writing","Image","Video","Audio","Coding","Research","Automation","Productivity","Design"];
+  async function submit(e: React.FormEvent) {
+    e.preventDefault(); setLoading(true); setErr("");
+    const res = await fetch("/api/submit-tool", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(form) });
+    const data = await res.json();
+    if (!res.ok) { setErr(data.error); setLoading(false); return; }
+    setDone(true); setLoading(false);
+  }
+  if (done) return (
+    <div className="max-w-[520px] mx-auto px-5 py-20 text-center">
+      <div className="text-4xl mb-4">✅</div>
+      <h1 className="text-2xl font-black text-slate-100 mb-2">Tool submitted!</h1>
+      <p className="text-slate-500 text-sm mb-6">Our team will review it within 48 hours. You'll get an email when it's live.</p>
+      <Link href="/tools" className="text-cyan-400 text-sm hover:underline">Browse existing tools →</Link>
+    </div>
+  );
+  return (
+    <section className="max-w-[580px] mx-auto px-5 py-14">
+      <div className="inline-block bg-cyan-400/10 text-cyan-400 border border-cyan-400/20 rounded px-3 py-1 text-[11px] font-semibold mb-4">Submit a Tool</div>
+      <h1 className="text-3xl font-black text-slate-100 mb-2">Add an AI Tool</h1>
+      <p className="text-slate-500 text-sm mb-8">Know an AI tool that's not in ATLAS? Submit it and we'll review it within 48 hours.</p>
+      <form onSubmit={submit} className="flex flex-col gap-4">
+        {[["Tool name","name","e.g. Perplexity"],["Website URL","url","https://..."],["Your email","email","For notification"]].map(([label,key,ph])=>(
+          <div key={key}><label className="text-xs text-slate-500 font-semibold mb-1.5 block">{label}</label>
+          <input value={(form as any)[key]} onChange={e=>setForm({...form,[key]:e.target.value})} placeholder={ph} required className="w-full bg-[#0f172a] border border-[#1e293b] rounded-lg px-4 py-2.5 text-sm text-slate-100 outline-none focus:border-cyan-400/40"/></div>
+        ))}
+        <div><label className="text-xs text-slate-500 font-semibold mb-1.5 block">Category</label>
+        <select value={form.category} onChange={e=>setForm({...form,category:e.target.value})} required className="w-full bg-[#0f172a] border border-[#1e293b] rounded-lg px-4 py-2.5 text-sm text-slate-400 outline-none">
+          <option value="">Select category...</option>
+          {CATS.map(c=><option key={c} value={c}>{c}</option>)}
+        </select></div>
+        <div><label className="text-xs text-slate-500 font-semibold mb-1.5 block">Description</label>
+        <textarea value={form.description} onChange={e=>setForm({...form,description:e.target.value})} placeholder="What does this tool do?" required rows={3} className="w-full bg-[#0f172a] border border-[#1e293b] rounded-lg px-4 py-2.5 text-sm text-slate-100 outline-none focus:border-cyan-400/40 resize-none"/></div>
+        {err && <div className="text-red-400 text-xs bg-red-400/10 border border-red-400/20 rounded-lg px-3 py-2">{err}</div>}
+        <button type="submit" disabled={loading} className="py-3 rounded-lg font-bold text-sm text-white bg-gradient-to-r from-cyan-400 to-blue-500 disabled:opacity-40">{loading?"Submitting...":"Submit Tool →"}</button>
+      </form>
+    </section>
+  );
+}
+
+// FILE: app/api/submit-tool/route.ts
+import { NextRequest, NextResponse } from "next/server";
+import { supabase } from "@/lib/supabase";
+export async function POST(req: NextRequest) {
+  const { name, url, description, category, email } = await req.json();
+  if (!name||!url||!description||!category) return NextResponse.json({ error:"All fields required" },{ status:400 });
+  const { error } = await supabase.from("tool_submissions").insert({ name, url, description, category, submitter_email:email, status:"pending" });
+  if (error) return NextResponse.json({ error: error.message },{ status:500 });
+  return NextResponse.json({ success: true });
+}
+
+// SQL:
+// create table tool_submissions (id uuid primary key default gen_random_uuid(), name text not null, url text not null, description text, category text, submitter_email text, status text default 'pending', admin_note text, created_at timestamptz default now());`
+},
+{id:4,cat:"amber",label:"Product",title:"Reviews + Ratings",desc:"Tool-Bewertungen mit Moderation und Aggregation",files:"app/tools/[slug]/reviews/page.tsx · app/api/reviews/route.ts",content:`// ============================================================
+// ATLAS OS — Feature 4: Reviews + Ratings
+// ============================================================
+
+// FILE: app/api/reviews/route.ts
+import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase-server";
+import { supabase } from "@/lib/supabase";
+export async function GET(req: NextRequest) {
+  const toolSlug = new URL(req.url).searchParams.get("tool");
+  const { data } = await supabase.from("tool_reviews_public").select("*").eq("tool_slug", toolSlug).order("created_at", { ascending: false });
+  return NextResponse.json(data || []);
+}
+export async function POST(req: NextRequest) {
+  const sb = createClient();
+  const { data: { user } } = await sb.auth.getUser();
+  if (!user) return NextResponse.json({ error: "Login required" }, { status: 401 });
+  const { toolSlug, rating, title, body } = await req.json();
+  if (!toolSlug || !rating || rating < 1 || rating > 5) return NextResponse.json({ error: "Invalid data" }, { status: 400 });
+  const { data: tool } = await supabase.from("tools").select("id").eq("slug", toolSlug).single();
+  if (!tool) return NextResponse.json({ error: "Tool not found" }, { status: 404 });
+  const { error } = await supabase.from("tool_reviews").insert({ tool_id: tool.id, user_id: user.id, rating, title, body, status: "pending" });
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json({ success: true });
+}
+
+// FILE: components/ReviewSection.tsx
+"use client";
+import { useState, useEffect } from "react";
+type Review = { id:string; rating:number; title:string; body:string; author_name:string; created_at:string };
+export function ReviewSection({ toolSlug }: { toolSlug: string }) {
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [rating, setRating] = useState(0); const [title, setTitle] = useState(""); const [body, setBody] = useState(""); const [loading, setLoading] = useState(false); const [done, setDone] = useState(false);
+  useEffect(() => { fetch("/api/reviews?tool="+toolSlug).then(r=>r.json()).then(setReviews); }, [toolSlug]);
+  const avg = reviews.length ? (reviews.reduce((s,r)=>s+r.rating,0)/reviews.length).toFixed(1) : null;
+  async function submit(e: React.FormEvent) {
+    e.preventDefault(); setLoading(true);
+    await fetch("/api/reviews", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({toolSlug,rating,title,body}) });
+    setDone(true); setLoading(false);
+  }
+  return (
+    <div className="mt-10">
+      <div className="flex items-center gap-4 mb-6">
+        <h2 className="text-xl font-black text-slate-100">Reviews</h2>
+        {avg && <div className="text-amber-400 font-bold">★ {avg} <span className="text-slate-600 text-sm">({reviews.length})</span></div>}
+      </div>
+      {reviews.map(r=>(
+        <div key={r.id} className="bg-[#0f172a] border border-[#1e293b] rounded-xl p-4 mb-3">
+          <div className="flex justify-between mb-2"><span className="font-bold text-slate-200 text-sm">{r.title}</span><span className="text-amber-400 text-xs">{"★".repeat(r.rating)}</span></div>
+          <p className="text-slate-500 text-xs leading-relaxed">{r.body}</p>
+          <div className="text-[10px] text-slate-700 mt-2">{r.author_name} · {new Date(r.created_at).toLocaleDateString()}</div>
+        </div>
+      ))}
+      {!done && (
+        <form onSubmit={submit} className="bg-[#0f172a] border border-[#1e293b] rounded-xl p-5 mt-4">
+          <div className="text-sm font-bold text-slate-100 mb-3">Write a review</div>
+          <div className="flex gap-2 mb-3">{[1,2,3,4,5].map(n=>(<button key={n} type="button" onClick={()=>setRating(n)} className={"text-xl "+(n<=rating?"text-amber-400":"text-slate-700")}>★</button>))}</div>
+          <input value={title} onChange={e=>setTitle(e.target.value)} placeholder="Title" required className="w-full bg-[#1e293b] border border-[#334155] rounded-lg px-3 py-2 text-sm text-slate-100 outline-none mb-2"/>
+          <textarea value={body} onChange={e=>setBody(e.target.value)} placeholder="Your review..." rows={3} className="w-full bg-[#1e293b] border border-[#334155] rounded-lg px-3 py-2 text-sm text-slate-100 outline-none resize-none mb-3"/>
+          <button type="submit" disabled={loading||!rating} className="px-5 py-2 rounded-lg font-bold text-sm text-white bg-gradient-to-r from-cyan-400 to-blue-500 disabled:opacity-40">{loading?"Submitting...":"Submit Review"}</button>
+        </form>
+      )}
+      {done && <div className="text-emerald-400 text-sm mt-3">✓ Review submitted! It will appear after moderation.</div>}
+    </div>
+  );
+}`
+},
+{id:5,cat:"amber",label:"Product",title:"Search Page",desc:"/search — Full-text Supabase Suche über Tools + Stacks",files:"app/search/page.tsx · app/api/search/route.ts",content:`// ============================================================
+// ATLAS OS — Feature 5: Search Page (/search)
+// ============================================================
+
+// FILE: app/api/search/route.ts
+import { NextRequest, NextResponse } from "next/server";
+import { supabase } from "@/lib/supabase";
+export async function GET(req: NextRequest) {
+  const q = new URL(req.url).searchParams.get("q") || "";
+  if (!q || q.length < 2) return NextResponse.json({ tools:[], stacks:[] });
+  const [{ data: tools }, { data: stacks }] = await Promise.all([
+    supabase.from("tools").select("id,slug,name,description,category,pricing,logo,rating,atlas_score")
+      .or(\`name.ilike.%\${q}%,description.ilike.%\${q}%,tags.cs.{\${q}}\`)
+      .eq("status","active").order("atlas_score",{ascending:false}).limit(20),
+    supabase.from("stacks").select("id,slug,title,goal,difficulty,cost_monthly")
+      .or(\`title.ilike.%\${q}%,goal.ilike.%\${q}%\`)
+      .eq("is_public",true).limit(10),
+  ]);
+  return NextResponse.json({ tools: tools||[], stacks: stacks||[], query: q });
+}
+
+// FILE: app/search/page.tsx
+import type { Metadata } from "next";
+import { SearchClient } from "@/components/SearchClient";
+export const metadata: Metadata = { title:"Search AI Tools — ATLAS OS", description:"Search 10,000+ AI tools and stacks on ATLAS OS." };
+export default function SearchPage({ searchParams }: { searchParams: { q?: string } }) {
+  return <SearchClient initialQuery={searchParams.q || ""}/>;
+}
+
+// FILE: components/SearchClient.tsx
+"use client";
+import { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+type Tool = { id:string; slug:string; name:string; description:string; category:string; pricing:string; logo:string; rating:number };
+type Stack = { id:string; slug:string; title:string; goal:string; difficulty:string; cost_monthly:string };
+export function SearchClient({ initialQuery }: { initialQuery: string }) {
+  const [q, setQ] = useState(initialQuery);
+  const [tools, setTools] = useState<Tool[]>([]);
+  const [stacks, setStacks] = useState<Stack[]>([]);
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+  const search = useCallback(async (query: string) => {
+    if (query.length < 2) { setTools([]); setStacks([]); return; }
+    setLoading(true);
+    const res = await fetch("/api/search?q="+encodeURIComponent(query));
+    const data = await res.json();
+    setTools(data.tools); setStacks(data.stacks); setLoading(false);
+    router.replace("/search?q="+encodeURIComponent(query), { scroll: false });
+  }, [router]);
+  useEffect(() => { const t = setTimeout(() => search(q), 300); return () => clearTimeout(t); }, [q, search]);
+  return (
+    <section className="max-w-[860px] mx-auto px-5 py-14">
+      <h1 className="text-3xl font-black text-slate-100 mb-6">Search ATLAS OS</h1>
+      <div className="relative mb-8">
+        <input value={q} onChange={e=>setQ(e.target.value)} placeholder="Search tools, stacks, categories..." autoFocus
+          className="w-full bg-[#0f172a] border border-[#1e293b] rounded-xl px-5 py-4 text-slate-100 text-lg outline-none focus:border-cyan-400/40 pr-12"/>
+        {loading && <div className="absolute right-4 top-1/2 -translate-y-1/2 text-cyan-400 text-sm">...</div>}
+      </div>
+      {tools.length > 0 && (
+        <div className="mb-8">
+          <div className="text-[10px] text-slate-600 font-bold tracking-widest mb-3">TOOLS ({tools.length})</div>
+          <div className="flex flex-col gap-2">
+            {tools.map(t=>(
+              <Link key={t.id} href={"/tools/"+t.slug} className="flex gap-3 bg-[#0f172a] border border-[#1e293b] rounded-xl p-4 hover:border-cyan-400/30 transition-colors">
+                <span className="text-2xl">{t.logo}</span>
+                <div className="flex-1 min-w-0"><div className="font-bold text-slate-100 text-sm">{t.name}</div><div className="text-slate-500 text-xs mt-1 truncate">{t.description}</div></div>
+                <div className="text-right shrink-0"><div className="text-emerald-400 text-xs font-semibold">{t.pricing}</div><div className="text-amber-400 text-xs mt-1">★ {t.rating}</div></div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+      {stacks.length > 0 && (
+        <div>
+          <div className="text-[10px] text-slate-600 font-bold tracking-widest mb-3">STACKS ({stacks.length})</div>
+          <div className="grid grid-cols-2 gap-3">
+            {stacks.map(s=>(
+              <Link key={s.id} href={"/stacks/"+s.slug} className="bg-[#0f172a] border border-[#1e293b] rounded-xl p-4 hover:border-cyan-400/30 transition-colors">
+                <div className="font-bold text-slate-100 text-sm mb-1">{s.title}</div>
+                <div className="text-slate-500 text-xs">{s.goal}</div>
+                <div className="text-emerald-400 text-xs font-semibold mt-2">{s.cost_monthly}</div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+      {q.length >= 2 && !loading && tools.length === 0 && stacks.length === 0 && (
+        <div className="text-center py-16 text-slate-600">No results for "{q}" — try different keywords</div>
+      )}
+    </section>
+  );
+}`
+},
+{id:6,cat:"amber",label:"Product",title:"Admin Dashboard",desc:"Tool-Management, Moderation, Submissions-Queue",files:"app/admin/page.tsx · app/admin/layout.tsx",content:`// ============================================================
+// ATLAS OS — Feature 6: Admin Dashboard
+// ============================================================
+
+// FILE: app/admin/layout.tsx
+import { createClient } from "@/lib/supabase-server";
+import { redirect } from "next/navigation";
+const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || "").split(",");
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user || !ADMIN_EMAILS.includes(user.email!)) redirect("/");
+  return <div className="min-h-screen bg-[#010610]">{children}</div>;
+}
+
+// FILE: app/admin/page.tsx
+import { supabase } from "@/lib/supabase";
+import { AdminClient } from "@/components/AdminClient";
+export default async function AdminPage() {
+  const [{ data: submissions }, { data: tools }, { data: reviews }] = await Promise.all([
+    supabase.from("tool_submissions").select("*").eq("status","pending").order("created_at",{ascending:false}),
+    supabase.from("tools").select("id,name,slug,category,atlas_score,status").order("created_at",{ascending:false}).limit(50),
+    supabase.from("tool_reviews").select("*").eq("status","pending").limit(20),
+  ]);
+  return <AdminClient submissions={submissions||[]} tools={tools||[]} reviews={reviews||[]}/>;
+}
+
+// FILE: components/AdminClient.tsx
+"use client";
+import { useState } from "react";
+export function AdminClient({ submissions, tools, reviews }: any) {
+  const [tab, setTab] = useState<"submissions"|"tools"|"reviews">("submissions");
+  async function approve(table: string, id: string) {
+    await fetch("/api/admin/approve", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({table,id}) });
+    location.reload();
+  }
+  async function reject(table: string, id: string) {
+    await fetch("/api/admin/reject", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({table,id}) });
+    location.reload();
+  }
+  return (
+    <div className="max-w-[1100px] mx-auto px-5 py-10">
+      <h1 className="text-2xl font-black text-slate-100 mb-6">Admin Dashboard</h1>
+      <div className="grid grid-cols-3 gap-4 mb-8">
+        {[["Pending Submissions",submissions.length,"#f59e0b"],["Pending Reviews",reviews.length,"#06b6d4"],["Total Tools",tools.length,"#22c55e"]].map(([l,v,c])=>(
+          <div key={l as string} className="bg-[#0f172a] border border-[#1e293b] rounded-xl p-4"><div className="text-[10px] text-slate-600 font-semibold mb-1">{l}</div><div className="text-2xl font-black" style={{color:c as string}}>{v}</div></div>
+        ))}
+      </div>
+      <div className="flex gap-2 mb-5">
+        {(["submissions","tools","reviews"] as const).map(t=>(
+          <button key={t} onClick={()=>setTab(t)} className={"px-4 py-2 rounded-lg text-xs font-bold capitalize "+(tab===t?"bg-gradient-to-r from-cyan-400 to-blue-500 text-white":"bg-[#0f172a] border border-[#1e293b] text-slate-500")}>
+            {t}
+          </button>
+        ))}
+      </div>
+      {tab === "submissions" && (
+        <div className="flex flex-col gap-3">
+          {submissions.map((s: any) => (
+            <div key={s.id} className="bg-[#0f172a] border border-[#1e293b] rounded-xl p-4 flex gap-4 items-start">
+              <div className="flex-1"><div className="font-bold text-slate-100 text-sm">{s.name}</div><div className="text-slate-500 text-xs mt-1">{s.url}</div><div className="text-slate-600 text-xs mt-1">{s.description}</div></div>
+              <div className="flex gap-2 shrink-0">
+                <button onClick={()=>approve("tool_submissions",s.id)} className="px-3 py-1.5 rounded-lg text-xs font-bold text-emerald-400 border border-emerald-400/30 hover:border-emerald-400/60">Approve</button>
+                <button onClick={()=>reject("tool_submissions",s.id)} className="px-3 py-1.5 rounded-lg text-xs font-bold text-red-400 border border-red-400/30 hover:border-red-400/60">Reject</button>
+              </div>
+            </div>
+          ))}
+          {submissions.length === 0 && <div className="text-slate-600 text-sm text-center py-10">No pending submissions</div>}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// FILE: app/api/admin/approve/route.ts
+import { NextRequest, NextResponse } from "next/server";
+import { supabase } from "@/lib/supabase";
+export async function POST(req: NextRequest) {
+  const { table, id } = await req.json();
+  await supabase.from(table).update({ status: "approved" }).eq("id", id);
+  return NextResponse.json({ success: true });
+}
+
+// .env.local: ADMIN_EMAILS=your@email.com,admin@aiAstralis.com`
+},
+// GROWTH
+{id:7,cat:"coral",label:"Growth",title:"Waitlist + Referrals",desc:"Pre-launch Email-Capture mit Referral-System",files:"app/waitlist/page.tsx · app/api/waitlist/route.ts",content:`// ============================================================
+// ATLAS OS — Feature 7: Waitlist + Referral System
+// ============================================================
+
+// FILE: app/waitlist/page.tsx
+"use client";
+import { useState } from "react";
+export default function WaitlistPage() {
+  const [email, setEmail] = useState(""); const [name, setName] = useState(""); const [loading, setLoading] = useState(false); const [result, setResult] = useState<any>(null);
+  const ref = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("ref") : null;
+  async function submit(e: React.FormEvent) {
+    e.preventDefault(); setLoading(true);
+    const res = await fetch("/api/waitlist", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({email,name,referredBy:ref}) });
+    const data = await res.json();
+    setResult(data); setLoading(false);
+  }
+  if (result?.position) return (
+    <div className="min-h-screen flex items-center justify-center bg-[#020817]">
+      <div className="text-center max-w-md px-5">
+        <div className="text-5xl mb-4">🚀</div>
+        <h1 className="text-3xl font-black text-slate-100 mb-2">You're #{result.position}!</h1>
+        <p className="text-slate-500 text-sm mb-6">Share your link to move up the waitlist</p>
+        <div className="bg-[#0f172a] border border-cyan-400/20 rounded-xl p-4 mb-4">
+          <div className="text-xs text-slate-500 mb-2">Your referral link</div>
+          <div className="text-sm text-cyan-400 font-mono break-all">{result.referralUrl}</div>
+        </div>
+        <div className="text-sm text-emerald-400 font-semibold">{result.referrals || 0} referrals so far</div>
+      </div>
+    </div>
+  );
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-[#020817]">
+      <div className="text-center max-w-md px-5">
+        <div className="inline-block bg-cyan-400/10 text-cyan-400 border border-cyan-400/20 rounded px-3 py-1 text-[11px] font-semibold mb-4">Early Access</div>
+        <h1 className="text-4xl font-black text-slate-100 mb-3">Join the ATLAS waitlist</h1>
+        <p className="text-slate-500 text-sm mb-8 leading-relaxed">The AI Workflow Infrastructure. Be first to get access — share your link to skip the queue.</p>
+        <form onSubmit={submit} className="flex flex-col gap-3">
+          <input value={name} onChange={e=>setName(e.target.value)} placeholder="Your name" className="w-full bg-[#0f172a] border border-[#1e293b] rounded-lg px-4 py-3 text-slate-100 text-sm outline-none focus:border-cyan-400/40"/>
+          <input value={email} onChange={e=>setEmail(e.target.value)} type="email" placeholder="Your email" required className="w-full bg-[#0f172a] border border-[#1e293b] rounded-lg px-4 py-3 text-slate-100 text-sm outline-none focus:border-cyan-400/40"/>
+          <button type="submit" disabled={loading} className="py-3 rounded-lg font-bold text-white bg-gradient-to-r from-cyan-400 to-blue-500 disabled:opacity-40">{loading?"Joining...":"Join Waitlist →"}</button>
+        </form>
+        {ref && <div className="text-xs text-emerald-400 mt-3">✓ Referred by a friend — you'll get priority access!</div>}
+      </div>
+    </div>
+  );
+}
+
+// FILE: app/api/waitlist/route.ts
+import { NextRequest, NextResponse } from "next/server";
+import { supabase } from "@/lib/supabase";
+import crypto from "crypto";
+export async function POST(req: NextRequest) {
+  const { email, name, referredBy } = await req.json();
+  if (!email) return NextResponse.json({ error: "Email required" }, { status: 400 });
+  const refCode = crypto.randomBytes(6).toString("hex");
+  const { data: existing } = await supabase.from("waitlist").select("*").eq("email", email).single();
+  if (existing) {
+    const referralUrl = process.env.NEXT_PUBLIC_SITE_URL + "/waitlist?ref=" + existing.ref_code;
+    return NextResponse.json({ position: existing.position, referralUrl, referrals: existing.referral_count });
+  }
+  const { data: count } = await supabase.from("waitlist").select("id", { count: "exact" });
+  const position = (count?.length || 0) + 1;
+  if (referredBy) {
+    await supabase.from("waitlist").update({ referral_count: supabase.rpc("increment", { x: 1 }) as any }).eq("ref_code", referredBy);
+  }
+  await supabase.from("waitlist").insert({ email, name, ref_code: refCode, referred_by: referredBy, position });
+  const referralUrl = process.env.NEXT_PUBLIC_SITE_URL + "/waitlist?ref=" + refCode;
+  return NextResponse.json({ position, referralUrl, referrals: 0 });
+}
+// SQL: create table waitlist (id bigserial primary key, email text unique not null, name text, ref_code text unique, referred_by text, referral_count int default 0, position int, created_at timestamptz default now());`
+},
+{id:8,cat:"coral",label:"Growth",title:"Public API + Docs",desc:"Developer Platform mit API Key Management",files:"app/api/v1/ · app/developers/page.tsx · lib/api-keys.ts",content:`// ============================================================
+// ATLAS OS — Feature 8: Public API + Developer Docs
+// ============================================================
+
+// FILE: lib/api-keys.ts
+import { supabase } from "./supabase";
+import crypto from "crypto";
+export function generateApiKey(): string {
+  return "atlas_" + crypto.randomBytes(24).toString("hex");
+}
+export async function validateApiKey(key: string): Promise<{ userId: string; plan: string } | null> {
+  const { data } = await supabase.from("api_keys").select("user_id, plan, requests_today, daily_limit")
+    .eq("key", key).eq("active", true).single();
+  if (!data) return null;
+  if (data.requests_today >= data.daily_limit) return null;
+  await supabase.from("api_keys").update({ requests_today: data.requests_today + 1, last_used_at: new Date().toISOString() }).eq("key", key);
+  return { userId: data.user_id, plan: data.plan };
+}
+
+// FILE: middleware for API key auth
+// In app/api/v1/[...]/route.ts add this check:
+export async function requireApiKey(req: Request): Promise<Response | null> {
+  const key = req.headers.get("x-api-key") || req.headers.get("authorization")?.replace("Bearer ", "");
+  if (!key) return new Response(JSON.stringify({ error: "API key required. Get yours at atlas-os.com/developers" }), { status: 401 });
+  const valid = await validateApiKey(key);
+  if (!valid) return new Response(JSON.stringify({ error: "Invalid or rate-limited API key" }), { status: 403 });
+  return null;
+}
+
+// FILE: app/api/v1/tools/route.ts (public authenticated)
+import { NextRequest, NextResponse } from "next/server";
+import { requireApiKey } from "@/lib/api-keys";
+import { supabase } from "@/lib/supabase";
+export async function GET(req: NextRequest) {
+  const authError = await requireApiKey(req);
+  if (authError) return authError;
+  const { searchParams } = new URL(req.url);
+  const category = searchParams.get("category"); const q = searchParams.get("q"); const limit = Math.min(parseInt(searchParams.get("limit")||"20"), 100); const page = parseInt(searchParams.get("page")||"1");
+  let query = supabase.from("tools").select("*").eq("status","active").order("atlas_score",{ascending:false}).range((page-1)*limit, page*limit-1);
+  if (category) query = query.eq("category", category);
+  if (q) query = query.ilike("name", \`%\${q}%\`);
+  const { data, count } = await query;
+  return NextResponse.json({ tools: data, total: count, page, limit });
+}
+
+// FILE: app/developers/page.tsx
+import type { Metadata } from "next";
+export const metadata: Metadata = { title: "Developer Platform — ATLAS OS API" };
+export default function DevelopersPage() {
+  return (
+    <section className="max-w-[900px] mx-auto px-5 py-14">
+      <div className="inline-block bg-cyan-400/10 text-cyan-400 border border-cyan-400/20 rounded px-3 py-1 text-[11px] font-semibold mb-4">Developer Platform</div>
+      <h1 className="text-3xl font-black text-slate-100 mb-2">ATLAS API</h1>
+      <p className="text-slate-500 text-sm mb-10">Build AI-powered products on top of the ATLAS knowledge graph.</p>
+      <div className="grid grid-cols-3 gap-4 mb-10">
+        {[["Free","1,000 req/day","Basic tools search"],["Developer","50,000 req/day","Full API + graph"],["Enterprise","Unlimited","Custom + SLA"]].map(([t,r,f])=>(
+          <div key={t} className="bg-[#0f172a] border border-[#1e293b] rounded-xl p-4 text-center">
+            <div className="font-bold text-slate-100 text-sm mb-1">{t}</div>
+            <div className="text-cyan-400 font-black text-lg">{r}</div>
+            <div className="text-slate-600 text-xs mt-1">{f}</div>
+          </div>
+        ))}
+      </div>
+      <div className="bg-[#0f172a] border border-[#1e293b] rounded-xl p-5 mb-6">
+        <div className="text-xs font-bold text-slate-400 mb-3">QUICK START</div>
+        <pre className="text-xs text-emerald-400 leading-relaxed overflow-x-auto">{
+\`curl https://atlas-os.com/api/v1/tools \\
+  -H "x-api-key: YOUR_API_KEY" \\
+  -G -d "category=Coding&limit=10"\`
+        }</pre>
+      </div>
+      <div className="text-[10px] text-slate-600 font-bold tracking-widest mb-3">ENDPOINTS</div>
+      {[["GET /api/v1/tools","List + search tools"],["GET /api/v1/tools/:slug","Single tool details"],["GET /api/v1/stacks","Public stacks"],["GET /api/v1/categories","All categories"],["POST /api/v1/generate-stack","AI stack generator"],].map(([e,d])=>(
+        <div key={e} className="flex justify-between py-2.5 border-b border-[#1e293b] text-xs"><code className="text-cyan-400 font-mono">{e}</code><span className="text-slate-500">{d}</span></div>
+      ))}
+    </section>
+  );
+}
+// SQL: create table api_keys (id uuid primary key default gen_random_uuid(), user_id uuid references auth.users(id), key text unique not null, plan text default 'free', active boolean default true, requests_today int default 0, daily_limit int default 1000, last_used_at timestamptz, created_at timestamptz default now());`
+},
+{id:9,cat:"coral",label:"Growth",title:"Compare Index Page",desc:"/compare Übersicht aller Tool-Vergleiche",files:"app/compare/page.tsx",content:`// ============================================================
+// ATLAS OS — Feature 9: Compare Index Page (/compare)
+// ============================================================
+
+// FILE: app/compare/page.tsx
+import { Metadata } from "next";
+import { supabase } from "@/lib/supabase";
+import Link from "next/link";
+import { TOOL_COMPARISONS } from "@/lib/keywords";
+export const revalidate = 86400;
+export const metadata: Metadata = { title:"Compare AI Tools — ATLAS OS", description:"Compare 10,000+ AI tool pairs side-by-side. Features, pricing, use cases and ATLAS verdict." };
+export default async function CompareIndexPage() {
+  const { data: popular } = await supabase.from("tool_comparisons").select("slug,tool_a_id,tool_b_id,views").order("views",{ascending:false}).limit(12);
+  const CATS = ["All","Writing","Coding","Image","Video","Audio","Research","Automation"];
+  return (
+    <section className="max-w-[960px] mx-auto px-5 py-14">
+      <div className="inline-block bg-cyan-400/10 text-cyan-400 border border-cyan-400/20 rounded px-3 py-1 text-[11px] font-semibold mb-4">Comparison Engine</div>
+      <h1 className="text-3xl font-black text-slate-100 mb-2">Compare AI Tools</h1>
+      <p className="text-slate-500 text-sm mb-10 max-w-xl">Side-by-side comparisons with features, pricing, use cases and AI-generated verdicts. Pick any two tools.</p>
+      <div className="bg-[#0f172a] border border-[#1e293b] rounded-xl p-5 mb-10">
+        <div className="text-xs font-bold text-slate-400 mb-3">QUICK COMPARE</div>
+        <div className="flex gap-2 flex-wrap">
+          {TOOL_COMPARISONS.slice(0,12).map(([a,b])=>(
+            <Link key={a+b} href={"/compare/"+a+"-vs-"+b}
+              className="bg-[#1e293b] border border-[#334155] rounded-lg px-3 py-1.5 text-xs text-slate-400 hover:text-cyan-400 hover:border-cyan-400/30 transition-all">
+              {a.replace(/-/g," ")} vs {b.replace(/-/g," ")}
+            </Link>
+          ))}
+        </div>
+      </div>
+      <div className="text-[10px] text-slate-600 font-bold tracking-widest mb-4">ALL COMPARISONS ({TOOL_COMPARISONS.length})</div>
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+        {TOOL_COMPARISONS.map(([a,b])=>(
+          <Link key={a+b} href={"/compare/"+a+"-vs-"+b}
+            className="bg-[#0f172a] border border-[#1e293b] rounded-xl p-4 hover:border-cyan-400/30 hover:-translate-y-0.5 transition-all">
+            <div className="text-xs font-bold text-slate-200">{a.replace(/-/g," ")}</div>
+            <div className="text-[10px] text-slate-600 my-1">vs</div>
+            <div className="text-xs font-bold text-slate-200">{b.replace(/-/g," ")}</div>
+            <div className="text-[10px] text-cyan-400 mt-2">Compare →</div>
+          </Link>
+        ))}
+      </div>
+    </section>
+  );
+}`
+},
+{id:10,cat:"coral",label:"Growth",title:"Trending Page",desc:"Weekly Rankings mit Trend Score",files:"app/trending/page.tsx · app/api/trending/route.ts",content:`// ============================================================
+// ATLAS OS — Feature 10: Trending AI Tools Page
+// ============================================================
+
+// FILE: app/api/trending/route.ts
+import { NextResponse } from "next/server";
+import { supabase } from "@/lib/supabase";
+export async function GET() {
+  const { data } = await supabase.from("tools").select("id,slug,name,description,category,pricing,logo,rating,atlas_score,users")
+    .eq("status","active").order("atlas_score",{ascending:false}).limit(20);
+  return NextResponse.json(data || []);
+}
+
+// FILE: app/trending/page.tsx
+import { Metadata } from "next";
+import Link from "next/link";
+import { supabase } from "@/lib/supabase";
+export const revalidate = 3600;
+export const metadata: Metadata = { title:"Trending AI Tools — ATLAS OS", description:"The hottest AI tools this week ranked by ATLAS Score." };
+export default async function TrendingPage() {
+  const { data: tools } = await supabase.from("tools").select("*").eq("status","active").order("atlas_score",{ascending:false}).limit(50);
+  const PERIODS = ["This Week","This Month","All Time"];
+  return (
+    <section className="max-w-[900px] mx-auto px-5 py-14">
+      <div className="inline-block bg-cyan-400/10 text-cyan-400 border border-cyan-400/20 rounded px-3 py-1 text-[11px] font-semibold mb-4">Trending</div>
+      <h1 className="text-3xl font-black text-slate-100 mb-2">Trending AI Tools</h1>
+      <p className="text-slate-500 text-sm mb-8">Ranked by ATLAS Score — quality, popularity, growth velocity and integration depth.</p>
+      <div className="flex gap-2 mb-8">
+        {PERIODS.map((p,i)=>(
+          <button key={p} className={"px-4 py-2 rounded-lg text-xs font-bold "+(i===0?"bg-gradient-to-r from-cyan-400 to-blue-500 text-white":"bg-[#0f172a] border border-[#1e293b] text-slate-500")}>
+            {p}
+          </button>
+        ))}
+      </div>
+      <div className="flex flex-col gap-3">
+        {(tools||[]).map((t,i)=>(
+          <Link key={t.id} href={"/tools/"+t.slug}
+            className="flex gap-4 bg-[#0f172a] border border-[#1e293b] rounded-xl p-4 hover:border-cyan-400/30 transition-colors items-center">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center font-black text-xs text-white shrink-0">
+              {i+1}
+            </div>
+            <span className="text-2xl shrink-0">{t.logo}</span>
+            <div className="flex-1 min-w-0">
+              <div className="font-bold text-slate-100 text-sm">{t.name}</div>
+              <div className="text-slate-500 text-xs mt-0.5 truncate">{t.description}</div>
+            </div>
+            <div className="text-right shrink-0">
+              <div className="text-cyan-400 font-black text-lg">{t.atlas_score}</div>
+              <div className="text-[10px] text-slate-600">Atlas Score</div>
+            </div>
+          </Link>
+        ))}
+      </div>
+    </section>
+  );
+}`
+},
+{id:11,cat:"coral",label:"Growth",title:"Category Pages",desc:"/categories + /category/[slug] mit Tool-Listen",files:"app/categories/page.tsx · app/category/[slug]/page.tsx",content:`// ============================================================
+// ATLAS OS — Feature 11: Category Pages
+// ============================================================
+
+// FILE: app/categories/page.tsx
+import { Metadata } from "next";
+import Link from "next/link";
+import { supabase } from "@/lib/supabase";
+export const revalidate = 3600;
+export const metadata: Metadata = { title:"AI Tool Categories — ATLAS OS", description:"Browse 300+ AI tool categories. Find the best tools for every use case." };
+export default async function CategoriesPage() {
+  const { data: cats } = await supabase.from("categories").select("*").eq("status","active").order("tool_count",{ascending:false});
+  const SUPER_CATS = ["Creative","Development","Research","Automation","Productivity","Business"];
+  const grouped = SUPER_CATS.reduce((acc,sc)=>({...acc,[sc]:(cats||[]).filter(c=>c.super_cat===sc)}),{} as any);
+  return (
+    <section className="max-w-[1100px] mx-auto px-5 py-14">
+      <h1 className="text-3xl font-black text-slate-100 mb-2">AI Tool Categories</h1>
+      <p className="text-slate-500 text-sm mb-10">{cats?.length}+ categories across all AI use cases.</p>
+      {SUPER_CATS.map(sc=>(
+        grouped[sc]?.length > 0 && (
+          <div key={sc} className="mb-10">
+            <h2 className="text-lg font-black text-slate-200 mb-4">{sc}</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+              {grouped[sc].map((c:any)=>(
+                <Link key={c.slug} href={"/category/"+c.slug}
+                  className="bg-[#0f172a] border border-[#1e293b] rounded-xl p-4 hover:border-cyan-400/30 hover:-translate-y-0.5 transition-all">
+                  <div className="text-xl mb-2">{c.icon||"🤖"}</div>
+                  <div className="font-bold text-slate-100 text-sm">{c.name}</div>
+                  <div className="text-[10px] text-slate-600 mt-1">{c.tool_count} tools</div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )
+      ))}
+    </section>
+  );
+}
+
+// FILE: app/category/[slug]/page.tsx
+import { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { supabase } from "@/lib/supabase";
+import { ToolCard } from "@/components/ToolCard";
+export const revalidate = 3600;
+export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+  const { data: cat } = await supabase.from("categories").select("*").eq("slug", params.slug).single();
+  if (!cat) return {};
+  return { title: cat.name+" AI Tools — ATLAS OS", description: "Best "+cat.name+" AI tools. "+cat.description };
+}
+export default async function CategoryPage({ params }: { params: { slug: string } }) {
+  const { data: cat } = await supabase.from("categories").select("*").eq("slug",params.slug).single();
+  if (!cat) notFound();
+  const { data: tools } = await supabase.from("tools").select("*").eq("category",cat.name).eq("status","active").order("atlas_score",{ascending:false});
+  return (
+    <section className="max-w-[1100px] mx-auto px-5 py-14">
+      <div className="text-4xl mb-4">{cat.icon||"🤖"}</div>
+      <h1 className="text-3xl font-black text-slate-100 mb-2">{cat.name} AI Tools</h1>
+      <p className="text-slate-500 text-sm mb-10">{cat.description} · {tools?.length} tools</p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+        {(tools||[]).map(t=><ToolCard key={t.id} tool={t}/>)}
+      </div>
+    </section>
+  );
+}`
+},
+{id:12,cat:"coral",label:"Growth",title:"HTML Sitemap Page",desc:"Visuelle /sitemap Seite mit allen Routen",files:"app/sitemap-page/page.tsx",content:`// ============================================================
+// ATLAS OS — Feature 12: HTML Sitemap Page
+// ============================================================
+
+// FILE: app/sitemap-page/page.tsx
+import { Metadata } from "next";
+import Link from "next/link";
+import { supabase } from "@/lib/supabase";
+export const revalidate = 86400;
+export const metadata: Metadata = { title:"Sitemap — ATLAS OS" };
+export default async function SitemapPage() {
+  const [{ data: tools }, { data: stacks }, { data: cats }] = await Promise.all([
+    supabase.from("tools").select("slug,name").eq("status","active").order("atlas_score",{ascending:false}).limit(50),
+    supabase.from("stacks").select("slug,title").eq("is_public",true).order("views",{ascending:false}).limit(20),
+    supabase.from("categories").select("slug,name").eq("status","active"),
+  ]);
+  const SECTIONS = [
+    { title:"Main Pages", links:[{href:"/",label:"Home"},{href:"/generate",label:"Generate Stack"},{href:"/stacks",label:"Stack Library"},{href:"/tools",label:"Tool Catalog"},{href:"/compare",label:"Compare Tools"},{href:"/trending",label:"Trending"},{href:"/categories",label:"Categories"},{href:"/search",label:"Search"},{href:"/pricing",label:"Pricing"},{href:"/galaxy",label:"Galaxy Map"},{href:"/graph",label:"Knowledge Graph"},{href:"/chat",label:"AI Chat"}] },
+    { title:"Account", links:[{href:"/login",label:"Login"},{href:"/signup",label:"Sign Up"},{href:"/dashboard",label:"Dashboard"},{href:"/developers",label:"Developer API"},{href:"/submit",label:"Submit Tool"},{href:"/waitlist",label:"Waitlist"}] },
+    { title:"Top Tools", links:(tools||[]).map(t=>({href:"/tools/"+t.slug,label:t.name})) },
+    { title:"Top Stacks", links:(stacks||[]).map(s=>({href:"/stacks/"+s.slug,label:s.title})) },
+    { title:"Categories", links:(cats||[]).map(c=>({href:"/category/"+c.slug,label:c.name})) },
+  ];
+  return (
+    <section className="max-w-[900px] mx-auto px-5 py-14">
+      <h1 className="text-3xl font-black text-slate-100 mb-2">Sitemap</h1>
+      <p className="text-slate-500 text-sm mb-10">All pages on ATLAS OS</p>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {SECTIONS.map(s=>(
+          <div key={s.title}>
+            <div className="text-[10px] text-slate-600 font-bold tracking-widest mb-3">{s.title.toUpperCase()}</div>
+            <div className="flex flex-col gap-1">
+              {s.links.map(l=>(
+                <Link key={l.href} href={l.href} className="text-sm text-slate-400 hover:text-cyan-400 transition-colors py-0.5">{l.label}</Link>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}`
+},
+// INFRASTRUCTURE
+{id:13,cat:"teal",label:"Infrastructure",title:"Python Crawler",desc:"ProductHunt + GitHub Auto-Discovery",files:"crawler/main.py · crawler/sources/producthunt.py · crawler/sources/github.py",content:`# ============================================================
+# ATLAS OS — Feature 13: Python Crawler
+# pip install requests beautifulsoup4 httpx supabase
+# ============================================================
+
+# FILE: crawler/main.py
+import asyncio
+import logging
+from crawler.sources.producthunt import ProductHuntCrawler
+from crawler.sources.github import GitHubCrawler
+from crawler.db import insert_tool, tool_exists
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+logger = logging.getLogger("atlas.crawler")
+
+async def run_discovery():
+    logger.info("ATLAS Crawler starting...")
+    ph  = ProductHuntCrawler()
+    gh  = GitHubCrawler()
+    new = 0
+    async for tool in ph.discover():
+        if not await tool_exists(tool["slug"]):
+            await insert_tool(tool)
+            new += 1
+            logger.info(f"+ {tool['name']} (ProductHunt)")
+    async for tool in gh.discover():
+        if not await tool_exists(tool["slug"]):
+            await insert_tool(tool)
+            new += 1
+            logger.info(f"+ {tool['name']} (GitHub)")
+    logger.info(f"Discovery complete. {new} new tools added.")
+
+if __name__ == "__main__":
+    asyncio.run(run_discovery())
+
+# FILE: crawler/sources/producthunt.py
+import httpx
+from typing import AsyncGenerator
+
+PH_GRAPHQL = "https://api.producthunt.com/v2/api/graphql"
+
+class ProductHuntCrawler:
+    def __init__(self):
+        self.headers = {"Authorization": "Bearer " + __import__("os").environ.get("PH_TOKEN","")}
+
+    async def discover(self) -> AsyncGenerator[dict, None]:
+        query = """
+        query {
+          posts(topic: "artificial-intelligence", order: VOTES, first: 50) {
+            edges {
+              node {
+                name slug tagline description website votesCount thumbnail { url }
+                topics { edges { node { name } } }
+              }
+            }
+          }
+        }"""
+        async with httpx.AsyncClient() as client:
+            res = await client.post(PH_GRAPHQL, json={"query": query}, headers=self.headers, timeout=30)
+            data = res.json()
+            for edge in data.get("data",{}).get("posts",{}).get("edges",[]):
+                node = edge["node"]
+                topics = [e["node"]["name"] for e in node.get("topics",{}).get("edges",[])]
+                yield {
+                    "name":        node["name"],
+                    "slug":        node["slug"].lower().replace(" ","-"),
+                    "description": node.get("tagline") or node.get("description",""),
+                    "website_url": node.get("website",""),
+                    "category":    topics[0] if topics else "Other",
+                    "pricing":     "freemium",
+                    "logo":        "🚀",
+                    "status":      "active",
+                    "source":      "producthunt",
+                }
+
+# FILE: crawler/sources/github.py
+import httpx
+import os
+from typing import AsyncGenerator
+
+GH_API = "https://api.github.com/search/repositories"
+
+class GitHubCrawler:
+    def __init__(self):
+        self.headers = {"Authorization": "Bearer " + os.environ.get("GITHUB_TOKEN",""), "Accept": "application/vnd.github.v3+json"}
+
+    async def discover(self) -> AsyncGenerator[dict, None]:
+        queries = ["AI tool", "LLM app", "AI assistant", "GPT wrapper", "AI workflow"]
+        async with httpx.AsyncClient() as client:
+            for q in queries:
+                res = await client.get(GH_API, params={"q": q+" language:TypeScript stars:>100", "sort":"stars","per_page":20}, headers=self.headers, timeout=30)
+                for repo in res.json().get("items",[]):
+                    yield {
+                        "name":        repo["name"].replace("-"," ").title(),
+                        "slug":        repo["name"].lower(),
+                        "description": repo.get("description","AI tool on GitHub")[:300],
+                        "website_url": repo.get("homepage") or repo["html_url"],
+                        "category":    "Coding",
+                        "pricing":     "free" if repo.get("license") else "freemium",
+                        "logo":        "🐙",
+                        "github_stars":repo["stargazers_count"],
+                        "status":      "active",
+                        "source":      "github",
+                    }
+                await asyncio.sleep(1)
+
+# FILE: crawler/db.py
+import os
+from supabase import create_client
+sb = create_client(os.environ["NEXT_PUBLIC_SUPABASE_URL"], os.environ["SUPABASE_SERVICE_KEY"])
+
+async def tool_exists(slug: str) -> bool:
+    res = sb.table("tools").select("id").eq("slug", slug).execute()
+    return len(res.data) > 0
+
+async def insert_tool(tool: dict):
+    tool["atlas_score"] = 50.0
+    sb.table("tools").insert(tool).execute()
+
+# Run daily: python -m crawler.main
+# Or cron: 0 2 * * * cd /app && python -m crawler.main >> /var/log/atlas-crawler.log 2>&1`
+},
+{id:14,cat:"teal",label:"Infrastructure",title:"Redis Caching",desc:"API Response Cache mit Upstash Redis",files:"lib/cache.ts · middleware cache wrapper",content:`// ============================================================
+// ATLAS OS — Feature 14: Redis Caching (Upstash)
+// npm install @upstash/redis
+// ============================================================
+
+// FILE: lib/cache.ts
+import { Redis } from "@upstash/redis";
+export const redis = new Redis({
+  url:   process.env.UPSTASH_REDIS_REST_URL!,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+});
+
+export async function cached<T>(key: string, ttl: number, fn: () => Promise<T>): Promise<T> {
+  const hit = await redis.get<T>(key);
+  if (hit !== null) return hit;
+  const result = await fn();
+  await redis.setex(key, ttl, JSON.stringify(result));
+  return result;
+}
+
+export const CACHE_TTL = {
+  tools:      3600,  // 1 hour
+  tool:       7200,  // 2 hours
+  stacks:     1800,  // 30 min
+  categories: 86400, // 24 hours
+  trending:   3600,  // 1 hour
+  search:     300,   // 5 min
+};
+
+// Usage in API routes:
+// FILE: app/api/v1/tools/route.ts (cached version)
+import { cached, redis, CACHE_TTL } from "@/lib/cache";
+import { supabase } from "@/lib/supabase";
+import { NextResponse } from "next/server";
+
+export async function GET() {
+  const tools = await cached(
+    "tools:top:50",
+    CACHE_TTL.tools,
+    async () => {
+      const { data } = await supabase.from("tools").select("*").eq("status","active").order("atlas_score",{ascending:false}).limit(50);
+      return data || [];
+    }
+  );
+  return NextResponse.json(tools);
+}
+
+// Cache invalidation helper
+export async function invalidateToolCache(slug: string) {
+  await Promise.all([
+    redis.del("tools:top:50"),
+    redis.del("tool:"+slug),
+    redis.del("categories:all"),
+  ]);
+}
+
+// .env.local additions:
+// UPSTASH_REDIS_REST_URL=https://...upstash.io
+// UPSTASH_REDIS_REST_TOKEN=AX...`
+},
+{id:15,cat:"teal",label:"Infrastructure",title:"Analytics (PostHog)",desc:"Event Tracking, Funnels, Stack Generation Events",files:"lib/analytics.ts · components/Analytics.tsx · app/layout.tsx",content:`// ============================================================
+// ATLAS OS — Feature 15: PostHog Analytics
+// npm install posthog-js posthog-node
+// ============================================================
+
+// FILE: lib/analytics.ts (server-side)
+import { PostHog } from "posthog-node";
+export const posthog = new PostHog(process.env.NEXT_PUBLIC_POSTHOG_KEY!, {
+  host: "https://app.posthog.com",
+  flushAt: 1, flushInterval: 0,
+});
+
+export async function trackServerEvent(event: string, properties: Record<string, any>, userId?: string) {
+  posthog.capture({ distinctId: userId || "anonymous", event, properties });
+  await posthog.shutdownAsync();
+}
+
+// FILE: components/Analytics.tsx (client-side)
+"use client";
+import posthog from "posthog-js";
+import { PostHogProvider } from "posthog-js/react";
+import { useEffect } from "react";
+import { usePathname } from "next/navigation";
+
+export function Analytics({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY!, {
+        api_host: "https://app.posthog.com",
+        capture_pageview: false,
+      });
+    }
+  }, []);
+  useEffect(() => { posthog.capture("$pageview"); }, [pathname]);
+  return <PostHogProvider client={posthog}>{children}</PostHogProvider>;
+}
+
+// KEY EVENTS TO TRACK:
+export const EVENTS = {
+  STACK_GENERATED:   "stack_generated",
+  STACK_SAVED:       "stack_saved",
+  STACK_SHARED:      "stack_shared",
+  STACK_CLONED:      "stack_cloned",
+  TOOL_VIEWED:       "tool_viewed",
+  COMPARE_VIEWED:    "compare_viewed",
+  AFFILIATE_CLICKED: "affiliate_clicked",
+  SIGNUP:            "signup",
+  UPGRADE_CLICKED:   "upgrade_clicked",
+};
+
+// Usage in components:
+// import posthog from "posthog-js";
+// posthog.capture(EVENTS.STACK_GENERATED, { goal: "YouTube", steps: 5, difficulty: "medium" });
+
+// Add to app/layout.tsx:
+// import { Analytics } from "@/components/Analytics";
+// Wrap children: <Analytics>{children}</Analytics>
+
+// .env.local: NEXT_PUBLIC_POSTHOG_KEY=phc_...`
+},
+{id:16,cat:"teal",label:"Infrastructure",title:"Error Monitoring (Sentry)",desc:"Error Tracking + Performance Monitoring",files:"sentry.client.config.ts · sentry.server.config.ts · instrumentation.ts",content:`// ============================================================
+// ATLAS OS — Feature 16: Sentry Error Monitoring
+// npm install @sentry/nextjs
+// npx @sentry/wizard@latest -i nextjs
+// ============================================================
+
+// FILE: sentry.client.config.ts
+import * as Sentry from "@sentry/nextjs";
+Sentry.init({
+  dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
+  tracesSampleRate: 0.1,
+  debug: false,
+  replaysOnErrorSampleRate: 1.0,
+  replaysSessionSampleRate: 0.01,
+  integrations: [Sentry.replayIntegration()],
+  environment: process.env.NODE_ENV,
+});
+
+// FILE: sentry.server.config.ts
+import * as Sentry from "@sentry/nextjs";
+Sentry.init({
+  dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
+  tracesSampleRate: 0.1,
+  debug: false,
+  environment: process.env.NODE_ENV,
+});
+
+// FILE: instrumentation.ts
+export async function register() {
+  if (process.env.NEXT_RUNTIME === "nodejs") {
+    await import("./sentry.server.config");
+  }
+  if (process.env.NEXT_RUNTIME === "edge") {
+    await import("./sentry.edge.config");
+  }
+}
+
+// FILE: app/global-error.tsx
+"use client";
+import * as Sentry from "@sentry/nextjs";
+import { useEffect } from "react";
+export default function GlobalError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
+  useEffect(() => { Sentry.captureException(error); }, [error]);
+  return (
+    <html><body>
+      <div className="min-h-screen flex items-center justify-center bg-[#020817]">
+        <div className="text-center">
+          <div className="text-4xl mb-4">⚡</div>
+          <h2 className="text-xl font-black text-slate-100 mb-2">Something went wrong</h2>
+          <button onClick={reset} className="px-5 py-2 rounded-lg text-sm font-bold text-white bg-gradient-to-r from-cyan-400 to-blue-500">Try again</button>
+        </div>
+      </div>
+    </body></html>
+  );
+}
+
+// .env.local: NEXT_PUBLIC_SENTRY_DSN=https://...@sentry.io/...`
+},
+{id:17,cat:"teal",label:"Infrastructure",title:"Rate Limiting",desc:"Upstash Redis Rate Limiting für alle API Routes",files:"lib/rate-limit.ts · middleware.ts",content:`// ============================================================
+// ATLAS OS — Feature 17: Rate Limiting (Upstash)
+// npm install @upstash/ratelimit @upstash/redis
+// ============================================================
+
+// FILE: lib/rate-limit.ts
+import { Ratelimit } from "@upstash/ratelimit";
+import { Redis } from "@upstash/redis";
+const redis = new Redis({ url: process.env.UPSTASH_REDIS_REST_URL!, token: process.env.UPSTASH_REDIS_REST_TOKEN! });
+
+export const limiters = {
+  public:  new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(60,  "1 m"),  prefix: "rl:public"  }),
+  search:  new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(30,  "1 m"),  prefix: "rl:search"  }),
+  generate:new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(10,  "1 m"),  prefix: "rl:generate"}),
+  submit:  new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(5,   "1 h"),  prefix: "rl:submit"  }),
+  auth:    new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(5,   "15 m"), prefix: "rl:auth"    }),
+};
+
+export async function checkRateLimit(type: keyof typeof limiters, identifier: string): Promise<{ success: boolean; remaining: number; reset: number }> {
+  const { success, remaining, reset } = await limiters[type].limit(identifier);
+  return { success, remaining, reset };
+}
+
+// FILE: middleware.ts (updated with rate limiting)
+import { createServerClient } from "@supabase/ssr";
+import { NextResponse, type NextRequest } from "next/server";
+import { checkRateLimit } from "@/lib/rate-limit";
+
+export async function middleware(req: NextRequest) {
+  const res = NextResponse.next({ request: { headers: req.headers } });
+  const ip  = req.headers.get("x-forwarded-for")?.split(",")[0] || "unknown";
+  const path = req.nextUrl.pathname;
+
+  // Rate limit API routes
+  if (path.startsWith("/api/")) {
+    let type: "public"|"search"|"generate"|"submit"|"auth" = "public";
+    if (path.includes("search"))   type = "search";
+    if (path.includes("generate")) type = "generate";
+    if (path.includes("submit"))   type = "submit";
+    if (path.includes("auth"))     type = "auth";
+
+    const { success, remaining, reset } = await checkRateLimit(type, ip);
+    if (!success) {
+      return new NextResponse(JSON.stringify({ error: "Rate limit exceeded. Try again later." }), {
+        status: 429,
+        headers: { "Content-Type": "application/json", "X-RateLimit-Remaining": "0", "X-RateLimit-Reset": String(reset) },
+      });
+    }
+    res.headers.set("X-RateLimit-Remaining", String(remaining));
+  }
+
+  // Auth session refresh (existing)
+  const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
+    cookies: { get:n=>req.cookies.get(n)?.value, set:(n,v,o)=>{req.cookies.set({name:n,value:v,...o});res.cookies.set({name:n,value:v,...o});}, remove:(n,o)=>{req.cookies.set({name:n,value:"",...o});res.cookies.set({name:n,value:"",...o});} },
+  });
+  await supabase.auth.getSession();
+  const { data:{session} } = await supabase.auth.getSession();
+  if (req.nextUrl.pathname.startsWith("/dashboard") && !session) return NextResponse.redirect(new URL("/login", req.url));
+  return res;
+}
+export const config = { matcher: ["/api/:path*", "/dashboard/:path*"] };`
+},
+{id:18,cat:"teal",label:"Infrastructure",title:"CLI Tools",desc:"atlas seed / generate / rank / deploy",files:"scripts/cli.ts · package.json scripts",content:`// ============================================================
+// ATLAS OS — Feature 18: CLI Tools
+// npx tsx scripts/cli.ts [command]
+// ============================================================
+
+// FILE: scripts/cli.ts
+import { createClient } from "@supabase/supabase-js";
+import * as dotenv from "dotenv";
+dotenv.config({ path: ".env.local" });
+
+const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
+const cmd = process.argv[2];
+const args = process.argv.slice(3);
+
+const COMMANDS: Record<string, () => Promise<void>> = {
+  async seed() {
+    console.log("🌱 Seeding database...");
+    const { data } = await sb.from("tools").select("count").single();
+    console.log("Tools in DB:", data);
+    console.log("✅ Run: npx supabase db seed (or paste schema.sql in Supabase SQL Editor)");
+  },
+
+  async stats() {
+    console.log("📊 ATLAS OS Stats");
+    const tables = ["tools","stacks","stack_steps","categories","tool_integrations","affiliate_clicks"];
+    for (const t of tables) {
+      const { count } = await sb.from(t).select("*",{count:"exact",head:true});
+      console.log(\`  \${t}: \${count}\`);
+    }
+  },
+
+  async rank() {
+    console.log("⚡ Recalculating Atlas Scores...");
+    const { data: tools } = await sb.from("tools").select("id,rating,integrations,api_available,atlas_score");
+    let updated = 0;
+    for (const t of tools || []) {
+      const score = Math.min(100, Math.round(
+        (t.rating / 5) * 40 +
+        Math.min(t.integrations / 100, 1) * 30 +
+        (t.api_available ? 15 : 0) +
+        15
+      ));
+      if (Math.abs(score - t.atlas_score) > 0.5) {
+        await sb.from("tools").update({ atlas_score: score }).eq("id", t.id);
+        updated++;
+      }
+    }
+    console.log(\`✅ Updated \${updated} tools\`);
+  },
+
+  async "generate-seo"() {
+    console.log("📄 Generating SEO page registry...");
+    const { generateKeywords, keywordToSlug } = await import("./lib/keywords.js" as any);
+    const kws = generateKeywords();
+    const pages = kws.map((kw: string) => ({ path: "/best-ai-tools-for/"+keywordToSlug(kw), page_type:"keyword", indexing_state:"noindex", canonical_url: process.env.NEXT_PUBLIC_SITE_URL+"/best-ai-tools-for/"+keywordToSlug(kw) }));
+    const CHUNK = 500;
+    for (let i = 0; i < pages.length; i += CHUNK) {
+      await sb.from("seo_pages").upsert(pages.slice(i,i+CHUNK),{onConflict:"path"});
+      console.log(\`  Pages \${i}-\${i+CHUNK} registered\`);
+    }
+    console.log(\`✅ \${pages.length} SEO pages registered\`);
+  },
+
+  async clean() {
+    console.log("🧹 Cleaning duplicate tools...");
+    const { data } = await sb.from("tools").select("slug").order("created_at");
+    const seen = new Set<string>(); let removed = 0;
+    for (const t of data || []) {
+      if (seen.has(t.slug)) { await sb.from("tools").delete().eq("slug",t.slug); removed++; }
+      else seen.add(t.slug);
+    }
+    console.log(\`✅ Removed \${removed} duplicates\`);
+  },
+
+  async help() {
+    console.log(\`
+ATLAS OS CLI
+============
+npx tsx scripts/cli.ts stats          Show database stats
+npx tsx scripts/cli.ts seed           Seed initial data
+npx tsx scripts/cli.ts rank           Recalculate Atlas Scores
+npx tsx scripts/cli.ts generate-seo   Register SEO pages in DB
+npx tsx scripts/cli.ts clean          Remove duplicate tools
+npx tsx scripts/cli.ts help           Show this help
+    \`);
+  },
+};
+
+const fn = COMMANDS[cmd];
+if (!fn) { console.error(\`Unknown command: \${cmd}. Run: npx tsx scripts/cli.ts help\`); process.exit(1); }
+fn().catch(console.error);
+
+// Add to package.json scripts:
+/*
+"scripts": {
+  "atlas:stats":    "npx tsx scripts/cli.ts stats",
+  "atlas:rank":     "npx tsx scripts/cli.ts rank",
+  "atlas:seo":      "npx tsx scripts/cli.ts generate-seo",
+  "atlas:clean":    "npx tsx scripts/cli.ts clean",
+  "atlas:seed":     "npx tsx scripts/cli.ts seed"
+}
+*/`
+},
+// PHASE 2
+{id:19,cat:"purple",label:"Phase 2",title:"Workflow Marketplace",desc:"Premium Workflow Templates kaufen + verkaufen",files:"app/marketplace/page.tsx · app/api/marketplace/route.ts",content:`// ============================================================
+// ATLAS OS — Phase 2: Workflow Marketplace
+// ============================================================
+
+// FILE: app/marketplace/page.tsx
+import { Metadata } from "next";
+import Link from "next/link";
+import { supabase } from "@/lib/supabase";
+export const revalidate = 3600;
+export const metadata: Metadata = { title:"AI Workflow Marketplace — ATLAS OS", description:"Buy and sell premium AI workflow templates. Built by the community, verified by ATLAS." };
+export default async function MarketplacePage() {
+  const { data: stacks } = await supabase.from("stacks").select("*,steps:stack_steps(*)").eq("is_public",true).order("clones",{ascending:false}).limit(24);
+  return (
+    <section className="max-w-[1100px] mx-auto px-5 py-14">
+      <div className="inline-block bg-purple-400/10 text-purple-400 border border-purple-400/20 rounded px-3 py-1 text-[11px] font-semibold mb-4">Marketplace</div>
+      <h1 className="text-3xl font-black text-slate-100 mb-2">AI Workflow Marketplace</h1>
+      <p className="text-slate-500 text-sm mb-10">Premium AI workflow templates built by the community. Buy once, use forever.</p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {(stacks||[]).map(s=>(
+          <div key={s.id} className="bg-[#0f172a] border border-[#1e293b] rounded-xl p-5 hover:border-purple-400/30 transition-all">
+            <div className="flex justify-between mb-3">
+              <span className="font-bold text-slate-100 text-sm">{s.title}</span>
+              <span className="text-emerald-400 font-black text-sm">{s.cost_monthly}</span>
+            </div>
+            <p className="text-slate-500 text-xs mb-4">{s.goal}</p>
+            <div className="flex justify-between items-center">
+              <span className="text-[10px] text-slate-600">{s.clones} clones</span>
+              <Link href={"/stacks/"+s.slug} className="px-3 py-1.5 rounded-lg text-xs font-bold text-purple-400 border border-purple-400/30 hover:border-purple-400/60 transition-colors">View Stack</Link>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}`
+},
+{id:20,cat:"purple",label:"Phase 2",title:"Intelligence Terminal",desc:"Bloomberg for AI — Funding Radar, Model Releases",files:"app/terminal/page.tsx",content:`// ============================================================
+// ATLAS OS — Phase 2: Intelligence Terminal
+// Bloomberg Terminal for AI — $2,000/yr per seat
+// ============================================================
+
+// FILE: app/terminal/page.tsx
+"use client";
+import { useState } from "react";
+import Link from "next/link";
+const MODULES = [
+  { id:"funding",  title:"AI Funding Radar",    desc:"Real-time funding events, rounds, valuations",   icon:"💰", locked:false },
+  { id:"models",   title:"Model Release Tracker",desc:"New models, benchmarks, capability updates",     icon:"🧠", locked:false },
+  { id:"startups", title:"Startup Tracker",      desc:"Emerging AI startups by growth velocity",        icon:"🚀", locked:true  },
+  { id:"talent",   title:"Talent Flow Intel",    desc:"Key researcher movements, team signals",         icon:"👥", locked:true  },
+  { id:"policy",   title:"Policy + Regulation",  desc:"Global AI regulatory developments",              icon:"⚖️", locked:true  },
+  { id:"market",   title:"Market Share Map",     desc:"Category leaders by traffic and API usage",      icon:"📊", locked:true  },
+];
+const MOCK_FUNDING = [
+  { co:"Mistral AI",    amount:"$600M", round:"Series B", date:"2 days ago",  color:"#8b5cf6" },
+  { co:"Cohere",        amount:"$500M", round:"Series D", date:"1 week ago",  color:"#06b6d4" },
+  { co:"Perplexity",    amount:"$250M", round:"Series C", date:"2 weeks ago", color:"#22c55e" },
+  { co:"ElevenLabs",    amount:"$180M", round:"Series B", date:"3 weeks ago", color:"#f59e0b" },
+  { co:"Cursor (Anysphere)","amount":"$100M","round":"Series A","date":"1 month ago","color":"#ec4899"},
+];
+export default function TerminalPage() {
+  const [active, setActive] = useState("funding");
+  return (
+    <div className="min-h-screen bg-[#020817]">
+      <div className="border-b border-[#1e293b] px-5 py-3 flex items-center gap-4">
+        <div className="font-black text-slate-100 text-sm">ATLAS Intelligence Terminal</div>
+        <div className="text-[10px] text-slate-600">Bloomberg for AI · Professional Edition</div>
+        <div className="ml-auto">
+          <Link href="/pricing" className="px-3 py-1.5 rounded-lg text-xs font-bold text-purple-400 border border-purple-400/30">Upgrade $2K/yr →</Link>
+        </div>
+      </div>
+      <div className="flex h-[calc(100vh-49px)]">
+        <div className="w-48 border-r border-[#1e293b] p-3 flex flex-col gap-1">
+          {MODULES.map(m=>(
+            <button key={m.id} onClick={()=>!m.locked&&setActive(m.id)}
+              className={"flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold transition-all "+(active===m.id?"bg-purple-400/15 text-purple-400":"text-slate-500 hover:text-slate-300")+(m.locked?" opacity-50 cursor-not-allowed":"")}>
+              <span className="text-sm">{m.icon}</span>{m.title}{m.locked&&<span className="ml-auto text-[9px]">🔒</span>}
+            </button>
+          ))}
+        </div>
+        <div className="flex-1 p-6 overflow-y-auto">
+          {active === "funding" && (
+            <div>
+              <div className="text-[10px] text-slate-600 font-bold tracking-widest mb-4">AI FUNDING RADAR — LIVE</div>
+              <div className="flex flex-col gap-3">
+                {MOCK_FUNDING.map(f=>(
+                  <div key={f.co} className="flex items-center gap-4 bg-[#0f172a] border border-[#1e293b] rounded-xl p-4">
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center font-black text-xs text-white" style={{background:f.color}}>{f.co[0]}</div>
+                    <div className="flex-1"><div className="font-bold text-slate-100 text-sm">{f.co}</div><div className="text-slate-500 text-xs">{f.round}</div></div>
+                    <div className="text-right"><div className="font-black text-emerald-400 text-lg">{f.amount}</div><div className="text-[10px] text-slate-600">{f.date}</div></div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          {active === "models" && (
+            <div>
+              <div className="text-[10px] text-slate-600 font-bold tracking-widest mb-4">MODEL RELEASE TRACKER</div>
+              {[["Claude 3.7 Sonnet","Anthropic","Extended thinking mode","1 week ago"],["GPT-4o mini v2","OpenAI","Faster, cheaper inference","2 weeks ago"],["Gemini 2.0 Flash","Google","Real-time multimodal","3 weeks ago"]].map(([m,c,d,t])=>(
+                <div key={m} className="bg-[#0f172a] border border-[#1e293b] rounded-xl p-4 mb-3">
+                  <div className="flex justify-between"><span className="font-bold text-slate-100 text-sm">{m}</span><span className="text-[10px] text-slate-600">{t}</span></div>
+                  <div className="text-cyan-400 text-xs mt-1">{c}</div>
+                  <div className="text-slate-500 text-xs mt-1">{d}</div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}`
+},
+{id:21,cat:"purple",label:"Phase 2",title:"Team Workspaces",desc:"Shared Stacks, Collaboration, $49/mo Team Plan",files:"app/workspace/page.tsx · lib/workspace.ts",content:`// ============================================================
+// ATLAS OS — Phase 2: Team Workspaces
+// $49/mo team plan — shared stacks + collaboration
+// ============================================================
+
+// FILE: lib/workspace.ts
+import { supabase } from "./supabase";
+export async function createWorkspace(name: string, ownerId: string) {
+  const slug = name.toLowerCase().replace(/[^a-z0-9]+/g,"-");
+  const { data, error } = await supabase.from("workspaces").insert({ name, slug, owner_id: ownerId }).select().single();
+  if (error) throw error;
+  await supabase.from("workspace_members").insert({ workspace_id: data.id, user_id: ownerId, role: "owner" });
+  return data;
+}
+export async function inviteMember(workspaceId: string, email: string, role = "member") {
+  const token = crypto.randomUUID();
+  await supabase.from("workspace_invites").insert({ workspace_id: workspaceId, email, role, token, expires_at: new Date(Date.now()+7*86400000).toISOString() });
+  return token;
+}
+export async function getWorkspaceStacks(workspaceId: string) {
+  const { data } = await supabase.from("stacks").select("*,steps:stack_steps(*)").eq("workspace_id", workspaceId).order("updated_at",{ascending:false});
+  return data || [];
+}
+
+// FILE: app/workspace/page.tsx
+import { createClient } from "@/lib/supabase-server";
+import { redirect } from "next/navigation";
+import Link from "next/link";
+export default async function WorkspacePage() {
+  const supabase = createClient();
+  const { data:{user} } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+  const { data: memberships } = await supabase.from("workspace_members").select("*, workspace:workspaces(*)").eq("user_id", user.id);
+  return (
+    <section className="max-w-[900px] mx-auto px-5 py-14">
+      <div className="flex justify-between items-start mb-8">
+        <div><h1 className="text-2xl font-black text-slate-100">Team Workspaces</h1><p className="text-slate-500 text-sm mt-1">Shared AI stack libraries for your team</p></div>
+        <button className="px-4 py-2 rounded-lg text-xs font-bold text-white bg-gradient-to-r from-cyan-400 to-blue-500">+ New Workspace</button>
+      </div>
+      {(memberships||[]).length === 0 ? (
+        <div className="text-center py-16 border border-dashed border-[#1e293b] rounded-xl">
+          <div className="text-3xl mb-4">👥</div>
+          <div className="font-black text-slate-300 mb-2">No workspaces yet</div>
+          <p className="text-slate-600 text-sm mb-6">Create a workspace to share stacks with your team</p>
+          <div className="text-xs text-slate-600">Requires Builder plan · <Link href="/pricing" className="text-cyan-400">Upgrade</Link></div>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 gap-4">
+          {memberships?.map((m:any)=>(
+            <Link key={m.workspace.id} href={"/workspace/"+m.workspace.slug} className="bg-[#0f172a] border border-[#1e293b] rounded-xl p-5 hover:border-cyan-400/30 transition-all">
+              <div className="font-black text-slate-100 text-sm mb-1">{m.workspace.name}</div>
+              <div className="text-[10px] text-slate-600 capitalize">{m.role}</div>
+            </Link>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+// SQL:
+// create table workspaces (id uuid primary key default gen_random_uuid(), name text not null, slug text unique, owner_id uuid references auth.users(id), created_at timestamptz default now());
+// create table workspace_members (id uuid primary key default gen_random_uuid(), workspace_id uuid references workspaces(id), user_id uuid references auth.users(id), role text default 'member');
+// create table workspace_invites (id uuid primary key default gen_random_uuid(), workspace_id uuid references workspaces(id), email text, role text, token text unique, expires_at timestamptz);
+// alter table stacks add column if not exists workspace_id uuid references workspaces(id);`
+},
+{id:22,cat:"purple",label:"Phase 2",title:"Vector Search (pgvector)",desc:"Semantische Suche mit Supabase pgvector Embeddings",files:"lib/embeddings.ts · app/api/semantic-search/route.ts",content:`// ============================================================
+// ATLAS OS — Phase 2: Vector Search (pgvector)
+// npm install @anthropic-ai/sdk (for embeddings via Voyage AI)
+// Or use OpenAI: npm install openai
+// ============================================================
+
+// FILE: lib/embeddings.ts
+import OpenAI from "openai";
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+export async function embed(text: string): Promise<number[]> {
+  const res = await openai.embeddings.create({ model: "text-embedding-3-small", input: text });
+  return res.data[0].embedding;
+}
+
+export async function embedTools(slugs?: string[]) {
+  const { supabase } = await import("./supabase");
+  let q = supabase.from("tools").select("id,name,description,category").eq("status","active");
+  if (slugs?.length) q = q.in("slug", slugs);
+  const { data: tools } = await q.limit(100);
+  let count = 0;
+  for (const tool of tools || []) {
+    const text = tool.name + " " + tool.description + " " + tool.category;
+    const embedding = await embed(text);
+    await supabase.from("tools").update({ embedding_vector: embedding }).eq("id", tool.id);
+    count++;
+    if (count % 10 === 0) console.log("Embedded " + count + " tools...");
+    await new Promise(r => setTimeout(r, 100)); // rate limit
+  }
+  return count;
+}
+
+// FILE: app/api/semantic-search/route.ts
+import { NextRequest, NextResponse } from "next/server";
+import { embed } from "@/lib/embeddings";
+import { supabase } from "@/lib/supabase";
+export async function POST(req: NextRequest) {
+  const { query, limit = 10 } = await req.json();
+  if (!query) return NextResponse.json({ error: "Query required" }, { status: 400 });
+  const embedding = await embed(query);
+  const { data } = await supabase.rpc("semantic_search_tools", { query_embedding: embedding, match_count: limit });
+  return NextResponse.json(data || []);
+}
+
+// SQL — add to Supabase:
+/*
+alter table tools add column if not exists embedding_vector vector(1536);
+create index on tools using ivfflat (embedding_vector vector_cosine_ops) with (lists = 100);
+
+create or replace function semantic_search_tools(query_embedding vector(1536), match_count int default 10)
+returns table (id uuid, name text, slug text, description text, category text, pricing text, logo text, rating decimal, atlas_score decimal, similarity float)
+language plpgsql as $$
+begin
+  return query
+  select t.id, t.name, t.slug, t.description, t.category, t.pricing, t.logo, t.rating, t.atlas_score,
+    1 - (t.embedding_vector <=> query_embedding) as similarity
+  from tools t
+  where t.embedding_vector is not null and t.status = 'active'
+  order by t.embedding_vector <=> query_embedding
+  limit match_count;
+end;
+$$;
+*/
+
+// Run to generate embeddings:
+// npx tsx -e "import { embedTools } from './lib/embeddings'; embedTools().then(n => console.log('Embedded', n, 'tools'))"`
+},
+{id:23,cat:"purple",label:"Phase 2",title:"Stack Execution",desc:"Workflows direkt in ATLAS ausführen",files:"app/execute/page.tsx · app/api/execute/route.ts",content:`// ============================================================
+// ATLAS OS — Phase 2: Stack Execution
+// Run AI workflows directly inside ATLAS
+// ============================================================
+
+// FILE: app/api/execute/route.ts
+import Anthropic from "@anthropic-ai/sdk";
+import { NextRequest, NextResponse } from "next/server";
+import { supabase } from "@/lib/supabase";
+const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+export async function POST(req: NextRequest) {
+  const { stackSlug, userInput } = await req.json();
+  const { data: stack } = await supabase.from("stacks").select("*,steps:stack_steps(*)").eq("slug", stackSlug).single();
+  if (!stack) return NextResponse.json({ error: "Stack not found" }, { status: 404 });
+
+  const steps = stack.steps?.sort((a:any,b:any) => a.step_order - b.step_order) || [];
+  const results: any[] = [];
+  let context = userInput;
+
+  for (const step of steps) {
+    const msg = await anthropic.messages.create({
+      model: "claude-sonnet-4-20250514", max_tokens: 800,
+      messages: [{
+        role: "user",
+        content: \`You are acting as the \${step.role} step in an AI workflow called "\${stack.title}".
+Tool: \${step.tool_name}
+Your task: \${step.action || step.role}
+Input from previous step: \${context}
+User's original goal: \${userInput}
+Execute your step and provide the output.\`
+      }]
+    });
+    const output = msg.content.find((b:any) => b.type === "text")?.text || "";
+    results.push({ step: step.step_order, tool: step.tool_name, role: step.role, output });
+    context = output;
+  }
+
+  return NextResponse.json({ stack: stack.title, steps: results, finalOutput: context });
+}
+
+// FILE: app/execute/[slug]/page.tsx
+"use client";
+import { useState } from "react";
+import { useParams } from "next/navigation";
+type StepResult = { step:number; tool:string; role:string; output:string };
+export default function ExecutePage() {
+  const { slug } = useParams();
+  const [input, setInput] = useState(""); const [loading, setLoading] = useState(false); const [results, setResults] = useState<StepResult[]>([]);
+  async function execute() {
+    if (!input.trim()) return;
+    setLoading(true); setResults([]);
+    const res = await fetch("/api/execute", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({stackSlug:slug,userInput:input}) });
+    const data = await res.json();
+    setResults(data.steps || []); setLoading(false);
+  }
+  return (
+    <section className="max-w-[760px] mx-auto px-5 py-14">
+      <div className="inline-block bg-cyan-400/10 text-cyan-400 border border-cyan-400/20 rounded px-3 py-1 text-[11px] font-semibold mb-4">Stack Execution</div>
+      <h1 className="text-2xl font-black text-slate-100 mb-6">Run Workflow</h1>
+      <div className="bg-[#0f172a] border border-[#1e293b] rounded-xl p-4 mb-6">
+        <textarea value={input} onChange={e=>setInput(e.target.value)} placeholder="Describe your specific goal..." rows={3}
+          className="w-full bg-transparent outline-none text-slate-100 text-sm resize-none mb-3"/>
+        <button onClick={execute} disabled={loading||!input.trim()} className="px-5 py-2 rounded-lg text-sm font-bold text-white bg-gradient-to-r from-cyan-400 to-blue-500 disabled:opacity-40">
+          {loading?"Running workflow...":"▶ Execute Stack"}
+        </button>
+      </div>
+      {results.map((r,i)=>(
+        <div key={i} className="bg-[#0f172a] border border-[#1e293b] rounded-xl p-4 mb-3">
+          <div className="flex gap-2 items-center mb-3">
+            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center font-bold text-xs text-white">{r.step+1}</div>
+            <span className="font-bold text-slate-100 text-sm">{r.tool}</span>
+            <span className="text-[10px] bg-cyan-400/10 text-cyan-400 border border-cyan-400/20 rounded px-1.5 py-0.5">{r.role}</span>
+          </div>
+          <div className="text-slate-400 text-xs leading-relaxed whitespace-pre-wrap">{r.output}</div>
+        </div>
+      ))}
+    </section>
+  );
+}`
+},
+{id:24,cat:"purple",label:"Phase 2",title:"Mobile App / PWA",desc:"Progressive Web App für iOS + Android",files:"public/manifest.json · app/sw.ts · components/InstallPrompt.tsx",content:`// ============================================================
+// ATLAS OS — Phase 2: Mobile App / PWA
+// ============================================================
+
+// FILE: public/manifest.json
+/*
+{
+  "name": "ATLAS OS",
+  "short_name": "ATLAS",
+  "description": "The AI Workflow Infrastructure",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#020817",
+  "theme_color": "#06b6d4",
+  "orientation": "portrait-primary",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "screenshots": [
+    { "src": "/screenshot-mobile.png", "sizes": "390x844", "type": "image/png", "form_factor": "narrow" }
+  ],
+  "shortcuts": [
+    { "name": "Generate Stack", "url": "/generate", "icons": [{"src":"/icon-192.png","sizes":"192x192"}] },
+    { "name": "Browse Tools",   "url": "/tools",    "icons": [{"src":"/icon-192.png","sizes":"192x192"}] }
+  ],
+  "categories": ["productivity","utilities","developer tools"]
+}
+*/
+
+// FILE: app/layout.tsx additions
+// Add to <head> in layout.tsx:
+// <link rel="manifest" href="/manifest.json"/>
+// <meta name="theme-color" content="#06b6d4"/>
+// <meta name="apple-mobile-web-app-capable" content="yes"/>
+// <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+// <meta name="apple-mobile-web-app-title" content="ATLAS OS"/>
+// <link rel="apple-touch-icon" href="/icon-192.png"/>
+
+// FILE: components/InstallPrompt.tsx
+"use client";
+import { useState, useEffect } from "react";
+export function InstallPrompt() {
+  const [prompt, setPrompt] = useState<any>(null);
+  const [show, setShow] = useState(false);
+  useEffect(() => {
+    window.addEventListener("beforeinstallprompt", (e) => {
+      e.preventDefault(); setPrompt(e); setShow(true);
+    });
+  }, []);
+  if (!show) return null;
+  async function install() {
+    if (!prompt) return;
+    prompt.prompt();
+    const { outcome } = await prompt.userChoice;
+    if (outcome === "accepted") setShow(false);
+  }
+  return (
+    <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-80 bg-[#0f172a] border border-cyan-400/20 rounded-xl p-4 shadow-[0_0_30px_#06b6d420] z-50">
+      <div className="flex gap-3 items-center">
+        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center font-black text-white">A</div>
+        <div className="flex-1">
+          <div className="font-bold text-slate-100 text-sm">Install ATLAS OS</div>
+          <div className="text-slate-500 text-xs">Add to home screen for quick access</div>
+        </div>
+      </div>
+      <div className="flex gap-2 mt-3">
+        <button onClick={install} className="flex-1 py-2 rounded-lg font-bold text-sm text-white bg-gradient-to-r from-cyan-400 to-blue-500">Install</button>
+        <button onClick={()=>setShow(false)} className="px-4 py-2 rounded-lg font-bold text-sm text-slate-500 border border-[#1e293b]">Later</button>
+      </div>
+    </div>
+  );
+}
+
+// FILE: next.config.js additions (for PWA with next-pwa)
+// npm install next-pwa
+/*
+const withPWA = require("next-pwa")({
+  dest: "public",
+  register: true,
+  skipWaiting: true,
+  disable: process.env.NODE_ENV === "development",
+});
+module.exports = withPWA({ ...yourConfig });
+*/`
+}
+];
+
+let dlCount = 0;
+
+function updateProgress() {
+  dlCount++;
+  document.getElementById('bar').style.width = (dlCount/FILES.length*100)+'%';
+}
+
+function renderGrid() {
+  const grid = document.getElementById('grid');
+  FILES.forEach(f => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <span class="badge ${f.cat}">${f.label}</span>
+      <div class="title">${f.title}</div>
+      <div class="desc">${f.desc}</div>
+      <div class="files">${f.files}</div>
+      <button class="dl-btn" id="btn-${f.id}" onclick="dlSingle(${f.id})">⬇️ Download</button>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+function dlSingle(id) {
+  const f = FILES.find(x=>x.id===id);
+  if(!f) return;
+  const blob = new Blob([f.content],{type:'text/plain;charset=utf-8'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'atlas-feature-'+f.id+'-'+f.title.toLowerCase().replace(/[^a-z0-9]+/g,'-')+'.txt'; a.click();
+  const btn = document.getElementById('btn-'+id); if(btn){btn.textContent='✓ Downloaded';btn.className='dl-btn done';}
+  updateProgress();
+}
+
+function dlAll() {
+  const all = FILES.map(f => [
+    '='.repeat(80),
+    'FEATURE '+f.id+' — '+f.title.toUpperCase()+' ['+f.label.toUpperCase()+']',
+    '='.repeat(80),
+    f.content,
+    ''
+  ].join('\n')).join('\n\n');
+
+  const header = `================================================================================
+ATLAS OS — ALLE 18+ FEHLENDEN FEATURES
+AIAstralis · Version 20.0 · Complete Missing Features Bundle
+Generated: ${new Date().toISOString()}
+================================================================================
+
+INHALT:
+${FILES.map(f=>'Feature '+f.id+': '+f.title+' ['+f.label+']').join('\n')}
+
+================================================================================
+
+
+`;
+  const blob = new Blob([header+all],{type:'text/plain;charset=utf-8'});
+  const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='atlas-os-missing-18.txt'; a.click();
+  FILES.forEach((_,i)=>setTimeout(()=>{
+    const btn=document.getElementById('btn-'+(i+1)); if(btn){btn.textContent='✓ Downloaded';btn.className='dl-btn done';}
+    updateProgress();
+  },i*50));
+}
+
+renderGrid();
+</script>
+</body></html>

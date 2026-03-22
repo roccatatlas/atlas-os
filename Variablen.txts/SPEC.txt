@@ -1,0 +1,118 @@
+---
+title: ATLAS MVP Spec
+status: single-source-of-truth
+language_policy: "DE (Execution) / EN (Brand optional)"
+---
+
+# ATLAS MVP Spec (Single Source of Truth)
+
+Diese Datei ist die verbindliche Referenz für MVP-Scope, Routen, Datenmodell und Abnahmekriterien.
+Andere Dokumente dürfen Details ergänzen, aber nicht widersprechen.
+
+<a id="NAMING-POLICY"></a>
+## NAMING-POLICY
+
+- **AIAstralis** = Firma
+- **ATLAS** = Produkt
+- Dateinamen/Ordner: `kebab-case`, keine Leerzeichen
+
+<a id="LANGUAGE-POLICY"></a>
+## LANGUAGE-POLICY
+
+- **Execution/Engineering Artefakte**: Deutsch (dieses Dokument, Tasks, Gates-Checklisten)
+- **Brand/Marketing Text** (optional): Englisch
+- Keine Mischsprache innerhalb einer einzelnen Datei, außer explizit markierten Zitaten
+
+<a id="REQ-MVP-SCOPE"></a>
+## REQ-MVP-SCOPE
+
+Nur diese Features sind MVP:
+
+1) **AI Stack Generator**
+2) **Stack Pages**
+3) **Tool Relationship Graph** (nur Datenerfassung, keine komplexe Auswertung)
+
+Explizit nicht im MVP: Auth, Payments, Reviews, Newsletter, Recommendation Engine, 3D/Three.js.
+
+<a id="REQ-MVP-ROUTES"></a>
+## REQ-MVP-ROUTES
+
+Nur diese Routen bauen:
+
+- `/`
+- `/generate`
+- `/stacks`
+- `/stacks/[slug]`
+- `/tools`
+- `/tools/[slug]`
+- `/categories`
+- `/search`
+
+<a id="DB-MVP-SCHEMA"></a>
+## DB-MVP-SCHEMA
+
+Minimum-Modelle:
+
+- `Tool`
+- `Category`
+- `ToolCategory` (Join)
+- `ToolIntegration` (Edges)
+- `Stack`
+- `StackStep`
+- `Tag`
+- `ToolTag` (Join)
+
+Invarianten:
+
+- `slug` ist unique pro Entity-Typ
+- `StackStep` hat eindeutige Reihenfolge pro Stack
+- `ToolIntegration` darf keine Self-Edges enthalten
+
+<a id="API-MVP"></a>
+## API-MVP
+
+### Generate Stack
+`POST /api/v1/generate-stack`
+
+- Input: Freitext-Prompt (“what do you want to build?”)
+- Output: Liste von Steps (geordnet), jeder Step referenziert ein Tool (mind. `toolId` oder `slug`)
+- Policy: Output muss ausschließlich Tools verwenden, die in der DB existieren
+
+### Save Stack
+`POST /api/v1/stacks`
+
+- Input: Titel/Slug optional + Steps (Tool-Referenzen + Reihenfolge)
+- Output: `slug` und öffentliche URL zu `/stacks/[slug]`
+
+### Read APIs (MVP)
+
+- `GET /api/v1/stacks`
+- `GET /api/v1/stacks/[slug]`
+- `GET /api/v1/tools`
+- `GET /api/v1/tools/[slug]`
+- `GET /api/v1/categories`
+
+<a id="RELATIONSHIP-GRAPH"></a>
+## RELATIONSHIP-GRAPH (Datenerfassung)
+
+Beim Speichern eines Stacks werden Tool-Kombinationen erfasst.
+
+- Scope MVP: Persistieren oder ableitbar machen, dass Tool A häufig mit Tool B vorkommt
+- Keine UI-Graph-Visualisierung im MVP erforderlich
+
+<a id="ACCEPTANCE-CRITERIA"></a>
+## ACCEPTANCE-CRITERIA
+
+- `/generate` erzeugt einen sinnvollen Workflow aus DB-Tools
+- “Save & Get Link” speichert den Stack und öffnet `/stacks/[slug]`
+- `/stacks` listet Seed + generierte Stacks
+- `/tools` und `/tools/[slug]` funktionieren inkl. Suche/Filter (mind. Query-basiert)
+- Relationship-Tracking läuft bei gespeicherten Stacks
+
+<a id="DOC-LINKS"></a>
+## DOC-LINKS
+
+- Blueprint: `../blueprint/atlas-blueprint-v1.md`
+- Quality Gates: `../gates/quality-gates.md`
+- MVP Execution Checklist: `./mvp-only.md`
+

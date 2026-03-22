@@ -1,0 +1,211 @@
+RUNATLAS DISCOVERY ENGINE
+
+Automated systems that power the RunAtlas platform.
+
+SYSTEMS INCLUDED
+
+1.  AI Tool Discovery
+2.  SEO Page Generator
+3.  Tool Comparison Generator
+4.  Trend Detection Engine
+
+  ---------------------
+  SYSTEM ARCHITECTURE
+  ---------------------
+
+Crawler ↓ Database ↓ Content Engine ↓ SEO Pages ↓ Frontend
+
+  -----------------------------
+  1. AI TOOL DISCOVERY SYSTEM
+  -----------------------------
+
+Goal: Automatically discover new AI tools.
+
+Sources:
+
+Product Hunt GitHub AI tool directories Hacker News AI newsletters
+
+Pipeline:
+
+discover urls ↓ scrape metadata ↓ extract tool info ↓ generate
+description ↓ insert into database
+
+Python Example:
+
+import requests from bs4 import BeautifulSoup
+
+SOURCE = “https://www.producthunt.com/topics/artificial-intelligence”
+
+def discover_tools():
+
+    html = requests.get(SOURCE).text
+    soup = BeautifulSoup(html,"html.parser")
+
+    urls = []
+
+    for link in soup.find_all("a"):
+        href = link.get("href")
+
+        if href and "/posts/" in href:
+            urls.append("https://producthunt.com"+href)
+
+    return urls
+
+def scrape_tool(url):
+
+    html = requests.get(url).text
+    soup = BeautifulSoup(html,"html.parser")
+
+    title = soup.title.string if soup.title else "Unknown"
+
+    description = ""
+
+    meta = soup.find("meta",attrs={"name":"description"})
+    if meta:
+        description = meta.get("content")
+
+    return {
+        "name":title,
+        "description":description,
+        "url":url
+    }
+
+  ------------------------------------
+  2. PROGRAMMATIC SEO PAGE GENERATOR
+  ------------------------------------
+
+Goal: Generate 100k+ SEO pages automatically.
+
+Keyword Patterns:
+
+best ai tools for {profession} best ai tools for {task} best ai tools
+for {industry}
+
+Python Example:
+
+professions = [ “students”, “designers”, “developers”, “marketers”,
+“teachers”]
+
+tasks = [ “writing”, “coding”, “video editing”, “presentations”,
+“marketing”]
+
+keywords = []
+
+for p in professions: keywords.append(f”best ai tools for {p}“)
+
+for t in tasks: keywords.append(f”best ai tools for {t}“)
+
+print(keywords)
+
+Next.js Page Template:
+
+export default function Page({keyword}){
+
+return (
+
+{keyword}
+Discover the best AI tools for {keyword}.
+
+)
+
+}
+
+Potential Scale:
+
+50 professions 100 tasks 50 industries
+
+= 250000 pages
+
+  ------------------------------
+  3. TOOL COMPARISON GENERATOR
+  ------------------------------
+
+Goal: Automatically generate comparison pages.
+
+Examples:
+
+chatgpt-vs-claude midjourney-vs-dalle runway-vs-pika
+
+Python Example:
+
+import itertools
+
+tools = [ “chatgpt”, “claude”, “gemini”, “perplexity”]
+
+pairs = list(itertools.combinations(tools,2))
+
+for pair in pairs:
+
+    slug = pair[0]+"-vs-"+pair[1]
+
+    print(slug)
+
+Example Output:
+
+chatgpt-vs-claude chatgpt-vs-gemini chatgpt-vs-perplexity
+claude-vs-gemini
+
+Comparison Page Structure:
+
+Tool A overview Tool B overview Feature comparison table Pricing
+comparison Use cases Verdict
+
+  ---------------------------
+  4. TREND DETECTION ENGINE
+  ---------------------------
+
+Goal: Detect trending AI tools automatically.
+
+Data Sources:
+
+Product Hunt votes GitHub stars Twitter mentions Reddit mentions Google
+Trends
+
+Trend Score Formula:
+
+trend_score =
+
+(producthunt_votes * 0.4) + (github_stars * 0.3) + (twitter_mentions *
+0.2) + (reddit_mentions * 0.1)
+
+Python Example:
+
+def trend_score(votes,stars,twitter,reddit):
+
+    score = (
+        votes*0.4 +
+        stars*0.3 +
+        twitter*0.2 +
+        reddit*0.1
+    )
+
+    return score
+
+Query Example:
+
+select tools order by trend_score desc limit 20
+
+Trending Page:
+
+Trending AI Tools
+
+  --------------------------
+  AUTOMATED DAILY WORKFLOW
+  --------------------------
+
+00:00 crawler finds tools 01:00 tools added to database 02:00 tool pages
+generated 03:00 seo pages generated 04:00 comparison pages generated
+05:00 trend ranking updated
+
+  --------------
+  FINAL RESULT
+  --------------
+
+RunAtlas automatically:
+
+discover new AI tools generate SEO pages create tool comparison pages
+detect trending AI tools
+
+Scale Potential:
+
+100000+ tools 250000+ pages fully automated growth

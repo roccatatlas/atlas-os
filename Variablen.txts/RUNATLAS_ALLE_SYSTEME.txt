@@ -1,0 +1,436 @@
+================================================================================
+RUNATLAS — ALLE SYSTEME, ENGINES & MODULE
+Vollständige Übersicht aus RUNATLAS_CLEAN_STRUCTURE
+================================================================================
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TEIL A — RUNATLAS SYSTEM STACK (20 HAUPTSYSTEME)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+01. DISCOVERY SYSTEM
+    → AI Tool Discovery Engine
+    → Startup Discovery Engine
+    → Open Source AI Scanner
+    → AI Research Paper Scanner
+
+02. KNOWLEDGE SYSTEM
+    → AI Tool Knowledge Graph
+    → AI Workflow Graph
+    → AI Stack Database
+    → AI Integration Database
+
+03. ANALYSIS SYSTEM
+    → AI Tool Analyzer
+    → Workflow Detection Engine
+    → Integration Detector
+    → AI Capability Classifier
+
+04. SEARCH SYSTEM
+    → Semantic AI Tool Search
+    → Vector Search Engine
+    → AI Stack Search
+    → Workflow Search
+
+05. RECOMMENDATION SYSTEM
+    → Tool Recommendation Engine
+    → Workflow Recommendation Engine
+    → AI Stack Recommender
+    → Integration Recommender
+
+06. CONTENT SYSTEM
+    → Programmatic SEO Engine
+    → Tool Page Generator
+    → Comparison Page Generator
+    → Workflow Page Generator
+    → Integration Page Generator
+
+07. VISUALIZATION SYSTEM
+    → AI Galaxy Map
+    → AI Graph Explorer
+    → AI Ecosystem Heatmap
+    → Workflow Visualizer
+
+08. COPILOT SYSTEM
+    → AI Copilot
+    → Workflow Copilot
+    → Stack Builder
+    → AI Project Planner
+
+09. EXECUTION SYSTEM
+    → AI Operating System (AI-OS)
+    → Workflow Engine
+    → Agent Executor
+    → Task Planner
+
+10. AGENT SYSTEM
+    → Discovery Agents
+    → Analyzer Agents
+    → Workflow Agents
+    → Trend Agents
+    → Content Agents
+
+11. AUTOMATION SYSTEM
+    → Autonomous Growth Engine
+    → Auto Page Generator
+    → Auto Workflow Detection
+    → Auto Stack Builder
+
+12. PLATFORM SYSTEM
+    → AI Ecosystem Protocol
+    → Tool Connector Framework
+    → Integration Marketplace
+    → Developer API
+
+13. DATA SYSTEM
+    → AI Ecosystem Graph
+    → Tool Database
+    → Workflow Database
+    → Stack Database
+    → Trend Database
+
+14. TREND SYSTEM
+    → AI Trend Detector
+    → Startup Trend Tracker
+    → GitHub AI Tracker
+    → Workflow Popularity Engine
+
+15. MARKETPLACE SYSTEM
+    → AI Workflow Marketplace
+    → AI Stack Marketplace
+    → AI Tool Marketplace
+    → Agent Marketplace
+
+16. COMMUNITY SYSTEM
+    → User Workflow Sharing
+    → Stack Library
+    → Tool Reviews
+    → AI Experiments
+
+17. INFRASTRUCTURE SYSTEM
+    → Microservice Architecture
+    → Distributed Agent System
+    → Event Stream System
+    → Queue System
+
+18. EXECUTION INFRASTRUCTURE
+    → Docker Runtime
+    → Task Queue
+    → Agent Workers
+    → Execution Sandbox
+
+19. DATA SCIENCE SYSTEM
+    → AI Ecosystem Intelligence Engine
+    → AI Stack Optimization Engine
+    → Workflow Efficiency Analyzer
+    → Trend Prediction Engine
+
+20. FUTURE SYSTEMS
+    → AI Stack Builder IDE
+    → AI Workflow Compiler
+    → AI Agent Orchestrator
+    → AI Infrastructure Layer
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TEIL B — AI OPERATING SYSTEM (AI-OS) — 16 MODULE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+21. AI-OS ARCHITEKTUR
+    → Zentraler Control Layer über alle AI Tools
+    → Flow: User → AI-OS Interface → Copilot → Task Planner
+             → Agent Executor → Tool Connectors → External APIs → Output
+
+22. KERNMODULE DES AI-OS
+    → AI Copilot
+    → Task Planner
+    → Workflow Engine
+    → Agent Executor
+    → Tool Connectors
+    → Execution Runtime
+
+23. AI-OS INTERFACE
+    → Next.js / React / WebSockets
+    → UI Module: Copilot Chat, Workflow Builder, Tool Panel,
+      Execution Console, Output Viewer
+
+24. TASK PLANNER
+    → Zerlegt Aufgaben in ausführbare Schritte
+    → LLM reasoning + prompt planning + task graph
+
+25. WORKFLOW ENGINE
+    → Erstellt ausführbare Workflows (nodes = tools, edges = steps)
+    → Beispiel: GPT → Runway → CapCut → YouTube
+
+26. AGENT EXECUTOR
+    → Führt Tasks automatisch aus
+    → Rollen: content-agent, image-agent, video-agent, automation-agent
+
+27. TOOL CONNECTORS
+    → REST APIs, Webhooks, SDK integrations
+    → Verbundene Tools: OpenAI, Runway, Pika, Midjourney, Zapier, Notion
+
+28. EXECUTION RUNTIME
+    → Python + Docker Containers + Task Queue
+    → Pipeline: task → agent → tool call → result
+
+29. STATE MANAGEMENT
+    → Speichert Workflow Status
+    → States: pending / running / completed / failed
+
+30. OUTPUT SYSTEM
+    → Output Typen: text, images, video, files, links
+    → UI zeigt: workflow results, generated assets, logs
+
+31. SECURITY LAYER
+    → OAuth, API Keys, Token Storage
+    → Tool Permissions, Execution Limits, User Quotas
+
+32. SYSTEM INFRASTRUKTUR (AI-OS)
+    → Stack: Next.js, FastAPI, Python, Redis, PostgreSQL, Docker
+    → Microservices: copilot-service, planner-service, workflow-engine,
+      agent-executor, tool-connectors, runtime-engine
+
+33. EXECUTION FLOW
+    → User Prompt → Copilot → Planner → Workflow Engine
+      → Agent Executor → Tool API Calls → Result
+
+34. BEISPIEL WORKFLOW
+    → "Create AI marketing content"
+    → GPT → Midjourney → Notion → Zapier → Output
+
+35. ERWEITERUNGEN (AI-OS)
+    → Auto Workflow Optimization
+    → Multi-Agent Collaboration
+    → AI Stack Marketplace
+    → Workflow Templates
+
+36. ENDZIEL AI-OS
+    → RunAtlas als AI Control Platform
+    → Nutzer: entdecken, planen, automatisieren, ausführen
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TEIL C — AI COPILOT SYSTEM — 15 MODULE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+37. COPILOT SYSTEM ARCHITEKTUR
+    → Flow: User → Copilot Interface → Copilot API → AI Reasoning Engine
+             → Knowledge Graph + Tool DB → Workflow Generator
+             → Recommendation Engine → Response
+
+38. KERNMODULE COPILOT
+    → Copilot Interface
+    → Query Interpreter
+    → Tool Recommender
+    → Workflow Generator
+    → Stack Generator
+
+39. COPILOT INTERFACE
+    → Next.js / React / WebSocket
+    → UI: Chat Panel, Suggested Tools, Workflow Graph, Stack Builder
+
+40. QUERY INTERPRETER
+    → Intent erkennen, Use Case bestimmen, Tool-Kategorien finden
+    → LLM + Embeddings + Vector Search
+
+41. TOOL RECOMMENDER
+    → Algorithmus: category, integrations, workflow compatibility, popularity
+    → Beispiel Output: Midjourney, Stable Diffusion, DALL·E, Leonardo
+
+42. WORKFLOW GENERATOR
+    → Graph traversal + integration chains + workflow database
+    → Output: workflow_name, steps, tools
+
+43. STACK GENERATOR
+    → Erstellt komplette AI-Stacks pro Use Case
+    → Beispiel: AI Content Stack (GPT + Midjourney + Notion + Zapier)
+    → Basiert auf: use case, category, integration graph, workflow popularity
+
+44. KNOWLEDGE GRAPH INTEGRATION
+    → Nodes: tools, models, agents, frameworks
+    → Edges: integration, workflow, comparison
+
+45. API LAYER (COPILOT)
+    → Endpoints: /copilot/query, /copilot/tools,
+      /copilot/workflows, /copilot/stacks
+
+46. RECOMMENDATION ENGINE
+    → Score = integration_score + workflow_score + trend_score
+
+47. VECTOR SEARCH
+    → OpenAI Embeddings + pgvector
+    → Index: tool descriptions, use cases, features
+
+48. COPILOT RESPONSE STRUCTURE
+    → recommended tools, suggested workflow, AI stack, alternative tools
+
+49. USER FLOW (COPILOT)
+    → User fragt → Intent erkannt → Graph analysiert
+      → Tools empfohlen → Workflow generiert → Stack vorgeschlagen
+
+50. SYSTEM INTEGRATION (COPILOT)
+    → Nutzt: Tool Database, Knowledge Graph, Workflow Engine, Trend Engine
+
+51. ERWEITERUNGSMÖGLICHKEITEN COPILOT
+    → Auto Workflow Builder, AI Stack Optimizer, Project Builder,
+      Agent Creation
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TEIL D — WEITERE ENGINES & SPEZIALSYSTEME (benannt im Dokument)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+52. AUTO-DISCOVERY ENGINE
+    → Source Scanner, Tool Detection Engine, Metadata Extractor
+    → AI Classification Layer, Tool Database, Continuous Update System
+
+53. AI TOOL ANALYZER (GPT)
+    → Analysiert Tool-Websites automatisch
+    → Generiert: description, tags, category, use cases
+
+54. WORKFLOW DETECTION ENGINE
+    → Erkennt Workflows aus Tool-Kombinationen
+    → Basis für Knowledge Graph Kanten
+
+55. TOOL COMPARISON GENERATOR
+    → Erstellt automatische Comparison Pages (Tool A vs Tool B)
+
+56. ECOSYSTEM GRAPH BUILDER
+    → Baut den AI-Ecosystem-Graph aus Tool-Relationen
+    → Nodes + Edges aus Discovery + Analyzer Output
+
+57. GALAXY MAP ENGINE (Three.js)
+    → WebGL / Three.js
+    → Struktur: Category = Galaxy, Tools = Planets, Tags = Orbits
+    → User kann: zoom, filter, explore clusters
+
+58. GALAXY LAYOUT SYSTEM
+    → Cluster Gravity
+    → Integration Attraction
+    → Node Repulsion
+
+59. GALAXY EDGE SYSTEM
+    → Verbindet Tool-Nodes über Integration-Relationen
+    → Visualisiert Ökosystem-Struktur
+
+60. PROGRAMMATIC SEO ENGINE
+    → Generiert 100k+ Seiten automatisch
+    → Seitentypen: Stack Pages, Tool Combination Pages, Workflow Pages,
+      Tool Alternatives, Use-Case Pages
+
+61. AUTONOMOUS AI SYSTEM (Autonomous Growth Loop)
+    → Phasen: Discover → Analyze → Build Graph → Generate Content
+               → Publish SEO Pages → Update Galaxy Map → Trend Analysis
+               → Generate Stacks → Loop
+
+62. AI ECOSYSTEM INTELLIGENCE ENGINE
+    → Workflow Intelligence
+    → AI Stack Generator
+    → Trend Detector
+    → Tool Relationship Engine
+    → Ecosystem Heatmap
+    → Workflow Recommendation Engine
+    → AI Ecosystem Map Update
+
+63. TREND ANALYSIS ENGINE
+    → Erkennt aufkommende AI Tools und Workflow-Trends in Echtzeit
+
+64. STACK GENERATOR ENGINE
+    → Generiert optimale Tool-Kombinationen pro Use Case
+    → Basis: Relationship Graph + Workflow Popularity + Category
+
+65. TOOL RELATIONSHIP ENGINE
+    → Erfasst welche Tools häufig gemeinsam genutzt werden
+    → Basis für Moat und Recommendation
+
+66. BENCHMARK ENGINE
+    → Vergleicht AI Tools nach Performance-Metriken
+
+67. UPDATE SYSTEM / GALAXY MAP UPDATE SYSTEM
+    → Hält Galaxy Map und Tool-Daten aktuell
+    → Automatisierter Re-Crawl + Re-Analyze-Zyklus
+
+68. MICROSERVICE ARCHITECTURE
+    → Discovery Service
+    → Analyzer Service
+    → Graph Builder Service
+    → Workflow Service
+    → SEO Service
+    → Galaxy Service
+    → API Gateway
+    → Frontend
+    → Galaxy Engine
+    → Message Queue
+
+69. DISTRIBUTED AI AGENT SYSTEM
+    → Discovery Agents (crawlen neue Tools)
+    → Analyzer Agents (analysieren Tool-Websites)
+    → Graph Agents (bauen Beziehungsgraph)
+    → Workflow Agents (erkennen Workflows)
+    → Content Agents (generieren Seiten)
+    → Trend Agents (tracken AI Trends)
+
+70. API INFRASTRUCTURE / MULTI-PROVIDER ROUTER
+    → API Gateway
+    → Model Router
+    → Provider Adapter Layer
+    → Usage + Billing Engine
+    → Tool Registry
+    → Task Classifier
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TEIL E — INFRASTRUKTUR LAYER (Full Infrastructure Map)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+71. SERVER LAYER         → CDN / DNS / Load Balancer
+72. EDGE LAYER           → Edge Functions (Vercel / Cloudflare)
+73. API GATEWAY          → Auth Service / Public API / Internal API
+74. BACKEND SERVICES     → Discovery, Analyzer, Graph Builder
+75. WORKER LAYER         → Agent Workers, Task Processors
+76. DATABASE LAYER       → PostgreSQL (Supabase), pgvector
+77. CACHE LAYER          → Redis
+78. FRONTEND LAYER       → Next.js / React / Tailwind / Vercel
+79. GALAXY ENGINE        → Three.js / WebGL
+80. MESSAGE QUEUE        → Async Events zwischen Microservices
+81. DEPLOYMENT           → Vercel (Frontend), Docker (Backend)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TEIL F — DESIGN & UI SYSTEME
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+82. COLOR SYSTEM         → Definiertes Farbsystem für Atlas UI
+83. PIXEL SYSTEM         → Spacing / Grid System
+84. INTERACTION SYSTEM   → Hover, Zoom, Filter in Galaxy Map
+85. MOTION SYSTEM        → Animationsregeln für UI
+86. DESIGN PRINCIPLE SYSTEM → 18 Designprinzipien (TRAE-Style)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ZUSAMMENFASSUNG — ZÄHLSTAND
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  20   Hauptsysteme (System Stack)
+  16   AI-OS Module
+  15   Copilot Module
+  19   weitere Engines & Spezialsysteme
+  11   Infrastruktur Layer
+   5   Design/UI Systeme
+──────────────────────────────
+  86   Systeme / Engines / Module GESAMT (benannt im Dokument)
+
+  Davon im MVP (Atlas spec.md) enthalten:
+    → AI Stack Generator          [TEIL C: 43]
+    → Stack Pages                 [TEIL A: 06, 08]
+    → Tool Relationship Engine    [TEIL D: 65]
+    → Tool Database + API         [TEIL A: 13, TEIL B: 32]
+    → Search System (Basis)       [TEIL A: 04]
+
+  Alles andere = Phase 2 oder Vision.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+RUNATLAS / ATLAS — AIAstralis
+Quelle: RUNATLAS_CLEAN_STRUCTURE.txt
+================================================================================

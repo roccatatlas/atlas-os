@@ -1,0 +1,478 @@
+<!DOCTYPE html><html><head><meta charset="UTF-8"><title>ATLAS SEO Download</title>
+<style>
+body{background:#020817;color:#f1f5f9;font-family:system-ui,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0}
+.card{background:#0f172a;border:1px solid #1e293b;border-radius:16px;padding:40px;max-width:480px;width:100%;text-align:center}
+h2{font-size:20px;font-weight:900;margin:0 0 8px;background:linear-gradient(135deg,#06b6d4,#3b82f6);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+p{color:#64748b;font-size:13px;margin:0 0 28px;line-height:1.7}
+button{background:linear-gradient(135deg,#06b6d4,#3b82f6);border:none;color:#fff;border-radius:8px;padding:12px 28px;font-weight:700;font-size:14px;cursor:pointer;width:100%;margin-bottom:10px}
+.tag{background:#06b6d422;color:#06b6d4;border:1px solid #06b6d444;border-radius:4px;padding:2px 8px;font-size:11px;font-weight:600;display:inline-block;margin-bottom:16px}
+.info{font-size:11px;color:#1e293b;margin-top:16px}
+</style></head><body>
+<div class="card">
+  <div class="tag">ATLAS OS · SEO Engine</div>
+  <h2>SEO Landing Pages Generator</h2>
+  <p>Kompletter TypeScript Code — alle 6 Dateien in einer TXT Datei. Bereit zum Einfügen in dein Next.js Projekt.</p>
+  <button onclick="dl()">⬇️ atlas-seo-engine.txt herunterladen</button>
+  <div class="info">lib/keywords.ts · lib/seo-engine.ts · app/best-ai-tools-for/[keyword]/page.tsx · app/compare/[slug]/page.tsx · scripts/generate-seo-pages.ts · app/sitemap.ts</div>
+</div>
+
+<script>
+const CONTENT = `// ============================================================
+// ATLAS OS — Programmatic SEO Engine
+// AIAstralis · Version 20.0
+// Target: 1,000,000+ indexed pages
+// ============================================================
+// FILES IN THIS MODULE:
+//   lib/keywords.ts
+//   lib/seo-engine.ts
+//   app/best-ai-tools-for/[keyword]/page.tsx
+//   app/compare/[slug]/page.tsx
+//   scripts/generate-seo-pages.ts
+//   app/sitemap.ts
+// ============================================================
+
+
+// ============================================================
+// FILE: lib/keywords.ts
+// ============================================================
+
+export const PROFESSIONS = [
+  "students","developers","designers","marketers","teachers","founders",
+  "freelancers","writers","lawyers","doctors","accountants","engineers",
+  "photographers","videographers","podcasters","youtubers","entrepreneurs",
+  "product managers","data scientists","researchers","content creators",
+  "social media managers","sales teams","hr professionals","recruiters",
+];
+
+export const TASKS = [
+  "writing","coding","video editing","image generation","research",
+  "marketing","automation","presentations","customer support","seo",
+  "email writing","social media","data analysis","transcription",
+  "translation","summarization","proofreading","logo design","podcast editing",
+  "meeting notes","scheduling","lead generation","content creation","blogging",
+];
+
+export const INDUSTRIES = [
+  "healthcare","finance","legal","education","ecommerce","real estate",
+  "marketing agencies","startups","enterprise","non-profits","media",
+  "gaming","music","film","architecture","consulting","insurance","retail",
+];
+
+export const TOOL_COMPARISONS = [
+  ["chatgpt","claude"],["chatgpt","gemini"],["midjourney","dalle-3"],
+  ["cursor","github-copilot"],["zapier","make"],["elevenlabs","murf"],
+  ["runway","pika"],["notion-ai","obsidian"],["perplexity","consensus"],
+  ["grammarly","quillbot"],["jasper","copy-ai"],["stable-diffusion","midjourney"],
+];
+
+export function generateKeywords(): string[] {
+  const kws: string[] = [];
+  PROFESSIONS.forEach(p => kws.push("best ai tools for " + p));
+  TASKS.forEach(t => kws.push("best ai tools for " + t));
+  INDUSTRIES.forEach(i => kws.push("best ai tools for " + i));
+  PROFESSIONS.forEach(p => TASKS.slice(0,5).forEach(t =>
+    kws.push("best ai " + t + " tools for " + p)
+  ));
+  return [...new Set(kws)];
+}
+
+export function keywordToSlug(kw: string): string {
+  return kw.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
+}
+
+export function slugToKeyword(slug: string): string {
+  return slug.replace(/-/g," ");
+}
+
+
+// ============================================================
+// FILE: lib/seo-engine.ts
+// ============================================================
+
+import { supabase } from "./supabase";
+import type { Tool } from "./supabase";
+
+export interface SEOPageMeta {
+  title: string;
+  description: string;
+  h1: string;
+  intro: string;
+  faqs: { q: string; a: string }[];
+  schema: object;
+}
+
+export async function getToolsForKeyword(keyword: string): Promise<Tool[]> {
+  const catMap: Record<string, string> = {
+    writing: "Writing", coding: "Coding", image: "Image",
+    video: "Video", audio: "Audio", research: "Research",
+    automation: "Automation", productivity: "Productivity",
+    design: "Design", marketing: "Marketing",
+  };
+
+  let category: string | null = null;
+  for (const [k, v] of Object.entries(catMap)) {
+    if (keyword.includes(k)) { category = v; break; }
+  }
+
+  let q = supabase.from("tools").select("*").eq("status","active")
+    .order("atlas_score", { ascending: false }).limit(10);
+
+  if (category) q = q.eq("category", category);
+
+  const { data } = await q;
+  return data || [];
+}
+
+export function buildPageMeta(keyword: string, tools: Tool[]): SEOPageMeta {
+  const year = new Date().getFullYear();
+  const titleKw = keyword.replace(/\\b\\w/g, c => c.toUpperCase());
+  const topTool = tools[0]?.name || "AI tools";
+
+  return {
+    title: "Best AI Tools for " + titleKw + " in " + year + " — ATLAS",
+    description: "Discover the " + tools.length + " best AI tools for " + keyword + " in " + year + ". Compare features, pricing, and use cases. Top pick: " + topTool + ".",
+    h1: "Best AI Tools for " + titleKw + " (" + year + ")",
+    intro: "Finding the right AI tools for " + keyword + " can transform your workflow. We've analyzed " + tools.length + "+ options and ranked the best by quality, pricing, and real-world results.",
+    faqs: [
+      {
+        q: "What is the best AI tool for " + keyword + "?",
+        a: topTool + " is our top-rated AI tool for " + keyword + " in " + year + ", with an ATLAS Score of " + (tools[0]?.atlas_score || 90) + "/100."
+      },
+      {
+        q: "Are there free AI tools for " + keyword + "?",
+        a: "Yes — " + tools.filter(t => t.pricing?.includes("Free")).map(t => t.name).slice(0,3).join(", ") + " all offer free plans."
+      },
+      {
+        q: "How do I choose the right AI tool for " + keyword + "?",
+        a: "Consider your budget, required features, and integration needs. Use ATLAS Compare to see tools side-by-side."
+      },
+      {
+        q: "What is the cheapest AI tool for " + keyword + "?",
+        a: tools.sort((a,b) => a.pricing_num - b.pricing_num)[0]?.name + " starts at $" + (tools.sort((a,b) => a.pricing_num - b.pricing_num)[0]?.pricing_num || 0) + "/mo."
+      },
+    ],
+    schema: {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": "Best AI Tools for " + titleKw + " in " + year,
+      "description": "Top AI tools for " + keyword,
+      "author": { "@type": "Organization", "name": "ATLAS OS" },
+      "publisher": { "@type": "Organization", "name": "AIAstralis" },
+      "dateModified": new Date().toISOString(),
+      "mainEntity": {
+        "@type": "ItemList",
+        "itemListElement": tools.map((t, i) => ({
+          "@type": "ListItem",
+          "position": i + 1,
+          "name": t.name,
+          "description": t.description,
+          "url": process.env.NEXT_PUBLIC_SITE_URL + "/tools/" + t.slug,
+        }))
+      }
+    }
+  };
+}
+
+
+// ============================================================
+// FILE: app/best-ai-tools-for/[keyword]/page.tsx
+// ============================================================
+
+import { Metadata } from "next";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { getToolsForKeyword, buildPageMeta } from "@/lib/seo-engine";
+import { generateKeywords, keywordToSlug, slugToKeyword } from "@/lib/keywords";
+
+export const revalidate = 86400;
+
+export async function generateStaticParams() {
+  const keywords = generateKeywords().slice(0, 1000);
+  return keywords.map(kw => ({ keyword: keywordToSlug(kw) }));
+}
+
+export async function generateMetadata(
+  { params }: { params: { keyword: string } }
+): Promise<Metadata> {
+  const keyword = slugToKeyword(params.keyword);
+  const tools   = await getToolsForKeyword(keyword);
+  const meta    = buildPageMeta(keyword, tools);
+  return {
+    title: meta.title,
+    description: meta.description,
+    alternates: { canonical: "/best-ai-tools-for/" + params.keyword },
+    openGraph: {
+      title: meta.title,
+      description: meta.description,
+      type: "article",
+    },
+  };
+}
+
+export default async function KeywordPage(
+  { params }: { params: { keyword: string } }
+) {
+  const keyword = slugToKeyword(params.keyword);
+  const tools   = await getToolsForKeyword(keyword);
+  if (!tools.length) notFound();
+
+  const meta    = buildPageMeta(keyword, tools);
+  const year    = new Date().getFullYear();
+
+  return (
+    <>
+      <script type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(meta.schema) }}
+      />
+      <article className="max-w-[860px] mx-auto px-5 py-14">
+        <nav className="flex gap-2 text-[11px] text-slate-600 mb-6">
+          <Link href="/">Home</Link>
+          <span>/</span>
+          <Link href="/tools">AI Tools</Link>
+          <span>/</span>
+          <span className="text-slate-500">{keyword}</span>
+        </nav>
+        <header className="mb-10">
+          <div className="inline-block bg-cyan-400/10 text-cyan-400 border border-cyan-400/20
+                          rounded px-3 py-1 text-[11px] font-semibold tracking-wide mb-4">
+            {tools.length} Tools · Updated {year}
+          </div>
+          <h1 className="text-4xl font-black text-slate-100 leading-tight mb-4">
+            {meta.h1}
+          </h1>
+          <p className="text-slate-400 text-base leading-relaxed max-w-2xl">
+            {meta.intro}
+          </p>
+        </header>
+        {/* Top Pick CTA */}
+        {tools[0] && (
+          <div className="bg-gradient-to-r from-cyan-400/10 to-blue-500/10
+                          border border-cyan-400/20 rounded-xl p-5 mb-10">
+            <div className="text-[10px] text-cyan-400 font-bold tracking-widest mb-2">
+              ATLAS TOP PICK
+            </div>
+            <div className="flex items-center gap-4 flex-wrap">
+              <span className="text-3xl">{tools[0].logo}</span>
+              <div className="flex-1">
+                <div className="font-black text-slate-100 text-lg">{tools[0].name}</div>
+                <p className="text-slate-400 text-sm mt-1">{tools[0].description}</p>
+              </div>
+              <div className="flex flex-col gap-2 items-end">
+                <span className="text-emerald-400 font-bold text-sm">{tools[0].pricing}</span>
+                <Link href={"/tools/" + tools[0].slug}
+                  className="px-5 py-2 rounded-lg font-bold text-white text-sm
+                             bg-gradient-to-r from-cyan-400 to-blue-500">
+                  View Details
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
+        {/* Tool List */}
+        <section className="mb-12">
+          <h2 className="text-2xl font-black text-slate-100 mb-6">
+            All {tools.length} Tools
+          </h2>
+          <div className="flex flex-col gap-4">
+            {tools.map((tool, i) => (
+              <div key={tool.id}
+                className="bg-[#0f172a] border border-[#1e293b] rounded-xl p-5">
+                <div className="flex gap-4 items-start">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500
+                                  flex items-center justify-center font-black text-xs text-white shrink-0">
+                    {i + 1}
+                  </div>
+                  <span className="text-2xl shrink-0">{tool.logo}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-black text-slate-100 text-base">{tool.name}</div>
+                    <p className="text-slate-400 text-sm leading-relaxed my-1">{tool.description}</p>
+                    <div className="flex gap-4 items-center flex-wrap">
+                      <span className="text-amber-400 text-xs">{"★".repeat(Math.round(tool.rating))} {tool.rating}</span>
+                      <span className="text-emerald-400 text-xs font-semibold">{tool.pricing}</span>
+                      <span className="text-slate-600 text-xs">{tool.users} users</span>
+                    </div>
+                  </div>
+                  <Link href={"/tools/" + tool.slug}
+                    className="px-4 py-1.5 rounded-lg text-xs font-bold text-cyan-400
+                               border border-cyan-400/30 shrink-0">
+                    View
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+        {/* FAQ */}
+        <section className="mb-12" itemScope itemType="https://schema.org/FAQPage">
+          <h2 className="text-2xl font-black text-slate-100 mb-6">FAQ</h2>
+          <div className="flex flex-col gap-3">
+            {meta.faqs.map((faq, i) => (
+              <div key={i} className="bg-[#0f172a] border border-[#1e293b] rounded-xl p-5"
+                itemProp="mainEntity" itemScope itemType="https://schema.org/Question">
+                <h3 className="font-bold text-slate-100 text-sm mb-2" itemProp="name">{faq.q}</h3>
+                <div itemProp="acceptedAnswer" itemScope itemType="https://schema.org/Answer">
+                  <p className="text-slate-400 text-sm" itemProp="text">{faq.a}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+        {/* CTA */}
+        <div className="bg-gradient-to-r from-cyan-400/10 to-blue-500/10
+                        border border-cyan-400/20 rounded-xl p-8 text-center">
+          <h2 className="text-2xl font-black text-slate-100 mb-3">Build Your AI Workflow</h2>
+          <p className="text-slate-400 text-sm mb-6 max-w-md mx-auto">
+            Don't just find tools — build a complete AI system.
+          </p>
+          <Link href="/generate"
+            className="inline-block px-8 py-3 rounded-xl font-bold text-white
+                       bg-gradient-to-r from-cyan-400 to-blue-500">
+            Generate Your Stack →
+          </Link>
+        </div>
+      </article>
+    </>
+  );
+}
+
+
+// ============================================================
+// FILE: app/compare/[slug]/page.tsx
+// ============================================================
+
+export async function generateStaticParams() {
+  const { TOOL_COMPARISONS } = await import("@/lib/keywords");
+  return TOOL_COMPARISONS.map(([a, b]) => ({ slug: a + "-vs-" + b }));
+}
+
+export default async function ComparisonPage(
+  { params }: { params: { slug: string } }
+) {
+  const [slugA, slugB] = params.slug.split("-vs-");
+  const [a, b] = await Promise.all([getToolBySlug(slugA), getToolBySlug(slugB)]);
+  if (!a || !b) notFound();
+
+  const winner = a.atlas_score > b.atlas_score ? a : b;
+  const ROWS = [
+    { label:"Pricing",      va: a.pricing,                          vb: b.pricing },
+    { label:"Rating",       va: a.rating + "/5",                    vb: b.rating + "/5" },
+    { label:"Users",        va: a.users,                            vb: b.users },
+    { label:"API",          va: a.api_available ? "Yes" : "No",     vb: b.api_available ? "Yes" : "No" },
+    { label:"Open Source",  va: a.open_source ? "Yes" : "No",       vb: b.open_source ? "Yes" : "No" },
+    { label:"Integrations", va: a.integrations + "+",               vb: b.integrations + "+" },
+    { label:"Atlas Score",  va: a.atlas_score + "/100",             vb: b.atlas_score + "/100" },
+  ];
+
+  return (
+    <article className="max-w-[860px] mx-auto px-5 py-14">
+      <h1 className="text-4xl font-black text-slate-100 mb-8">
+        {a.name} vs {b.name}
+      </h1>
+      <div className="grid grid-cols-[1fr_60px_1fr] gap-4 mb-10 items-center">
+        {[a,b].map((t) => (
+          <div key={t.id} className="bg-[#0f172a] border border-[#1e293b] rounded-xl p-6 text-center">
+            <span className="text-4xl mb-3 block">{t.logo}</span>
+            <div className="font-black text-slate-100 text-lg">{t.name}</div>
+            <div className="text-2xl font-black text-cyan-400 mt-3">{t.atlas_score}</div>
+            <div className="text-[10px] text-slate-600">Atlas Score</div>
+          </div>
+        ))}
+        <div className="text-center font-black text-slate-700 text-2xl">VS</div>
+      </div>
+      <div className="bg-[#0f172a] border border-[#1e293b] rounded-xl overflow-hidden mb-10">
+        {ROWS.map((row, i) => (
+          <div key={row.label}
+            className={"grid grid-cols-[120px_1fr_1fr] border-b border-[#0d1b2e] " + (i % 2 === 0 ? "bg-[#0f172a]" : "bg-[#0a111e]")}>
+            <div className="px-4 py-3 text-[11px] font-semibold text-slate-600 border-r border-[#0d1b2e]">{row.label}</div>
+            <div className="px-4 py-3 text-xs text-slate-300 border-r border-[#0d1b2e]">{row.va}</div>
+            <div className="px-4 py-3 text-xs text-slate-300">{row.vb}</div>
+          </div>
+        ))}
+      </div>
+      <div className="bg-cyan-400/5 border border-cyan-400/20 rounded-xl p-6">
+        <div className="font-bold text-cyan-400 text-sm mb-3">ATLAS Verdict</div>
+        <p className="text-slate-300 text-sm leading-relaxed">
+          {winner.name} wins overall with an Atlas Score of {winner.atlas_score}/100.
+        </p>
+      </div>
+    </article>
+  );
+}
+
+
+// ============================================================
+// FILE: scripts/generate-seo-pages.ts
+// ============================================================
+// Run: npx tsx scripts/generate-seo-pages.ts
+
+import { generateKeywords, keywordToSlug } from "../lib/keywords";
+import { supabase } from "../lib/supabase";
+import fs from "fs";
+
+async function main() {
+  const keywords = generateKeywords();
+  console.log("ATLAS SEO Generator");
+  console.log("Generating " + keywords.length + " keyword pages...");
+
+  const pages = keywords.map(kw => ({
+    path:           "/best-ai-tools-for/" + keywordToSlug(kw),
+    page_type:      "keyword",
+    indexing_state: "noindex",
+    canonical_url:  process.env.NEXT_PUBLIC_SITE_URL + "/best-ai-tools-for/" + keywordToSlug(kw),
+  }));
+
+  const CHUNK = 500;
+  for (let i = 0; i < pages.length; i += CHUNK) {
+    const chunk = pages.slice(i, i + CHUNK);
+    const { error } = await supabase.from("seo_pages").upsert(chunk, { onConflict: "path" });
+    if (error) console.error("Chunk " + i + " error:", error.message);
+    else console.log("Inserted pages " + i + " to " + (i + chunk.length));
+  }
+
+  const sitemap = pages.map(p =>
+    "  <url><loc>" + p.canonical_url + "</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>"
+  ).join("\\n");
+
+  fs.writeFileSync("public/sitemap-keywords.xml",
+    '<?xml version="1.0" encoding="UTF-8"?>\\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\\n' + sitemap + '\\n</urlset>'
+  );
+
+  console.log("Done. " + pages.length + " pages registered.");
+  console.log("Sitemap written to public/sitemap-keywords.xml");
+}
+
+main().catch(console.error);
+
+
+// ============================================================
+// FILE: app/sitemap.ts
+// ============================================================
+
+import { MetadataRoute } from "next";
+
+export default function sitemap(): MetadataRoute.Sitemap {
+  const base = process.env.NEXT_PUBLIC_SITE_URL;
+  return [
+    { url: base + "/sitemap-tools.xml",    lastModified: new Date() },
+    { url: base + "/sitemap-stacks.xml",   lastModified: new Date() },
+    { url: base + "/sitemap-keywords.xml", lastModified: new Date() },
+    { url: base + "/sitemap-compare.xml",  lastModified: new Date() },
+  ];
+}
+
+
+// ============================================================
+// END OF FILE
+// ATLAS OS · SEO Engine · AIAstralis · Version 20.0
+// Google indexed the web. Atlas indexes intelligence.
+// ============================================================`;
+
+function dl() {
+  const blob = new Blob([CONTENT], {type: 'text/plain;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'atlas-seo-engine.txt';
+  a.click();
+}
+</script>
+</body></html>

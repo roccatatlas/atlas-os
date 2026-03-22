@@ -1,0 +1,759 @@
+── FILE 1: mvp-only.md ──
+# ATLAS MVP — Scope & Implementierungsplan
+
+**Single Source of Truth (MVP):** [spec.md](./spec.md)
+
+**Quelle (Blueprint):** [atlas-blueprint-v1.md](../blueprint/atlas-blueprint-v1.md)
+**Zweck:** Kompakte Referenz für KI-Assistenten und Entwickler.
+
+---
+
+## MVP IMPLEMENTIERUNGSPLAN (KI-CHECKLISTE)
+
+> **Anweisung für KI-Assistenten:** Diesen Abschnitt als zentrale Task-Liste verwenden. Abarbeiten in der vorgegebenen Reihenfolge. Bei Scope-Fragen gilt ausschließlich [REQ-MVP-SCOPE](./spec.md#REQ-MVP-SCOPE).
+
+**Schnellstart für KI:** Starte mit **T1.1**. Projektordner: neues Next.js-Projekt anlegen (z. B. `./` oder vom User vorgegeben). Scope/Routen/Schema sind in [spec.md](./spec.md) definiert.
+
+### Übersicht
+
+| Woche | Fokus | Hauptdeliverables |
+|-------|--------|-------------------|
+| 1 | Projekt + Schema | Next.js, Prisma, Schema, Migrationen |
+| 2 | Seed-Daten | Kategorien, Tools, Integrationen, Seed ausführen |
+| 3 | **AI Stack Generator** | `/generate`, Prompt → Workflow API + UI, Stack speichern, Seite erzeugen |
+| 4 | Stack-Seiten + Tool-Seiten | `/stacks`, `/stacks/[slug]`, `/tools`, `/tools/[slug]`, Clone-Button, `/search` |
+| 5 | Tool Relationship Graph + Landing | Tracking welche Tools kombiniert werden, Landing Page |
+| 6 | SEO + Deploy | Meta, OG-Images, Sitemap, Vercel-Deployment |
+
+**MVP-Routen (nur diese bauen):** `/`, `/generate`, `/stacks`, `/stacks/[slug]`, `/tools`, `/tools/[slug]`, `/categories`, `/search`
+
+**Quality Gates (Hard Mode) Developer-Checkliste:** siehe [quality-gates.md](../gates/quality-gates.md)
+
+---
+
+### Woche 1: Projekt + DB-Schema
+
+**Ziel:** Next.js-Projekt mit Prisma, vollständigem MVP-Schema und lauffähigen Migrationen. Noch keine Seed-Daten.
+
+#### Tasks (abzuarbeiten)
+
+- [ ] **T1.1** Next.js-Projekt anlegen (App Router, TypeScript, Tailwind). Siehe [REQ-MVP-ROUTES](./spec.md#REQ-MVP-ROUTES).
+- [ ] **T1.2** Prisma einbinden, PostgreSQL konfigurieren. Schema anlegen gemäß [DB-MVP-SCHEMA](./spec.md#DB-MVP-SCHEMA).
+- [ ] **T1.3** Migrationen erzeugen und ausführen. Prisma Client Singleton berücksichtigen.
+- [ ] **T1.4 Hardened Architecture Baseline**: CSP, Security Headers und SSRF-Regeln ab Tag 1 umsetzen. Siehe [quality-gates.md](../gates/quality-gates.md).
+
+#### Deliverables
+
+- Repo mit Next.js + Prisma, `prisma/schema.prisma` mit MVP-Modellen, Migrationen angewendet.
+- README mit Anleitung: `npm install`, `.env` (DATABASE_URL), `npx prisma migrate dev`.
+
+#### Akzeptanzkriterien
+
+- `npx prisma migrate dev` läuft fehlerfrei, Tabellen in DB vorhanden.
+
+#### Relevante Sektionen
+
+- [spec.md: REQ-MVP-ROUTES](./spec.md#REQ-MVP-ROUTES), [spec.md: DB-MVP-SCHEMA](./spec.md#DB-MVP-SCHEMA)
+
+---
+
+### Woche 2: Seed-Daten
+
+**Ziel:** Seed-Skript mit Kategorien, Tools, Integrationen und Stacks. Daten in DB laden und prüfen.
+
+#### Tasks (abzuarbeiten)
+
+- [ ] **T2.1** Seed-Skript anlegen: mind. 20–50 Kategorien, 100+ Tools (name, slug, description, websiteUrl, pricing), Category-Zuordnung.
+- [ ] **T2.2** Seed um Integrationen erweitern: `ToolIntegration`-Einträge (toolId, integratesWithId) — Ziel mind. 100+ Kanten für erste 100 Tools.
+- [ ] **T2.3 Seed Stacks (Cold Start Solution)**: Seed um 20+ kuratierte Stacks erweitern (Stack + StackStep) für verschiedene Personas.
+- [ ] **T2.4** Seed ausführen, Daten in DB prüfen (Tools, Integrationen zählbar). README um `npx prisma db seed` ergänzen.
+
+#### Deliverables
+
+- `prisma/seed.ts` (oder äquivalent) mit Tools, Kategorien, Integrationen, Stacks.
+- Lauffähige DB mit geseedeten Daten.
+
+#### Akzeptanzkriterien
+
+- `npx prisma db seed` läuft fehlerfrei.
+- Abfragen: Tools mit Kategorien, Tools mit Integrationen, Stacks mit Steps liefern erwartete Daten.
+
+#### Relevante Sektionen
+
+- [spec.md: DB-MVP-SCHEMA](./spec.md#DB-MVP-SCHEMA)
+
+---
+
+### Woche 3: AI Stack Generator (Kernprodukt MVP)
+
+**Ziel:** Nutzer gibt ein Problem ein (z. B. „I want to automate YouTube videos") → Atlas liefert einen konkreten AI-Stack (Schritte + Tools). Stack kann gespeichert werden und erhält eine öffentliche Seite.
+
+#### Tasks (abzuarbeiten)
+
+- [ ] **T3.1** API: `POST /api/v1/generate-stack` — Input: Text-Prompt. Output: Steps (geordnet) mit Tool-Referenzen aus der DB. Siehe [API-MVP](./spec.md#API-MVP).
+- [ ] **T3.2** API: `POST /api/v1/stacks` — Speichern eines generierten Stacks: Titel (aus Prompt oder generiert), Slug, Steps (toolId, order). Legt `Stack` + `StackStep`-Einträge an. Gibt Slug/URL zurück.
+- [ ] **T3.3** Seite `/generate`: Prompt eingeben → Stack generieren → Preview anzeigen → "Save & Get Link" speichert und leitet zu `/stacks/[slug]` weiter.
+- [ ] **T3.4** Generierte Stack-Seite: `/stacks/[slug]` muss auch für neu erzeugte Stacks funktionieren (dynamisch aus DB). Bereits in Woche 4 vorgesehen; sicherstellen, dass Stack-Generator Stacks in derselben Struktur speichert wie Seed-Stacks.
+
+#### Deliverables
+
+- `app/generate/page.tsx`, Komponenten: GenerateStackForm, GeneratedStackPreview.
+- API: `app/api/v1/generate-stack/route.ts`, `app/api/v1/stacks/route.ts` (POST).
+- LLM-Integration (env: OPENAI_API_KEY oder ähnlich), Prompt-Template das Tools aus DB nutzt.
+
+#### Akzeptanzkriterien
+
+- Nutzer kann auf `/generate` einen Satz eingeben und erhält einen sinnvollen Tool-Workflow.
+- „Save & Get Link" speichert den Stack und leitet auf `/stacks/[slug]` weiter.
+- Seite `/stacks/[slug]` zeigt den neu erzeugten Stack korrekt an.
+
+#### Relevante Sektionen
+
+- [spec.md: API-MVP](./spec.md#API-MVP), [spec.md: ACCEPTANCE-CRITERIA](./spec.md#ACCEPTANCE-CRITERIA)
+
+---
+
+### Woche 4: Stack-Seiten + Tool-Seiten + Clone-Button (Stub)
+
+**Ziel:** Öffentliche Stack-Übersicht und Stack-Detail (inkl. generierte Stacks), Tool-Übersicht und Tool-Detail, Share + Clone (Stub).
+
+#### Tasks (abzuarbeiten)
+
+- [ ] **T4.1** API: `GET /api/v1/stacks`, `GET /api/v1/stacks/[slug]` — Liste Stacks + Stack-Detail inkl. Steps und Tool-Daten.
+- [ ] **T4.2** Seite `/stacks` und `/stacks/[slug]`: Verzeichnis + Stack-Detail mit Tool-Flow, Share-Button (URL kopieren), Clone-Button (Stub).
+- [ ] **T4.3** API: `GET /api/v1/tools`, `GET /api/v1/tools/[slug]`, `GET /api/v1/categories`.
+- [ ] **T4.4** Seite `/tools`, `/tools/[slug]`, `/categories`, `/search` (oder Suche auf `/tools?q=`). ToolCard, ToolDetail, CategoryFilter.
+- [ ] **T4.5** Sicherstellen: `/stacks/[slug]` funktioniert für alle Stacks (Seed + generiert). Clone-Button sichtbar, Aktion = Stub.
+
+#### Deliverables
+
+- `app/stacks/page.tsx`, `app/stacks/[slug]/page.tsx`, `app/tools/page.tsx`, `app/tools/[slug]/page.tsx`, `app/categories/` bzw. `app/category/[slug]/page.tsx`, `app/search/page.tsx` (oder Suche auf `/tools`).
+- API: `app/api/v1/stacks/route.ts`, `app/api/v1/stacks/[slug]/route.ts`, `app/api/v1/tools/route.ts`, `app/api/v1/tools/[slug]/route.ts`, `app/api/v1/categories/route.ts`.
+- Komponenten: StackCard, StackDetail, ShareButton, CloneButton (Stub), ToolCard, ToolDetail.
+
+#### Akzeptanzkriterien
+
+- `/stacks` listet alle Stacks (Seed + generiert). `/stacks/[slug]` zeigt Flow, Share + Clone (Stub).
+- `/tools` und `/tools/[slug]` funktionieren, Filter/Suche nutzbar.
+
+#### Relevante Sektionen
+
+- [spec.md: REQ-MVP-ROUTES](./spec.md#REQ-MVP-ROUTES), [spec.md: ACCEPTANCE-CRITERIA](./spec.md#ACCEPTANCE-CRITERIA)
+
+---
+
+### Woche 5: Tool Relationship Graph + Landing Page
+
+**Ziel:** (1) Tool Relationship Graph: Erfassen, welche Tools in generierten/gespeicherten Stacks gemeinsam vorkommen (Daten für Moat). (2) Landing Page mit Hero, CTA „Generate your stack" → `/generate`, Stack-Preview.
+
+#### Tasks (abzuarbeiten)
+
+- [ ] **T5.1** Tool Relationship Graph: Bei jedem Speichern eines Stacks Tool-Paare (bzw. -Kombinationen) persistieren. Siehe [RELATIONSHIP-GRAPH](./spec.md#RELATIONSHIP-GRAPH).
+- [ ] **T5.2** Route `/`: Landing Page mit CTA zu `/generate`, sekundär `/stacks` und `/tools`.
+- [ ] **T5.3** Stack-Preview: 2–3 Featured Stacks (Cards mit Link zu `/stacks/[slug]`).
+- [ ] **T5.4** Design: konsistent (Navbar: Home, Generate, Stacks, Tools, Categories).
+
+#### Deliverables
+
+- Datenerfassung für Tool-Kombinationen (aus Stacks). `app/page.tsx` (Landing), Hero, ValueProps, StackPreview, Navbar. Einheitliches Layout (Design System).
+
+#### Akzeptanzkriterien
+
+- Kombinationen aus Stacks werden erfasst (für spätere Auswertung/Moat).
+- `/` lädt, CTA „Generate your stack" führt zu `/generate`, Links zu `/stacks` und `/tools` funktionieren.
+
+#### Relevante Sektionen
+
+- [spec.md: RELATIONSHIP-GRAPH](./spec.md#RELATIONSHIP-GRAPH)
+
+---
+
+### Woche 6: SEO-Metadaten, OG-Images, Deployment
+
+**Ziel:** Suchmaschinenfreundliche Seiten, offene Graph-Images für Sharing, Deployment auf Vercel.
+
+#### Tasks (abzuarbeiten)
+
+- [ ] **T6.1** Pro Route dynamische Meta-Tags: title, description, canonical (nur MVP-Routen).
+- [ ] **T6.2** OG-Images: `/api/og-image` oder statische OG-Bilder pro Seitentyp.
+- [ ] **T6.3** `robots.txt`: allow all, Verweis auf Sitemap.
+- [ ] **T6.4** Sitemap: automatisch generiert für alle öffentlichen MVP-Routen.
+- [ ] **T6.5** Vercel-Projekt anlegen, Environment (DATABASE_URL etc.) setzen.
+- [ ] **T6.6** Build und Deploy: `next build` erfolgreich, Produktion erreichbar. Keine fehlenden Env-Variablen in Production.
+
+#### Deliverables
+
+- Metadata-Konfiguration (generateMetadata wo nötig), `app/robots.ts` (oder static `robots.txt`), `app/sitemap.ts` (dynamic).
+- OG-Image-Route oder statische OG-Assets.
+- Live-URL auf Vercel.
+
+#### Akzeptanzkriterien
+
+- Alle MVP-Routen haben sinnvollen title/description.
+- Teilen einer Stack-URL zeigt korrektes OG-Bild (oder Fallback).
+- Sitemap enthält alle öffentlichen Seiten.
+- Production-Build läuft, App im Browser nutzbar.
+
+### Nach dem MVP (nicht in dieser Checkliste)
+
+- Clone-Button mit echtem Auth und „Clone to workspace".
+- Galaxy Map 3D (Three.js, Section 41).
+- Erweiterter AI Copilot, manueller Stack Builder UI.
+- Reviews, Newsletter, Recommendation Engine.
+
+### Proof Hypothesis — ab Launch messen
+
+- **Stacks generiert** (über `/generate`).
+- **Clone-Button-Klicks** (auch wenn Stub).
+- **Traffic:** `/generate`, `/stacks` vs. `/tools`.
+
+**Hypothese:** Nutzer sagen "I generated an AI stack with Atlas" — nicht "I browsed AI tools".
+
+### Kurzreferenz: Was NICHT bauen (MVP)
+
+- Kein Auth (Supabase/Login) — Phase 2.
+- Keine User-Tabellen, keine Saved Tools, kein Dashboard.
+- Keine Reviews, keine Ratings, kein Newsletter.
+- Keine 3D Galaxy Map, kein manueller Stack Builder. Keine Zahlungen (Stripe) — Phase 2.
+── FILE 2: spec.md ──
+---
+title: ATLAS MVP Spec
+status: single-source-of-truth
+language_policy: "DE (Execution) / EN (Brand optional)"
+---
+
+# ATLAS MVP Spec (Single Source of Truth)
+
+NAMING-POLICY:
+- AIAstralis = Firma
+- ATLAS = Produkt
+- Dateinamen/Ordner: kebab-case, keine Leerzeichen
+
+LANGUAGE-POLICY:
+- Execution/Engineering Artefakte: Deutsch
+- Brand/Marketing Text (optional): Englisch
+
+REQ-MVP-SCOPE — Nur diese Features sind MVP:
+1) AI Stack Generator
+2) Stack Pages
+3) Tool Relationship Graph (nur Datenerfassung)
+
+Explizit nicht im MVP: Auth, Payments, Reviews, Newsletter, Recommendation Engine, 3D/Three.js.
+
+REQ-MVP-ROUTES — Nur diese Routen bauen:
+/ | /generate | /stacks | /stacks/[slug] | /tools | /tools/[slug] | /categories | /search
+
+DB-MVP-SCHEMA — Minimum-Modelle:
+Tool | Category | ToolCategory (Join) | ToolIntegration (Edges) | Stack | StackStep | Tag | ToolTag (Join)
+
+Invarianten:
+- slug ist unique pro Entity-Typ
+- StackStep hat eindeutige Reihenfolge pro Stack
+- ToolIntegration darf keine Self-Edges enthalten
+
+API-MVP:
+POST /api/v1/generate-stack — Input: Freitext-Prompt. Output: geordnete Steps mit Tool-Referenzen aus DB.
+POST /api/v1/stacks — Input: Titel/Slug + Steps. Output: slug + öffentliche URL.
+GET /api/v1/stacks | GET /api/v1/stacks/[slug] | GET /api/v1/tools | GET /api/v1/tools/[slug] | GET /api/v1/categories
+
+RELATIONSHIP-GRAPH:
+Beim Speichern eines Stacks werden Tool-Kombinationen erfasst. Keine UI-Graph-Visualisierung im MVP.
+
+ACCEPTANCE-CRITERIA:
+- /generate erzeugt sinnvollen Workflow aus DB-Tools
+- Save & Get Link speichert Stack, öffnet /stacks/[slug]
+- /stacks listet Seed + generierte Stacks
+- /tools und /tools/[slug] funktionieren inkl. Suche/Filter
+- Relationship-Tracking läuft bei gespeicherten Stacks
+── FILE 3: quality-gates.md (Auszug Key-Inhalte) ──
+ATLAS — Quality Gates (Hard Mode) Developer-Checkliste
+
+MVP-Pflicht: Datenmodell-Constraints + grundlegende Rate-Limits.
+
+Harte Indexing-Gates:
+- >= 2 data-rich Sections aus DB
+- >= 1 unique Narrative
+- >= 3 kontextuelle interne Links
+- Unique title, meta description, FAQ
+
+Rate Limits:
+- GET /api/v1/tools: 60/min
+- GET /api/v1/tools/search?q=: 30/min
+- POST /api/v1/tools/submit: 5/hour
+- POST /api/v1/reviews: 10/day
+- GET /api/v1/og-image: 30/min
+
+Postgres DDL (MVP-Kern):
+tools, categories, tool_categories, tool_integrations, stacks, stack_steps
+
+Key Constraints:
+- tools.slug, categories.slug, stacks.slug: unique
+- stack_steps: unique (stack_id, step_order)
+- tool_integrations: no self-edges (tool_id <> integrates_with_id)
+- stacks.difficulty: check IN ('easy','medium','hard')
+
+SEO Gates (seo_pages table):
+indexing_state: enum('indexable','noindex','blocked')
+quality_passed: boolean
+data_rich_sections_count >= 2
+unique_narrative_present: true
+internal_links_count >= 3
+unique_meta_present: true
+
+Rate Limit Key-Schema:
+rl:public:ip:{ip} → 60/1m
+rl:search:ip:{ip} → 30/1m
+rl:submit:user:{userId} → 5/1h
+rl:review:user:{userId} → 10/1d
+rl:og:ip:{ip} → 30/1m
+── FILE 4: ATLAS_OS_Agent_Architecture.md ──
+ATLAS OS — Agent Architecture
+
+Agent pipeline:
+User Goal → Architect Agent → Task Planner Agent → Research Agent → Builder Agent → Deployment Agent
+
+Core Agents:
+1. Architect Agent — system design, Input: user goal, Output: system architecture
+2. Task Planner Agent — breaks architecture into executable tasks, Output: task graph
+3. Research Agent — discovers tools from ProductHunt, GitHub, HackerNews, Reddit, Futurepedia
+4. Builder Agent — generates stack pages, SEO pages, API integrations, workflows
+5. Deployment Agent — deploys pages, updates databases, triggers distribution
+
+Agent Runtime Components:
+Agent Registry | Task Queue | Scheduler | Executor | Memory
+
+Agent Registry functions: register_agent() | get_agent() | list_agents()
+
+Task Queue example:
+{ "id":"task_1", "agent":"research", "description":"discover AI tools", "dependencies":[] }
+
+Scheduler logic: task ready → dependencies satisfied → agent available → execute
+
+Agent Memory — Stored data: task results, tool database, workflow graph, agent outputs
+Memory types: short-term | long-term
+
+Discovery Agents: producthunt_scraper | github_scraper | reddit_scraper → tools.json
+
+Content Generation Agents: Tool pages, SEO pages, Ranking pages
+Example URLs: /tools/chatgpt | /ai-tools-for-marketing | /best-ai-writing-tools
+
+Distribution Agents: Twitter/X | Reddit | Newsletter | Product Hunt
+
+Scaling Strategy:
+Phase 1: Manual discovery, Basic agents, Static generation
+Phase 2: Autonomous discovery, Content generation, Distribution agents
+Phase 3: Fully autonomous ATLAS OS
+
+Long-Term Vision: ATLAS = AI operating system for building AI systems
+── FILE 5: ATLAS_OS_Build_Roadmap.md ──
+ATLAS OS — Build Roadmap (0 to $1B Architecture)
+
+Phase 0 — MVP (Weeks 1-4):
+Core: AI Tool Database, Stack Generator (basic), Stack Pages, Basic Search
+Architecture: Next.js / API Routes / PostgreSQL+Supabase
+Key metric: Daily stack generation
+
+Phase 1 — Growth Engine (Months 1-3):
+Features: Programmatic SEO pages, Automated tool discovery, Ranking pages, Newsletter
+Pipeline: discover tools → update database → generate pages → publish content
+Expected: 1000+ indexed pages
+
+Phase 2 — Intelligence Layer (Months 3-6):
+Components: Knowledge Graph, Recommendation Engine, Workflow detection
+Data: tool relationships, workflow patterns, stack usage
+Result: AI workflow graph
+
+Phase 3 — Agent System (Months 6-12):
+Agents: Architect, Task Planner, Research, Builder, Deployment
+Capabilities: discover tools, generate stacks, create pages, promote content
+
+Phase 4 — Infrastructure Platform (Year 2+):
+New products: ATLAS API, AI Stack Marketplace, AI Workflow Execution
+External devs can: build stacks, share stacks, run stacks via API
+
+Long-Term Vision: AI Workflow Infrastructure Layer
+System continuously: discovers tools, builds workflows, generates stacks, recommends systems
+Result: ATLAS = operating system for building AI systems
+── FILE 6: ATLAS_OS_Complete_Founder_Bible.md ──
+ATLAS OS — Complete Founder Bible
+
+PART 1 — Founder Blueprint:
+Vision: ATLAS is not an AI-tool directory. ATLAS is an operating system for building AI workflows.
+Problem: 50,000+ AI tools exist and nobody knows which combinations work.
+ATLAS converts: Problem → AI System
+Example: "I want to automate YouTube videos" →
+  Research → Perplexity | Script → ChatGPT | Voice → ElevenLabs | Video → Runway | Editing → Descript
+
+PART 2 — Product System:
+User Flow: Goal → AI Stack Generator → Stack Page → Clone Stack → Workspace
+Example: atlas.com/stacks/youtube-automation
+Core systems: Discovery Engine | Knowledge Graph | Stack Builder | Recommendation Engine | Distribution Engine
+
+PART 3 — Technical Architecture:
+Frontend: Next.js | Backend: API Layer | Database: PostgreSQL
+Infrastructure: Vercel | Supabase | Cloudflare | Redis
+
+PART 4 — Knowledge Graph:
+ChatGPT → Zapier → Notion → Slack
+Creates AI Workflow Graph = primary data moat
+
+PART 5 — Agent Architecture:
+User Goal → Architect Agent → Task Planner → Research Agent → Builder Agent → Deployment Agent
+
+PART 6 — Discovery System:
+Sources: Product Hunt | GitHub | Reddit | Hacker News | Futurepedia
+Pipeline: source → scraper → normalize → tool database
+
+PART 7 — Content Engine:
+Outputs: Tool Pages | Stack Pages | SEO Pages | Ranking Pages
+
+PART 8 — Distribution Engine:
+new tool → generate content → tweet → reddit post → newsletter
+
+PART 9 — Monetization:
+1 — Pro Plan: $12/month (save stacks, clone stacks, private stacks, team stacks)
+2 — Featured Tools: $99/month
+3 — ATLAS API: Developers generate stacks via API
+
+PART 10 — Scaling Strategy:
+Phase 0: Tool database, Basic stack generator, Search, Stack pages
+Phase 1: Programmatic SEO, Tool discovery, Ranking pages
+Phase 2: Knowledge graph, Workflow detection, Recommendation engine
+Phase 3: Autonomous agents, Automated stack/content generation
+Phase 4: ATLAS API, AI Stack Marketplace, AI Workflow Execution
+
+Core Principle: ATLAS does not help users find AI tools. ATLAS helps users build AI systems.
+── FILE 7: ATLAS_OS_Founder_Blueprint.md ──
+ATLAS OS — Founder Blueprint
+
+Founder Manifesto:
+ATLAS is not an AI-tool directory.
+ATLAS is an operating system for building AI workflows.
+
+Problem: 50,000+ AI tools exist. Nobody knows which combinations actually work.
+
+Solution: ATLAS converts Problem → AI System
+Example: "I want to automate YouTube videos" →
+  Research → Perplexity | Script → ChatGPT | Voice → ElevenLabs | Video → Runway | Editing → Descript
+
+Product: ATLAS — AI Stack Builder
+User Flow: Goal → AI Stack Generator → Stack Page → Clone Stack → Workspace
+Example: atlas.com/stacks/youtube-automation
+
+5 Core Systems:
+1. Discovery Engine (Product Hunt, GitHub, Reddit, Hacker News, Futurepedia)
+   Pipeline: source → scraper → normalize → tool database
+2. Knowledge Graph: tool → tool relationships → AI Workflow Graph = data moat
+   Example: ChatGPT → Zapier → Notion → Slack
+3. Stack Builder: goal → tool selection → stack generation → AI Stack Page
+4. Recommendation Engine: based on usage data → recommend tools and stacks
+5. Distribution Engine: new tool → tweet → reddit post → newsletter
+
+Stack Library: GitHub→Code | Figma→Design | Notion→Templates | ATLAS→AI Systems
+
+Network Effects: User creates stack → others clone/edit/improve → ATLAS learns workflow patterns
+
+Growth Engine: Programmatic SEO
+/best-ai-tools | /ai-tools-for-marketing | /ai-tools-for-youtube
+
+Monetization:
+1. Pro Plan $12/mo: save/clone/private/team stacks
+2. Featured Tools $99/mo
+3. API: AI Stack API
+
+Infrastructure: Next.js | PostgreSQL | Redis | Python workers | Vercel | Supabase | Cloudflare
+
+Most Important Sentence: ATLAS does not help you find AI tools. ATLAS helps you build AI systems.
+── FILE 8: ATLAS_OS_System_Map.md ──
+ATLAS OS — System Map
+
+Global Architecture:
+User → Interface Layer → API Layer → Core Intelligence Layer → Data Layer → Automation Layer → Infrastructure Layer
+
+1. Interface Layer: Web App (Next.js) | Search Interface | Stack Builder UI | Dashboard
+2. API Layer: POST /generate-stack | GET /tools | GET /stacks | POST /clone-stack | GET /recommendations
+3. Core Intelligence Layer: Stack Generator | Recommendation Engine | Knowledge Graph | Search Engine
+   Flow: User goal → Stack Generator → Knowledge Graph → Recommended tools → Stack output
+4. Agent Layer: Architect | Task Planner | Research | Builder | Deployment
+5. Discovery Layer: ProductHunt | GitHub | Reddit | HackerNews | Futurepedia → source → scraper → normalize → tool database
+6. Content Engine: Tool Pages | Stack Pages | SEO Pages | Ranking Pages
+7. Data Layer: PostgreSQL (core) | Redis (caching) | Neo4j (knowledge graph)
+   Core tables: tools | stacks | users | tool_relationships | stack_usage
+8. Automation Layer: Tool discovery | SEO page generation | Ranking updates | Trend detection (Python workers + Task queues)
+9. Distribution Layer: Twitter/X | Reddit | Newsletter | Product Hunt
+10. Infrastructure: Frontend→Vercel | Database→Supabase/PostgreSQL | Caching→Redis | CDN→Cloudflare
+
+Complete System Flow:
+User Idea → ATLAS Stack Generator → AI Workflow Graph → Stack Page Created → Agents Generate Content → Distribution Engine Promotes → Traffic + Data Collected → Recommendation Engine Improves
+── FILE 9: ATLAS_OS_Technical_Architecture.md ──
+ATLAS OS — Technical Architecture (Engineering Version)
+
+System Overview:
+User Goal → Stack Generator → Workflow Graph → Stack Page → Clone/Execute → Workspace
+
+Core services: Discovery Engine | Knowledge Graph | Stack Generator | Recommendation Engine | Distribution Engine
+
+Frontend: Next.js
+Structure: /app /components /pages /stacks /tools /api
+Key pages: Home | Stack Builder | Stack Pages | Tool Pages | Search | Dashboard
+
+API Layer (Node.js / Next.js API routes):
+POST /api/generate-stack | GET /api/tools | GET /api/stacks | POST /api/clone-stack
+
+Discovery Engine:
+Sources: ProductHunt | GitHub | Reddit | HackerNews | Futurepedia
+Pipeline: source → scraper → normalizer → tool database (background jobs)
+
+Knowledge Graph:
+ChatGPT → Zapier → Notion → Slack
+Model: Tool → Used With → Tool
+Tech: PostgreSQL (MVP) | Neo4j (advanced)
+
+Stack Generator:
+Input: "I want to automate YouTube videos"
+Output: Research→Perplexity | Script→ChatGPT | Voice→ElevenLabs | Video→Runway | Editing→Descript
+
+Stack Library structure: stack_id | title | description | tools[] | workflow_steps[]
+Users can: view | clone | modify | share
+
+Recommendation Engine signals: tool popularity | stack usage | workflow patterns
+
+Search Engine: PostgreSQL full-text → ElasticSearch (later)
+
+Distribution Engine: new tool discovered → content generation → tweet → reddit post → newsletter
+
+Data Layer: PostgreSQL tables: tools | stacks | users | stack_clones | tool_relationships | Redis (caching)
+
+Background Workers: tool scraping | stack ranking | trend detection | SEO page generation (Python + Redis queues)
+
+Infrastructure: Vercel (frontend) | Supabase (database) | Cloudflare (CDN) | Redis (caching)
+
+Scaling:
+Phase 1: Single Postgres, Basic scrapers, Manual curation
+Phase 2: Automated discovery, Recommendation engine, Knowledge graph
+Phase 3: AI workflow marketplace, API platform, AI infrastructure layer
+── FILE 10: ATLAS_SOURCE_CODE_MONOLITH.md ──
+ATLAS SOURCE CODE MONOLITH
+
+/frontend/package.json:
+{ "name":"atlas-frontend","private":true,"scripts":{"dev":"next dev","build":"next build","start":"next start"},"dependencies":{"next":"14.0.0","react":"18.2.0","react-dom":"18.2.0","axios":"^1.6.0"} }
+
+/frontend/pages/index.tsx:
+import React from "react";
+export default function Home() {
+  return (
+AIAtlas
+
+Navigate the global AI ecosystem.
+
+);
+}
+
+/backend/main.py:
+from fastapi import FastAPI
+from pydantic import BaseModel
+app = FastAPI(title="AIAtlas API")
+class Tool(BaseModel):
+    name: str
+    description: str
+TOOLS = []
+@app.get("/") def root(): return {"message":"AIAtlas API running"}
+@app.post("/tools") def add_tool(tool: Tool): TOOLS.append(tool); return {"status":"added","tool":tool}
+@app.get("/tools") def list_tools(): return TOOLS
+
+/database/schema.sql:
+CREATE TABLE tools (id SERIAL PRIMARY KEY, name TEXT, description TEXT, created_at TIMESTAMP DEFAULT NOW());
+CREATE TABLE companies (id SERIAL PRIMARY KEY, name TEXT, website TEXT);
+CREATE TABLE models (id SERIAL PRIMARY KEY, name TEXT, provider TEXT);
+
+/discovery/discover.py:
+import requests
+def discover_ai_tools():
+    sources = ["https://huggingface.co","https://github.com"]
+    results = []
+    for s in sources: results.append({"source":s})
+    return results
+
+/graph/graph_model.py:
+class Node:
+    def __init__(self, id, type): self.id=id; self.type=type; self.edges=[]
+class Edge:
+    def __init__(self, source, target, relation): self.source=source; self.target=target; self.relation=relation
+
+/api/routes.py:
+from fastapi import APIRouter
+router = APIRouter()
+@router.get("/search") def search(q:str): return {"query":q}
+── FILE 11: ATLAS_SUPERNOVA_SYSTEM.md ──
+ATLAS SUPERNOVA SYSTEM — Generated 2026-03-15T13:37:15.947728 UTC
+The Complete Architecture for the AI Internet.
+
+Core idea: Google indexed websites. Atlas indexes intelligence.
+
+Founder Thesis:
+The AI ecosystem is fragmented. Tools, models, APIs, datasets, and companies exist across thousands of isolated platforms.
+Developers struggle: Which AI tools exist? Which models power them? What stacks do successful AI products use? What workflows solve real problems?
+Atlas solves this by building a global AI knowledge graph.
+
+Platform Vision: Atlas = infrastructure layer for the AI internet.
+Comparable: Google→search | AWS→compute | Stripe→payment | Atlas→intelligence
+
+Core Platform Components:
+1 Discovery Engine | 2 Knowledge Graph | 3 Vector Intelligence Layer | 4 Ranking & Trend Engine | 5 AI Stack Builder | 6 Developer Platform
+
+Discovery Engine:
+Sources: GitHub | ProductHunt | HuggingFace | Startup databases | Research publications | AI newsletters | Social media
+Pipeline: crawler → metadata extractor → capability detection → entity resolver → database ingestion
+
+Knowledge Graph connects: tools | models | companies | developers | workflows | capabilities | industries
+Relations: Tool→uses→Model | Model→trained by→Company | Workflow→requires→Tool | Industry→uses→Workflow
+
+Vector Intelligence Layer: all entities embedded into vector DB
+Capabilities: semantic search | recommendation | workflow detection | AI stack generation
+
+Ranking Engine signals: GitHub signals | community usage | web traffic | developer adoption | model performance | workflow popularity
+
+AI Stack Builder (viral feature):
+Input: "I want to build an AI research assistant."
+Output: recommended models | vector database | agent framework | hosting stack | deployment architecture
+
+Workflow Intelligence: AI marketing automation | AI research pipelines | AI coding assistants | AI video generation pipelines → reusable templates
+
+Programmatic SEO: best AI tools for lawyers | AI tools for video editing | AI tools for startups
+
+Website Architecture: Hero | Scenes | Atlas Map | Explorer | Tool Pages | Workflow Pages | Stack Builder | Developer API
+
+Galaxy Map Interface: Nodes=tools/models/companies, Clusters=AI development/image generation/automation/coding/agents
+
+Developer Platform APIs: /tools | /models | /workflows | /stacks | /companies
+
+Infrastructure: Next.js+React+Three.js (frontend) | Node.js+Python workers (backend) | PostgreSQL+Neo4j+VectorDB+Redis (data) | Kafka (streaming)
+
+Crawler: discover AI projects | parse documentation | extract capabilities | detect model usage | identify workflows
+
+Repository: atlas/frontend/ backend/ crawler/ knowledge-graph/ ranking-engine/ vector-engine/ stack-builder/ api/ admin/ cli/
+
+CLI: atlas discover | atlas crawl | atlas ingest | atlas graph build | atlas rank | atlas deploy
+
+Monetization: Featured tools | Enterprise intelligence | Developer APIs | Stack builder premium | Market analytics
+
+Growth loops: Programmatic SEO | Developer adoption | Stack builder sharing | Workflow templates | Open APIs
+
+Roadmap: Phase1→AI discovery | Phase2→knowledge graph | Phase3→stack builder | Phase4→workflow intelligence | Phase5→AI infrastructure platform
+── FILE 14: ATLAS_HYPERSCALE_ARCHITECTURE.md ──
+ATLAS HYPERSCALE ARCHITECTURE
+
+Gesamtarchitektur:
+INTERNET/AI ECOSYSTEM → DISCOVERY LAYER → DATA INGESTION → ENTITY RESOLUTION → AI KNOWLEDGE GRAPH → VECTOR INTELLIGENCE → ATLAS SEARCH ENGINE → WORKFLOW DETECTION → AI STACK BUILDER → AGENT LAYER → PUBLIC API LAYER → DEVELOPERS/USERS
+
+Discovery Layer:
+Crawler Sources: GitHub | HuggingFace | ProductHunt | AI directories | Startup databases | Research papers | API marketplaces | Docs sites
+Crawler Modules: github_crawler | hf_model_crawler | startup_crawler | api_crawler | research_crawler | web_scraper | rss_scanner
+Output: raw_entities | raw_metadata | raw_urls
+Stack: Python | Scrapy | Playwright | Kafka | Redis queue
+
+Data Ingestion Layer:
+raw_data → parser → metadata extractor → capability classifier → entity normalizer → database writer
+Extracted: tool_name | company | model | api | features | pricing | category | tags | integrations
+Storage: PostgreSQL | Object storage | Redis cache
+
+Entity Resolution Layer:
+Problem: Ein Tool erscheint mehrfach (ChatGPT / OpenAI ChatGPT / chatgpt.com)
+Techniken: string similarity | semantic similarity | domain matching | embedding clustering
+Output: canonical_entity | aliases | entity_id
+
+Knowledge Graph Layer (Neo4j):
+Node Types: Tool | Model | Company | API | Dataset | Research Paper | Workflow | Industry
+Edges: USES | BUILT_BY | COMPETES_WITH | INTEGRATES_WITH | PART_OF_WORKFLOW | SIMILAR_TO | REPLACES
+Example: ChatGPT─BUILT_BY─OpenAI | ChatGPT─COMPETES_WITH─Claude | ChatGPT─USES─GPT-4
+
+Vector Intelligence Layer (Qdrant/Weaviate/Pinecone):
+Embeddings: tool descriptions | model capabilities | docs | research | workflows
+Functions: semantic search | similar tools | workflow discovery | recommendations
+
+Atlas Search Engine: keyword search | semantic search | graph search | hybrid search
+Stack: Elasticsearch | Vector DB | Graph queries
+
+Workflow Detection Engine:
+Example: Prompt → ChatGPT → Midjourney → Runway → Video Output
+Detection: integration signals | documentation analysis | user stacks | graph clustering
+Output: workflow templates | recommended stacks | automation chains
+
+AI Stack Builder:
+Goal: Build marketing content →
+Research→Perplexity | Writing→ChatGPT | Images→Midjourney | Video→Runway | Automation→Zapier
+
+Agent Layer: tool selection | workflow building | api routing | automation
+
+Programmatic SEO: /ai-tools-for-marketing | /chatgpt-alternatives | /midjourney-vs-dalle | /ai-stack-for-startups → Scale: 1M+ pages
+
+Atlas API Platform: /tools | /models | /companies | /search | /workflows | /stacks
+
+Monetization: Sponsored tools | API access | Enterprise analytics | AI stack marketplace | Workflow marketplace
+
+Hyperscale Infrastructure: Kubernetes | Kafka | PostgreSQL | Neo4j | Redis | Vector DB | Elasticsearch | AWS | GCP
+
+Growth Flywheel: More tools → Better graph → Better recommendations → More users → More workflows → Better Atlas
+
+Strategic Position:
+Atlas ist NICHT: AI Tool Directory
+Atlas IST: AI Ecosystem Index | AI Workflow Engine | AI Knowledge Graph | AI Infrastructure Layer
+Vergleich: Google→Internet Index | Atlas→AI Index
+── FILE 15: ATLAS_OMNIBIBLE_COMPLETE.md ──
+ATLAS OMNIBIBLE COMPLETE — Generated 2026-03-15T13:39:16.171001 UTC
+
+Founder Manifesto:
+Atlas exists to map the entire artificial intelligence ecosystem.
+Problem: AI tools, models, frameworks, datasets, startups, APIs and workflows are fragmented across the internet.
+Current discovery methods (Google, Twitter, ProductHunt, GitHub, AI directories) fail because they are not structured around capabilities or workflows.
+Atlas proposes: Build a global intelligence index of the AI ecosystem.
+
+Core Thesis: Google indexed the web. Atlas indexes intelligence.
+Atlas indexes entities: tools | models | companies | datasets | frameworks | workflows | capabilities
+
+Product Identity: Company=AIAstralis | Product=ATLAS
+Mission: Build the intelligence layer of the AI internet.
+Comparable: Google→search layer | AWS→compute layer | Stripe→payments layer | Atlas→AI ecosystem layer
+
+6 Platform Components:
+1 Discovery Engine | 2 Knowledge Graph | 3 Vector Intelligence Layer | 4 Ranking & Trend Engine | 5 Workflow Intelligence | 6 AI Stack Builder
+
+Discovery Engine: GitHub | HuggingFace | ProductHunt | Startup databases | Research papers | Docs | Social media
+Pipeline: crawler → parser → metadata extraction → capability detection → entity resolution → database ingestion
+
+Entity Resolution: ChatGPT→uses→GPT-4 | GPT-4→developed by→OpenAI
+
+Knowledge Graph (graph DB):
+Nodes: tools | models | companies | developers | datasets | workflows | industries
+Edges: uses | developed_by | part_of | requires | similar_to
+
+Vector Intelligence: semantic search | tool recommendations | workflow discovery | AI stack generation
+
+Ranking signals: GitHub stars | activity | developer adoption | model benchmarks | community popularity | web traffic
+
+Workflow Intelligence examples:
+AI coding workflow | AI video generation pipeline | AI research automation | AI marketing automation
+
+AI Stack Builder:
+Input: "I want to build an AI SaaS for marketing automation."
+Output: models | vector database | agent framework | backend infrastructure | deployment stack
+
+Website layers: Hero | Scenes | System Map | Explorer | Tool Pages | Workflow Pages | Stack Builder | Developer API
+
+Galaxy Map: Nodes=tools/models/companies, Clusters=AI coding/video/agents/automation
+
+Programmatic SEO: best AI tools for lawyers | AI tools for startups | AI tools for video editing
+
+API Platform: /tools | /models | /workflows | /stacks | /companies | /search
+
+Infrastructure: Next.js+React+Three.js (frontend) | Node.js+Python workers (backend) | PostgreSQL+Neo4j+VectorDB+Redis+Kafka
+
+Crawler responsibilities: discover projects | parse documentation | extract metadata | detect capabilities | identify relationships
+
+Admin dashboard: tool submissions | moderation | ranking adjustments | workflow verification
+
+Monetization: Featured tools | Enterprise analytics | Developer APIs | Stack builder premium
+
+Growth loops: SEO traffic | developer adoption | workflow sharing | stack sharing | API integrations
+
+Roadmap: Phase1→AI tool discovery | Phase2→Knowledge graph | Phase3→AI stack builder | Phase4→Workflow intelligence | Phase5→AI infrastructure platform

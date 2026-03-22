@@ -1,0 +1,375 @@
+import { useState, useEffect, useRef } from "react";
+
+// ── MOCK DATA ─────────────────────────────────────────────────
+const SOURCES = [
+  { id:"ph",    name:"Product Hunt",  icon:"🚀", color:"#f97316", active:true,  rate:"12/hr" },
+  { id:"gh",    name:"GitHub",        icon:"🐙", color:"#8b5cf6", active:true,  rate:"34/hr" },
+  { id:"hf",    name:"HuggingFace",   icon:"🤗", color:"#f59e0b", active:true,  rate:"8/hr"  },
+  { id:"hn",    name:"Hacker News",   icon:"🔶", color:"#ef4444", active:false, rate:"5/hr"  },
+  { id:"rd",    name:"Reddit",        icon:"👾", color:"#f97316", active:true,  rate:"19/hr" },
+  { id:"arxiv", name:"arXiv",         icon:"📄", color:"#06b6d4", active:false, rate:"3/hr"  },
+];
+
+const INIT_LOG = [
+  { id:1, time:"05:42:11", source:"Product Hunt", tool:"Suno AI v4",       cat:"Audio",   status:"added",    score:87 },
+  { id:2, time:"05:41:03", source:"GitHub",       tool:"OpenDevin",        cat:"Coding",  status:"added",    score:92 },
+  { id:3, time:"05:39:55", source:"HuggingFace",  tool:"Qwen2.5-VL",       cat:"Vision",  status:"added",    score:84 },
+  { id:4, time:"05:38:22", source:"Reddit",       tool:"Pika 2.0",         cat:"Video",   status:"duplicate",score:79 },
+  { id:5, time:"05:37:14", source:"Product Hunt", tool:"Gamma v3",         cat:"Design",  status:"added",    score:76 },
+  { id:6, time:"05:36:01", source:"GitHub",       tool:"LangGraph 0.2",    cat:"Coding",  status:"added",    score:88 },
+  { id:7, time:"05:34:47", source:"HuggingFace",  tool:"Mistral Small 3",  cat:"Writing", status:"added",    score:91 },
+  { id:8, time:"05:33:30", source:"Reddit",       tool:"Cursor v0.45",     cat:"Coding",  status:"duplicate",score:95 },
+];
+
+const CATEGORIES = ["Writing","Image","Video","Audio","Coding","Research","Automation","Productivity","Vision","Design"];
+
+const TREND_DATA = [
+  { name:"Coding Agents",  score:94, delta:"+12", sparkline:[40,45,52,58,67,72,81,94] },
+  { name:"Video Gen",      score:89, delta:"+8",  sparkline:[55,58,61,65,70,75,82,89] },
+  { name:"Voice Cloning",  score:85, delta:"+5",  sparkline:[60,63,65,68,72,76,80,85] },
+  { name:"RAG / Search",   score:82, delta:"+3",  sparkline:[65,66,68,70,73,76,79,82] },
+  { name:"AI Agents",      score:91, delta:"+14", sparkline:[35,42,50,58,68,75,84,91] },
+];
+
+const SEO_KEYWORDS = [
+  "best ai tools for students","best ai tools for marketing","best ai coding assistant",
+  "chatgpt alternatives","midjourney alternatives","best ai image generator free",
+  "ai tools for developers","best ai writing tool 2026","ai tools for youtube",
+  "cursor vs github copilot","best ai video generator","elevenlabs alternatives",
+];
+
+// ── ATOMS ─────────────────────────────────────────────────────
+const Badge = ({c,children})=>(
+  <span style={{background:`${c}22`,color:c,border:`1px solid ${c}33`,borderRadius:4,padding:"1px 7px",fontSize:10,fontWeight:700}}>{children}</span>
+);
+const Pill = ({on,onClick,children})=>(
+  <button onClick={onClick} style={{background:on?"#06b6d420":"transparent",border:`1px solid ${on?"#06b6d4":"#1e293b"}`,color:on?"#06b6d4":"#475569",borderRadius:20,padding:"3px 10px",fontSize:11,cursor:"pointer",transition:"all .2s"}}>{children}</button>
+);
+
+// ── SPARKLINE ─────────────────────────────────────────────────
+function Spark({data,color="#06b6d4",h=24,w=80}) {
+  const mn=Math.min(...data), mx=Math.max(...data), rng=mx-mn||1;
+  const pts=data.map((v,i)=>`${(i/(data.length-1))*w},${h-((v-mn)/rng)*h}`).join(" ");
+  return (
+    <svg width={w} height={h} style={{overflow:"visible"}}>
+      <polyline points={pts} fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+}
+
+// ── RING CHART ────────────────────────────────────────────────
+function Ring({pct,color,size=56,label}) {
+  const r=22, circ=2*Math.PI*r, dash=(pct/100)*circ;
+  return (
+    <div style={{textAlign:"center"}}>
+      <svg width={size} height={size} viewBox="0 0 56 56">
+        <circle cx="28" cy="28" r={r} fill="none" stroke="#1e293b" strokeWidth="5"/>
+        <circle cx="28" cy="28" r={r} fill="none" stroke={color} strokeWidth="5"
+          strokeDasharray={`${dash} ${circ}`} strokeLinecap="round"
+          transform="rotate(-90 28 28)" style={{transition:"stroke-dasharray .6s ease"}}/>
+        <text x="28" y="32" textAnchor="middle" fill={color} fontSize="10" fontWeight="800">{pct}%</text>
+      </svg>
+      <div style={{fontSize:9,color:"#475569",marginTop:2}}>{label}</div>
+    </div>
+  );
+}
+
+// ── LIVE COUNTER ──────────────────────────────────────────────
+function LiveNum({base,rate=1}) {
+  const [n,setN]=useState(base);
+  useEffect(()=>{ const t=setInterval(()=>setN(v=>v+rate),3000); return()=>clearInterval(t); },[rate]);
+  return <span>{n.toLocaleString()}</span>;
+}
+
+// ── MAIN APP ──────────────────────────────────────────────────
+export default function App() {
+  const [tab,setTab]=useState("live");
+  const [log,setLog]=useState(INIT_LOG);
+  const [running,setRunning]=useState(true);
+  const [sources,setSources]=useState(SOURCES);
+  const [selectedCats,setSelectedCats]=useState([]);
+  const [seoGen,setSeoGen]=useState([]);
+  const [genRunning,setGenRunning]=useState(false);
+  const tickRef=useRef(0);
+
+  // simulate live discovery
+  useEffect(()=>{
+    if(!running) return;
+    const tools=["Kling AI 2.0","HeyGen v3","Perplexity Deep","Lovable 2.0","v0.dev","Bolt.new","Windsurf","Gemini 2.5","Grok 3","DeepSeek V3","Claude 3.7","Llama 4"];
+    const cats=["Video","Writing","Coding","Research","Image","Audio"];
+    const srcs=["Product Hunt","GitHub","HuggingFace","Reddit"];
+    const t=setInterval(()=>{
+      tickRef.current++;
+      const now=new Date();
+      const hh=String(now.getHours()).padStart(2,"0");
+      const mm=String(now.getMinutes()).padStart(2,"0");
+      const ss=String(now.getSeconds()).padStart(2,"0");
+      const entry={
+        id:Date.now(),
+        time:`${hh}:${mm}:${ss}`,
+        source:srcs[Math.floor(Math.random()*srcs.length)],
+        tool:tools[Math.floor(Math.random()*tools.length)],
+        cat:cats[Math.floor(Math.random()*cats.length)],
+        status:Math.random()>.25?"added":"duplicate",
+        score:Math.floor(Math.random()*30)+65,
+      };
+      setLog(prev=>[entry,...prev.slice(0,49)]);
+    },2200);
+    return()=>clearInterval(t);
+  },[running]);
+
+  function toggleSource(id){ setSources(prev=>prev.map(s=>s.id===id?{...s,active:!s.active}:s)); }
+  function toggleCat(c){ setSelectedCats(prev=>prev.includes(c)?prev.filter(x=>x!==c):[...prev,c]); }
+
+  function generateSEO() {
+    setGenRunning(true); setSeoGen([]);
+    const cats=selectedCats.length?selectedCats:CATEGORIES.slice(0,4);
+    const kws=[...SEO_KEYWORDS];
+    let i=0;
+    const t=setInterval(()=>{
+      if(i>=kws.length){ clearInterval(t); setGenRunning(false); return; }
+      setSeoGen(prev=>[...prev,{
+        slug:"/best-ai-tools-for-"+kws[i].replace(/best ai tools for /,"").replace(/ /g,"-"),
+        kw:kws[i], vol:Math.floor(Math.random()*8000+2000),
+        diff:Math.floor(Math.random()*60+20), status:"generated"
+      }]);
+      i++;
+    },180);
+  }
+
+  const addedCount = log.filter(l=>l.status==="added").length;
+  const dupCount   = log.filter(l=>l.status==="duplicate").length;
+
+  const TABS = ["live","seo","trends","sources"];
+
+  return (
+    <div style={{background:"#020817",minHeight:"100vh",color:"#f1f5f9",fontFamily:"system-ui,sans-serif",padding:"20px"}}>
+
+      {/* Header */}
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:24,flexWrap:"wrap",gap:12}}>
+        <div>
+          <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:4}}>
+            <div style={{width:28,height:28,borderRadius:6,background:"linear-gradient(135deg,#06b6d4,#3b82f6)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,fontWeight:900,color:"#fff"}}>A</div>
+            <span style={{fontWeight:900,fontSize:16}}>ATLAS OS</span>
+            <Badge c="#06b6d4">Discovery Engine</Badge>
+            <Badge c="#22c55e">v20.0</Badge>
+          </div>
+          <div style={{fontSize:12,color:"#475569"}}>Autonomous AI Tool Discovery · Knowledge Graph Builder · SEO Engine</div>
+        </div>
+        <div style={{display:"flex",gap:8,alignItems:"center"}}>
+          <div style={{display:"flex",alignItems:"center",gap:6,background:"#0f172a",border:"1px solid #1e293b",borderRadius:8,padding:"6px 12px"}}>
+            <div style={{width:7,height:7,borderRadius:"50%",background:running?"#22c55e":"#ef4444",boxShadow:running?"0 0 6px #22c55e":""}}/>
+            <span style={{fontSize:11,color:running?"#22c55e":"#ef4444",fontWeight:700}}>{running?"CRAWLING":"PAUSED"}</span>
+          </div>
+          <button onClick={()=>setRunning(v=>!v)} style={{background:running?"#ef444420":"#22c55e20",border:`1px solid ${running?"#ef4444":"#22c55e"}`,color:running?"#ef4444":"#22c55e",borderRadius:8,padding:"6px 14px",fontSize:11,fontWeight:700,cursor:"pointer"}}>
+            {running?"⏸ Pause":"▶ Resume"}
+          </button>
+        </div>
+      </div>
+
+      {/* Stats row */}
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(140px,1fr))",gap:10,marginBottom:20}}>
+        {[
+          {label:"Tools Discovered",val:<><LiveNum base={10482} rate={1}/></>,color:"#06b6d4",sub:"total indexed"},
+          {label:"Added Today",val:<LiveNum base={addedCount} rate={0}/>,color:"#22c55e",sub:"new tools"},
+          {label:"Duplicates Filtered",val:<LiveNum base={dupCount} rate={0}/>,color:"#f59e0b",sub:"deduplicated"},
+          {label:"Sources Active",val:sources.filter(s=>s.active).length,color:"#8b5cf6",sub:`of ${sources.length} total`},
+          {label:"SEO Pages",val:<><LiveNum base={104230} rate={3}/></>,color:"#3b82f6",sub:"indexed"},
+          {label:"Graph Edges",val:<><LiveNum base={284910} rate={5}/></>,color:"#ec4899",sub:"relationships"},
+        ].map(s=>(
+          <div key={s.label} style={{background:"#0f172a",border:"1px solid #1e293b",borderRadius:10,padding:"12px 14px"}}>
+            <div style={{fontSize:10,color:"#475569",fontWeight:600,marginBottom:4}}>{s.label}</div>
+            <div style={{fontSize:22,fontWeight:900,color:s.color}}>{s.val}</div>
+            <div style={{fontSize:10,color:"#334155",marginTop:2}}>{s.sub}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Rings */}
+      <div style={{background:"#0f172a",border:"1px solid #1e293b",borderRadius:12,padding:"14px 18px",marginBottom:20,display:"flex",gap:20,alignItems:"center",flexWrap:"wrap"}}>
+        <div style={{fontSize:11,color:"#475569",fontWeight:700,minWidth:80}}>QUALITY GATES</div>
+        <Ring pct={94} color="#22c55e" label="Confidence"/>
+        <Ring pct={87} color="#06b6d4" label="Resolved"/>
+        <Ring pct={72} color="#f59e0b" label="Indexed"/>
+        <Ring pct={61} color="#8b5cf6" label="API Mapped"/>
+        <Ring pct={48} color="#ec4899" label="Compared"/>
+        <div style={{flex:1,fontSize:11,color:"#334155",lineHeight:1.7,minWidth:160}}>
+          All tools pass confidence scoring (≥0.7) before graph insertion. Entity resolver deduplicates via fuzzy match + semantic similarity.
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div style={{display:"flex",gap:6,marginBottom:16}}>
+        {TABS.map(t=>(
+          <button key={t} onClick={()=>setTab(t)} style={{background:tab===t?"linear-gradient(135deg,#06b6d4,#3b82f6)":"#0f172a",border:`1px solid ${tab===t?"transparent":"#1e293b"}`,color:tab===t?"#fff":"#64748b",borderRadius:8,padding:"7px 16px",fontSize:12,fontWeight:700,cursor:"pointer",textTransform:"capitalize"}}>
+            {t==="live"?"🔴 Live Feed":t==="seo"?"📄 SEO Generator":t==="trends"?"📈 Trends":t==="sources"?"⚙️ Sources":""}
+          </button>
+        ))}
+      </div>
+
+      {/* ── LIVE FEED ── */}
+      {tab==="live" && (
+        <div style={{background:"#0f172a",border:"1px solid #1e293b",borderRadius:12,overflow:"hidden"}}>
+          <div style={{padding:"10px 16px",borderBottom:"1px solid #1e293b",display:"flex",justifyContent:"space-between",alignItems:"center",background:"#080f1e"}}>
+            <span style={{fontSize:11,color:"#334155",fontWeight:700,letterSpacing:.5}}>LIVE DISCOVERY STREAM</span>
+            <div style={{display:"flex",gap:6}}>
+              <Badge c="#22c55e">+{log.filter(l=>l.status==="added").length} added</Badge>
+              <Badge c="#f59e0b">{log.filter(l=>l.status==="duplicate").length} dupes</Badge>
+            </div>
+          </div>
+          <div style={{maxHeight:400,overflowY:"auto"}}>
+            {log.map((e,i)=>(
+              <div key={e.id} style={{display:"grid",gridTemplateColumns:"70px 130px 1fr 80px 60px 50px",gap:8,padding:"9px 16px",borderBottom:"1px solid #0a111e",alignItems:"center",background:i===0?"#06b6d408":"transparent",transition:"background .3s"}}>
+                <span style={{fontSize:10,color:"#334155",fontFamily:"monospace"}}>{e.time}</span>
+                <div style={{display:"flex",gap:5,alignItems:"center"}}>
+                  <span style={{fontSize:10}}>{SOURCES.find(s=>s.name===e.source)?.icon||"🔗"}</span>
+                  <span style={{fontSize:10,color:"#475569"}}>{e.source}</span>
+                </div>
+                <span style={{fontSize:12,fontWeight:600,color:"#f1f5f9"}}>{e.tool}</span>
+                <Badge c="#8b5cf6">{e.cat}</Badge>
+                <Badge c={e.status==="added"?"#22c55e":"#f59e0b"}>{e.status}</Badge>
+                <div style={{background:"#1e293b",borderRadius:4,padding:"2px 6px",fontSize:10,color:"#06b6d4",fontWeight:700,textAlign:"center"}}>{e.score}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── SEO GENERATOR ── */}
+      {tab==="seo" && (
+        <div>
+          <div style={{background:"#0f172a",border:"1px solid #1e293b",borderRadius:12,padding:20,marginBottom:16}}>
+            <div style={{fontSize:13,fontWeight:700,color:"#f1f5f9",marginBottom:6}}>📄 Programmatic SEO Engine</div>
+            <div style={{fontSize:12,color:"#475569",marginBottom:16,lineHeight:1.7}}>
+              Auto-generate SEO pages from keyword templates. Target: <strong style={{color:"#06b6d4"}}>1,000,000+ pages</strong>. Pattern: <code style={{background:"#1e293b",padding:"1px 6px",borderRadius:4,fontSize:11}}>/best-ai-tools-for/{"{keyword}"}</code>
+            </div>
+            <div style={{marginBottom:14}}>
+              <div style={{fontSize:11,color:"#334155",fontWeight:700,marginBottom:8}}>FILTER BY CATEGORY:</div>
+              <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
+                {CATEGORIES.map(c=><Pill key={c} on={selectedCats.includes(c)} onClick={()=>toggleCat(c)}>{c}</Pill>)}
+              </div>
+            </div>
+            <button onClick={generateSEO} disabled={genRunning} style={{background:"linear-gradient(135deg,#06b6d4,#3b82f6)",border:"none",color:"#fff",borderRadius:8,padding:"9px 20px",fontSize:12,fontWeight:700,cursor:genRunning?"not-allowed":"pointer",opacity:genRunning?.6:1}}>
+              {genRunning?"⚡ Generating...":"⚡ Generate SEO Pages"}
+            </button>
+          </div>
+          {seoGen.length>0 && (
+            <div style={{background:"#0f172a",border:"1px solid #1e293b",borderRadius:12,overflow:"hidden"}}>
+              <div style={{padding:"10px 16px",borderBottom:"1px solid #1e293b",background:"#080f1e",display:"flex",justifyContent:"space-between"}}>
+                <span style={{fontSize:11,color:"#334155",fontWeight:700}}>GENERATED PAGES ({seoGen.length})</span>
+                <Badge c="#22c55e">{seoGen.length} pages</Badge>
+              </div>
+              <div style={{maxHeight:380,overflowY:"auto"}}>
+                {seoGen.map((p,i)=>(
+                  <div key={i} style={{display:"grid",gridTemplateColumns:"1fr 80px 80px 70px",gap:8,padding:"9px 16px",borderBottom:"1px solid #0a111e",alignItems:"center"}}>
+                    <div>
+                      <div style={{fontSize:11,color:"#06b6d4",fontFamily:"monospace"}}>{p.slug}</div>
+                      <div style={{fontSize:10,color:"#475569",marginTop:1}}>{p.kw}</div>
+                    </div>
+                    <div style={{textAlign:"center"}}>
+                      <div style={{fontSize:10,color:"#334155"}}>Volume</div>
+                      <div style={{fontSize:12,fontWeight:700,color:"#f1f5f9"}}>{p.vol.toLocaleString()}</div>
+                    </div>
+                    <div style={{textAlign:"center"}}>
+                      <div style={{fontSize:10,color:"#334155"}}>KD</div>
+                      <div style={{fontSize:12,fontWeight:700,color:p.diff<40?"#22c55e":p.diff<60?"#f59e0b":"#ef4444"}}>{p.diff}</div>
+                    </div>
+                    <Badge c="#22c55e">{p.status}</Badge>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── TRENDS ── */}
+      {tab==="trends" && (
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(300px,1fr))",gap:14}}>
+          {TREND_DATA.map(t=>(
+            <div key={t.name} style={{background:"#0f172a",border:"1px solid #1e293b",borderRadius:12,padding:18}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:12}}>
+                <div>
+                  <div style={{fontWeight:700,color:"#f1f5f9",fontSize:14}}>{t.name}</div>
+                  <div style={{fontSize:11,color:"#475569",marginTop:2}}>Trend Score</div>
+                </div>
+                <div style={{textAlign:"right"}}>
+                  <div style={{fontSize:24,fontWeight:900,color:"#06b6d4"}}>{t.score}</div>
+                  <Badge c="#22c55e">{t.delta} this week</Badge>
+                </div>
+              </div>
+              <Spark data={t.sparkline} color="#06b6d4" h={36} w={260}/>
+              <div style={{marginTop:10,background:"#1e293b",borderRadius:6,overflow:"hidden",height:4}}>
+                <div style={{height:"100%",width:`${t.score}%`,background:"linear-gradient(90deg,#06b6d4,#3b82f6)",transition:"width .8s ease",borderRadius:6}}/>
+              </div>
+            </div>
+          ))}
+          {/* Trend formula */}
+          <div style={{background:"#0f172a",border:"1px solid #1e293b",borderRadius:12,padding:18}}>
+            <div style={{fontWeight:700,color:"#f1f5f9",fontSize:13,marginBottom:10}}>📊 Trend Score Formula</div>
+            <div style={{fontFamily:"monospace",fontSize:11,color:"#64748b",lineHeight:2,background:"#080f1e",padding:12,borderRadius:8}}>
+              <span style={{color:"#06b6d4"}}>trend_score</span> = (<br/>
+              &nbsp;&nbsp;<span style={{color:"#f59e0b"}}>ph_votes</span> * 0.40 +<br/>
+              &nbsp;&nbsp;<span style={{color:"#8b5cf6"}}>gh_stars</span> * 0.30 +<br/>
+              &nbsp;&nbsp;<span style={{color:"#ec4899"}}>twitter</span> * 0.20 +<br/>
+              &nbsp;&nbsp;<span style={{color:"#22c55e"}}>reddit</span> * 0.10<br/>
+              )
+            </div>
+            <div style={{marginTop:10,fontSize:11,color:"#334155",lineHeight:1.7}}>
+              Recalculated every 6 hours. Top 20 trending tools promoted to homepage and SEO pages.
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── SOURCES ── */}
+      {tab==="sources" && (
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:14}}>
+          {sources.map(s=>(
+            <div key={s.id} style={{background:"#0f172a",border:`1px solid ${s.active?"#1e3a5f":"#1e293b"}`,borderRadius:12,padding:18,transition:"border-color .2s"}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+                <div style={{display:"flex",gap:10,alignItems:"center"}}>
+                  <span style={{fontSize:24}}>{s.icon}</span>
+                  <div>
+                    <div style={{fontWeight:700,color:"#f1f5f9",fontSize:13}}>{s.name}</div>
+                    <div style={{fontSize:11,color:"#475569"}}>{s.rate} avg</div>
+                  </div>
+                </div>
+                <button onClick={()=>toggleSource(s.id)} style={{background:s.active?"#22c55e20":"#ef444420",border:`1px solid ${s.active?"#22c55e":"#ef4444"}`,color:s.active?"#22c55e":"#ef4444",borderRadius:6,padding:"4px 10px",fontSize:11,fontWeight:700,cursor:"pointer"}}>
+                  {s.active?"● ON":"○ OFF"}
+                </button>
+              </div>
+              <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+                <Badge c={s.color}>Discovery</Badge>
+                {s.active && <Badge c="#22c55e">Active</Badge>}
+                <Badge c="#8b5cf6">Entity Resolution</Badge>
+              </div>
+              <div style={{marginTop:10,background:"#1e293b",borderRadius:6,overflow:"hidden",height:3}}>
+                <div style={{height:"100%",width:s.active?"100%":"0%",background:`linear-gradient(90deg,${s.color},#06b6d4)`,transition:"width .5s ease",borderRadius:6}}/>
+              </div>
+            </div>
+          ))}
+          {/* Pipeline viz */}
+          <div style={{background:"#0f172a",border:"1px solid #1e293b",borderRadius:12,padding:18,gridColumn:"1/-1"}}>
+            <div style={{fontWeight:700,color:"#f1f5f9",fontSize:13,marginBottom:12}}>⚙️ Crawler Pipeline</div>
+            <div style={{display:"flex",gap:0,alignItems:"center",flexWrap:"wrap",gap:4}}>
+              {["Source","Crawler","Parser","Metadata Extractor","Capability Classifier","Entity Normalizer","Confidence Scorer","Graph Writer"].map((step,i,arr)=>(
+                <div key={step} style={{display:"flex",alignItems:"center",gap:4}}>
+                  <div style={{background:i<3?"#06b6d420":i<6?"#8b5cf620":"#22c55e20",border:`1px solid ${i<3?"#06b6d444":i<6?"#8b5cf644":"#22c55e44"}`,borderRadius:6,padding:"5px 10px",fontSize:10,color:i<3?"#06b6d4":i<6?"#8b5cf6":"#22c55e",fontWeight:600,whiteSpace:"nowrap"}}>
+                    {step}
+                  </div>
+                  {i<arr.length-1 && <span style={{color:"#334155",fontSize:12}}>→</span>}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Footer */}
+      <div style={{marginTop:20,textAlign:"center",fontSize:10,color:"#0f172a",paddingTop:12,borderTop:"1px solid #0a111e"}}>
+        ATLAS OS · Discovery Engine · AIAstralis · v20.0 · Autonomous Growth Loop · 6h cycle
+      </div>
+    </div>
+  );
+}

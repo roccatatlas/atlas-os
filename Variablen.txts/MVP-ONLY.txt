@@ -1,0 +1,240 @@
+# ATLAS MVP — Scope & Implementierungsplan
+
+**Single Source of Truth (MVP):** [spec.md](./spec.md)
+
+**Quelle (Blueprint):** [atlas-blueprint-v1.md](../blueprint/atlas-blueprint-v1.md)
+**Zweck:** Kompakte Referenz für KI-Assistenten und Entwickler.
+
+---
+
+## MVP IMPLEMENTIERUNGSPLAN (KI-CHECKLISTE)
+
+> **Anweisung für KI-Assistenten:** Diesen Abschnitt als zentrale Task-Liste verwenden. Abarbeiten in der vorgegebenen Reihenfolge. Bei Scope-Fragen gilt ausschließlich [REQ-MVP-SCOPE](./spec.md#REQ-MVP-SCOPE).
+
+**Schnellstart für KI:** Starte mit **T1.1**. Projektordner: neues Next.js-Projekt anlegen (z. B. `./` oder vom User vorgegeben). Scope/Routen/Schema sind in [spec.md](./spec.md) definiert.
+
+### Übersicht
+
+| Woche | Fokus | Hauptdeliverables |
+|-------|--------|-------------------|
+| 1 | Projekt + Schema | Next.js, Prisma, Schema, Migrationen |
+| 2 | Seed-Daten | Kategorien, Tools, Integrationen, Seed ausführen |
+| 3 | **AI Stack Generator** | `/generate`, Prompt → Workflow API + UI, Stack speichern, Seite erzeugen |
+| 4 | Stack-Seiten + Tool-Seiten | `/stacks`, `/stacks/[slug]`, `/tools`, `/tools/[slug]`, Clone-Button, `/search` |
+| 5 | Tool Relationship Graph + Landing | Tracking welche Tools kombiniert werden, Landing Page |
+| 6 | SEO + Deploy | Meta, OG-Images, Sitemap, Vercel-Deployment |
+
+**MVP-Routen (nur diese bauen):** `/`, `/generate`, `/stacks`, `/stacks/[slug]`, `/tools`, `/tools/[slug]`, `/categories`, `/search`
+
+**Quality Gates (Hard Mode) Developer-Checkliste:** siehe [quality-gates.md](../gates/quality-gates.md)
+
+---
+
+### Woche 1: Projekt + DB-Schema
+
+**Ziel:** Next.js-Projekt mit Prisma, vollständigem MVP-Schema und lauffähigen Migrationen. Noch keine Seed-Daten.
+
+#### Tasks (abzuarbeiten)
+
+- [ ] **T1.1** Next.js-Projekt anlegen (App Router, TypeScript, Tailwind). Siehe [REQ-MVP-ROUTES](./spec.md#REQ-MVP-ROUTES).
+- [ ] **T1.2** Prisma einbinden, PostgreSQL konfigurieren. Schema anlegen gemäß [DB-MVP-SCHEMA](./spec.md#DB-MVP-SCHEMA).
+- [ ] **T1.3** Migrationen erzeugen und ausführen. Prisma Client Singleton berücksichtigen.
+- [ ] **T1.4 Hardened Architecture Baseline**: CSP, Security Headers und SSRF-Regeln ab Tag 1 umsetzen. Siehe [quality-gates.md](../gates/quality-gates.md).
+
+#### Deliverables
+
+- Repo mit Next.js + Prisma, `prisma/schema.prisma` mit MVP-Modellen, Migrationen angewendet.
+- README mit Anleitung: `npm install`, `.env` (DATABASE_URL), `npx prisma migrate dev`.
+
+#### Akzeptanzkriterien
+
+- `npx prisma migrate dev` läuft fehlerfrei, Tabellen in DB vorhanden.
+
+#### Relevante Sektionen
+
+- [spec.md: REQ-MVP-ROUTES](./spec.md#REQ-MVP-ROUTES), [spec.md: DB-MVP-SCHEMA](./spec.md#DB-MVP-SCHEMA)
+
+---
+
+### Woche 2: Seed-Daten
+
+**Ziel:** Seed-Skript mit Kategorien, Tools, Integrationen und Stacks. Daten in DB laden und prüfen.
+
+#### Tasks (abzuarbeiten)
+
+- [ ] **T2.1** Seed-Skript anlegen: mind. 20–50 Kategorien, 100+ Tools (name, slug, description, websiteUrl, pricing), Category-Zuordnung.
+- [ ] **T2.2** Seed um Integrationen erweitern: `ToolIntegration`-Einträge (toolId, integratesWithId) — Ziel mind. 100+ Kanten für erste 100 Tools.
+- [ ] **T2.3 Seed Stacks (Cold Start Solution)**: Seed um 20+ kuratierte Stacks erweitern (Stack + StackStep) für verschiedene Personas.
+- [ ] **T2.4** Seed ausführen, Daten in DB prüfen (Tools, Integrationen zählbar). README um `npx prisma db seed` ergänzen.
+
+#### Deliverables
+
+- `prisma/seed.ts` (oder äquivalent) mit Tools, Kategorien, Integrationen, Stacks.
+- Lauffähige DB mit geseedeten Daten.
+
+#### Akzeptanzkriterien
+
+- `npx prisma db seed` läuft fehlerfrei.
+- Abfragen: Tools mit Kategorien, Tools mit Integrationen, Stacks mit Steps liefern erwartete Daten.
+
+#### Relevante Sektionen
+
+- [spec.md: DB-MVP-SCHEMA](./spec.md#DB-MVP-SCHEMA)
+
+---
+
+### Woche 3: AI Stack Generator (Kernprodukt MVP)
+
+**Ziel:** Nutzer gibt ein Problem ein (z. B. „I want to automate YouTube videos“) → Atlas liefert einen konkreten AI-Stack (Schritte + Tools). Stack kann gespeichert werden und erhält eine öffentliche Seite.
+
+#### Tasks (abzuarbeiten)
+
+- [ ] **T3.1** API: `POST /api/v1/generate-stack` — Input: Text-Prompt. Output: Steps (geordnet) mit Tool-Referenzen aus der DB. Siehe [API-MVP](./spec.md#API-MVP).
+- [ ] **T3.2** API: `POST /api/v1/stacks` — Speichern eines generierten Stacks: Titel (aus Prompt oder generiert), Slug, Steps (toolId, order). Legt `Stack` + `StackStep`-Einträge an. Gibt Slug/URL zurück.
+- [ ] **T3.3** Seite `/generate`: Prompt eingeben → Stack generieren → Preview anzeigen → “Save & Get Link” speichert und leitet zu `/stacks/[slug]` weiter.
+- [ ] **T3.4** Generierte Stack-Seite: `/stacks/[slug]` muss auch für neu erzeugte Stacks funktionieren (dynamisch aus DB). Bereits in Woche 4 vorgesehen; sicherstellen, dass Stack-Generator Stacks in derselben Struktur speichert wie Seed-Stacks.
+
+#### Deliverables
+
+- `app/generate/page.tsx`, Komponenten: GenerateStackForm, GeneratedStackPreview.
+- API: `app/api/v1/generate-stack/route.ts`, `app/api/v1/stacks/route.ts` (POST).
+- LLM-Integration (env: OPENAI_API_KEY oder ähnlich), Prompt-Template das Tools aus DB nutzt.
+
+#### Akzeptanzkriterien
+
+- Nutzer kann auf `/generate` einen Satz eingeben und erhält einen sinnvollen Tool-Workflow.
+- „Save & Get Link“ speichert den Stack und leitet auf `/stacks/[slug]` weiter.
+- Seite `/stacks/[slug]` zeigt den neu erzeugten Stack korrekt an.
+
+#### Relevante Sektionen
+
+- [spec.md: API-MVP](./spec.md#API-MVP), [spec.md: ACCEPTANCE-CRITERIA](./spec.md#ACCEPTANCE-CRITERIA)
+
+---
+
+### Woche 4: Stack-Seiten + Tool-Seiten + Clone-Button (Stub)
+
+**Ziel:** Öffentliche Stack-Übersicht und Stack-Detail (inkl. generierte Stacks), Tool-Übersicht und Tool-Detail, Share + Clone (Stub).
+
+#### Tasks (abzuarbeiten)
+
+- [ ] **T4.1** API: `GET /api/v1/stacks`, `GET /api/v1/stacks/[slug]` — Liste Stacks + Stack-Detail inkl. Steps und Tool-Daten.
+- [ ] **T4.2** Seite `/stacks` und `/stacks/[slug]`: Verzeichnis + Stack-Detail mit Tool-Flow, Share-Button (URL kopieren), Clone-Button (Stub).
+- [ ] **T4.3** API: `GET /api/v1/tools`, `GET /api/v1/tools/[slug]`, `GET /api/v1/categories`.
+- [ ] **T4.4** Seite `/tools`, `/tools/[slug]`, `/categories`, `/search` (oder Suche auf `/tools?q=`). ToolCard, ToolDetail, CategoryFilter.
+- [ ] **T4.5** Sicherstellen: `/stacks/[slug]` funktioniert für alle Stacks (Seed + generiert). Clone-Button sichtbar, Aktion = Stub.
+
+#### Deliverables
+
+- `app/stacks/page.tsx`, `app/stacks/[slug]/page.tsx`, `app/tools/page.tsx`, `app/tools/[slug]/page.tsx`, `app/categories/` bzw. `app/category/[slug]/page.tsx`, `app/search/page.tsx` (oder Suche auf `/tools`).
+- API: `app/api/v1/stacks/route.ts`, `app/api/v1/stacks/[slug]/route.ts`, `app/api/v1/tools/route.ts`, `app/api/v1/tools/[slug]/route.ts`, `app/api/v1/categories/route.ts`.
+- Komponenten: StackCard, StackDetail, ShareButton, CloneButton (Stub), ToolCard, ToolDetail.
+
+#### Akzeptanzkriterien
+
+- `/stacks` listet alle Stacks (Seed + generiert). `/stacks/[slug]` zeigt Flow, Share + Clone (Stub).
+- `/tools` und `/tools/[slug]` funktionieren, Filter/Suche nutzbar.
+
+#### Relevante Sektionen
+
+- [spec.md: REQ-MVP-ROUTES](./spec.md#REQ-MVP-ROUTES), [spec.md: ACCEPTANCE-CRITERIA](./spec.md#ACCEPTANCE-CRITERIA)
+
+---
+
+### Woche 5: Tool Relationship Graph + Landing Page
+
+**Ziel:** (1) Tool Relationship Graph: Erfassen, welche Tools in generierten/gespeicherten Stacks gemeinsam vorkommen (Daten für Moat). (2) Landing Page mit Hero, CTA „Generate your stack“ → `/generate`, Stack-Preview.
+
+#### Tasks (abzuarbeiten)
+
+- [ ] **T5.1** Tool Relationship Graph: Bei jedem Speichern eines Stacks Tool-Paare (bzw. -Kombinationen) persistieren. Siehe [RELATIONSHIP-GRAPH](./spec.md#RELATIONSHIP-GRAPH).
+- [ ] **T5.2** Route `/`: Landing Page mit CTA zu `/generate`, sekundär `/stacks` und `/tools`.
+- [ ] **T5.3** Stack-Preview: 2–3 Featured Stacks (Cards mit Link zu `/stacks/[slug]`).
+- [ ] **T5.4** Design: konsistent (Navbar: Home, Generate, Stacks, Tools, Categories).
+
+#### Deliverables
+
+- Datenerfassung für Tool-Kombinationen (aus Stacks). `app/page.tsx` (Landing), Hero, ValueProps, StackPreview, Navbar. Einheitliches Layout (Design System).
+
+#### Akzeptanzkriterien
+
+- Kombinationen aus Stacks werden erfasst (für spätere Auswertung/Moat).
+- `/` lädt, CTA „Generate your stack“ führt zu `/generate`, Links zu `/stacks` und `/tools` funktionieren.
+
+#### Relevante Sektionen
+
+- [spec.md: RELATIONSHIP-GRAPH](./spec.md#RELATIONSHIP-GRAPH)
+
+---
+
+### Woche 6: SEO-Metadaten, OG-Images, Deployment
+
+**Ziel:** Suchmaschinenfreundliche Seiten, offene Graph-Images für Sharing, Deployment auf Vercel.
+
+#### Tasks (abzuarbeiten)
+
+- [ ] **T6.1** Pro Route dynamische Meta-Tags: title, description, canonical (nur MVP-Routen).
+- [ ] **T6.2** OG-Images: `/api/og-image` oder statische OG-Bilder pro Seitentyp.
+- [ ] **T6.3** `robots.txt`: allow all, Verweis auf Sitemap.
+- [ ] **T6.4** Sitemap: automatisch generiert für alle öffentlichen MVP-Routen.
+- [ ] **T6.5** Vercel-Projekt anlegen, Environment (DATABASE_URL etc.) setzen.
+- [ ] **T6.6** Build und Deploy: `next build` erfolgreich, Produktion erreichbar. Keine fehlenden Env-Variablen in Production.
+
+#### Deliverables
+
+- Metadata-Konfiguration (generateMetadata wo nötig), `app/robots.ts` (oder static `robots.txt`), `app/sitemap.ts` (dynamic).
+- OG-Image-Route oder statische OG-Assets.
+- Live-URL auf Vercel.
+
+#### Akzeptanzkriterien
+
+- Alle MVP-Routen haben sinnvollen title/description.
+- Teilen einer Stack-URL zeigt korrektes OG-Bild (oder Fallback).
+- Sitemap enthält alle öffentlichen Seiten.
+- Production-Build läuft, App im Browser nutzbar.
+
+#### Relevante Sektionen
+
+- [spec.md: REQ-MVP-ROUTES](./spec.md#REQ-MVP-ROUTES)
+
+---
+
+### Nach dem MVP (nicht in dieser Checkliste)
+
+- Clone-Button mit echtem Auth und „Clone to workspace“.
+- Galaxy Map 3D (Three.js, Section 41).
+- Erweiterter AI Copilot, manueller Stack Builder UI.
+- Reviews, Newsletter, Recommendation Engine.
+
+### Proof Hypothesis — ab Launch messen
+
+Ab Go-Live erfassen:
+
+- **Stacks generiert** (über `/generate`).
+- **Clone-Button-Klicks** (auch wenn Stub).
+- **Traffic:** `/generate`, `/stacks` vs. `/tools`.
+
+**Hypothese:** Nutzer sagen *"I generated an AI stack with Atlas"* — nicht *"I browsed AI tools"*. Wenn nur gebrowst wird und nie generiert → Produkt, nicht Marketing, anpassen.
+
+---
+
+### Kurzreferenz: Was NICHT bauen (MVP)
+
+- Kein Auth (Supabase/Login) — Phase 2.
+- Keine User-Tabellen, keine Saved Tools, kein Dashboard.
+- Keine Reviews, keine Ratings, kein Newsletter.
+- Keine 3D Galaxy Map, kein manueller Stack Builder (create/edit). Keine Zahlungen (Stripe) — Phase 2.
+
+*Bei jedem neuen Feature prüfen: [REQ-MVP-SCOPE](./spec.md#REQ-MVP-SCOPE). Wenn es außerhalb liegt → weglassen.*
+
+---
+
+*Hand this to any AI coding assistant to begin building.*
+
+**— ATLAS**
+
+---
+
+## Anhang (nicht MVP)
+
+Alle strategischen Addenda (AI API Infrastructure, Competitive Intelligence, Auto-Discovery, etc.) stehen im Blueprint: [atlas-blueprint-v1.md](../blueprint/atlas-blueprint-v1.md)

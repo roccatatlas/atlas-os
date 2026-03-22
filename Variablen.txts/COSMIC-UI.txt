@@ -1,0 +1,549 @@
+import { useState, useEffect, useRef } from "react";
+
+// ── Design Blueprint Variables (from aiatlas_design_blueprint.txt) ──
+// EmptySpaceRatio ≈ 70–85% · PrimaryObjectSize ≈ 2–5% viewport
+// MotionSpeed < 0.6x · Palette: 3–4 colors · Glow > sharp highlights
+// Every scene: single focal point · Text: rarely > 2 lines
+// Spacing: 200–400px between sections · Scroll = Camera movement
+
+function useMousePos() {
+  const [pos, setPos] = useState({x:0.5, y:0.5});
+  useEffect(() => {
+    const h = e => setPos({x:e.clientX/window.innerWidth, y:e.clientY/window.innerHeight});
+    window.addEventListener("mousemove", h);
+    return () => window.removeEventListener("mousemove", h);
+  }, []);
+  return pos;
+}
+
+function useScrollY() {
+  const [y, setY] = useState(0);
+  useEffect(() => {
+    const h = () => setY(window.scrollY);
+    window.addEventListener("scroll", h, {passive:true});
+    return () => window.removeEventListener("scroll", h);
+  }, []);
+  return y;
+}
+
+// ── STAR FIELD ────────────────────────────────────────────────
+function StarField({count=200}) {
+  const stars = useRef(
+    Array.from({length:count},(_,i) => ({
+      id:i, x:Math.random()*100, y:Math.random()*100,
+      s:Math.random()*1.8+0.3, o:Math.random()*0.7+0.2,
+      d:Math.random()*8+"s",
+    }))
+  ).current;
+  return (
+    <div style={{position:"fixed",inset:0,pointerEvents:"none",zIndex:0}}>
+      {stars.map(s => (
+        <div key={s.id} style={{
+          position:"absolute", left:`${s.x}%`, top:`${s.y}%`,
+          width:s.s, height:s.s, borderRadius:"50%",
+          background:"#fff", opacity:s.o,
+          animation:`twinkle ${s.d} infinite ease-in-out`,
+        }}/>
+      ))}
+    </div>
+  );
+}
+
+// ── NEBULA ────────────────────────────────────────────────────
+function Nebula({x,y,color,size=600,opacity=0.12}) {
+  return (
+    <div style={{
+      position:"absolute", left:`${x}%`, top:`${y}%`,
+      width:size, height:size,
+      transform:"translate(-50%,-50%)",
+      background:`radial-gradient(circle,${color}${Math.round(opacity*255).toString(16).padStart(2,"0")} 0%,transparent 70%)`,
+      pointerEvents:"none",
+      animation:"nebulaPulse 8s infinite ease-in-out",
+    }}/>
+  );
+}
+
+// ── SCENE WRAPPER ─────────────────────────────────────────────
+function Scene({children, h="100vh", style={}}) {
+  return (
+    <section style={{
+      minHeight:h, position:"relative", display:"flex",
+      alignItems:"center", justifyContent:"center",
+      padding:"120px 20px", ...style
+    }}>
+      {children}
+    </section>
+  );
+}
+
+// ── GLOW TEXT ─────────────────────────────────────────────────
+function GlowText({children, size="clamp(44px,7vw,96px)", color="#06b6d4", style={}}) {
+  return (
+    <div style={{
+      fontSize:size, fontWeight:900, lineHeight:1.05,
+      background:`linear-gradient(135deg,#f8fafc 20%,${color},#3b82f6)`,
+      WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent",
+      textShadow:"none", ...style
+    }}>
+      {children}
+    </div>
+  );
+}
+
+// ── FLOATING NODE ─────────────────────────────────────────────
+function FloatingNode({x,y,color,label,size=12,delay="0s"}) {
+  return (
+    <div style={{
+      position:"absolute", left:`${x}%`, top:`${y}%`,
+      transform:"translate(-50%,-50%)",
+      animation:`float 6s ${delay} infinite ease-in-out`,
+      pointerEvents:"none",
+    }}>
+      <div style={{
+        width:size, height:size, borderRadius:"50%",
+        background:color, boxShadow:`0 0 ${size*2}px ${color}88`,
+        margin:"auto",
+      }}/>
+      {label && <div style={{
+        marginTop:8, fontSize:9, color:"#64748b",
+        textAlign:"center", whiteSpace:"nowrap", fontWeight:600,
+      }}>{label}</div>}
+    </div>
+  );
+}
+
+// ── WORKFLOW STEP ─────────────────────────────────────────────
+function WorkflowStep({tool,role,i,color}) {
+  return (
+    <div style={{
+      display:"flex", flexDirection:"column", alignItems:"center", gap:8,
+      animation:`fadeUp .6s ${i*0.1}s both ease`,
+    }}>
+      <div style={{
+        width:56, height:56, borderRadius:"50%",
+        border:`1px solid ${color}44`,
+        display:"flex", alignItems:"center", justifyContent:"center",
+        background:`${color}12`,
+        boxShadow:`0 0 20px ${color}22`,
+        fontSize:11, fontWeight:700, color,
+      }}>{i+1}</div>
+      <div style={{fontSize:12,fontWeight:700,color:"#f1f5f9",textAlign:"center"}}>{tool}</div>
+      <div style={{fontSize:10,color:"#334155",textAlign:"center"}}>{role}</div>
+      {i < 4 && (
+        <div style={{
+          position:"absolute", right:"-30px", top:"24px",
+          width:24, height:1, background:`${color}33`,
+        }}/>
+      )}
+    </div>
+  );
+}
+
+// ── MAIN ──────────────────────────────────────────────────────
+export default function CosmicUI() {
+  const mouse  = useMousePos();
+  const scrollY= useScrollY();
+  const [typed, setTyped] = useState("");
+  const [phase, setPhase] = useState(0); // 0=typing 1=pause 2=deleting
+  const goals = ["Build a YouTube Channel","Launch an AI SaaS","Automate your Marketing","Create a Podcast"];
+  const goalIdx = useRef(0);
+
+  // Typewriter
+  useEffect(() => {
+    const target = goals[goalIdx.current];
+    let t;
+    if(phase===0) {
+      if(typed.length < target.length) {
+        t = setTimeout(()=>setTyped(target.slice(0,typed.length+1)), 55);
+      } else { t = setTimeout(()=>setPhase(1), 1800); }
+    } else if(phase===1) {
+      t = setTimeout(()=>setPhase(2), 400);
+    } else {
+      if(typed.length > 0) {
+        t = setTimeout(()=>setTyped(typed.slice(0,-1)), 25);
+      } else {
+        goalIdx.current = (goalIdx.current+1) % goals.length;
+        setPhase(0);
+      }
+    }
+    return () => clearTimeout(t);
+  }, [typed, phase]);
+
+  const parallaxX = (mouse.x - 0.5) * 30;
+  const parallaxY = (mouse.y - 0.5) * 20;
+
+  const WORKFLOW = [
+    {tool:"Perplexity",role:"Research",   color:"#06b6d4"},
+    {tool:"Claude",    role:"Script",      color:"#8b5cf6"},
+    {tool:"ElevenLabs",role:"Voice",       color:"#22c55e"},
+    {tool:"Runway",    role:"Video",       color:"#ec4899"},
+    {tool:"Descript",  role:"Edit",        color:"#f59e0b"},
+  ];
+
+  const METRICS = [
+    {n:"10,000+",l:"AI Tools"},
+    {n:"300+",   l:"Categories"},
+    {n:"1M+",    l:"SEO Pages"},
+    {n:"98%",    l:"WSR"},
+  ];
+
+  return (
+    <div style={{
+      background:"#010610", minHeight:"100vh",
+      color:"#f1f5f9", fontFamily:"system-ui,-apple-system,sans-serif",
+      overflowX:"hidden",
+    }}>
+
+      {/* Global styles */}
+      <style>{`
+        @keyframes twinkle { 0%,100%{opacity:.2;transform:scale(.8)} 50%{opacity:1;transform:scale(1.2)} }
+        @keyframes float   { 0%,100%{transform:translate(-50%,-50%) translateY(0)}  50%{transform:translate(-50%,-50%) translateY(-14px)} }
+        @keyframes nebulaPulse { 0%,100%{opacity:.8;transform:translate(-50%,-50%) scale(1)} 50%{opacity:1;transform:translate(-50%,-50%) scale(1.08)} }
+        @keyframes fadeUp  { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes orbit   { from{transform:rotate(0deg) translateX(120px) rotate(0deg)} to{transform:rotate(360deg) translateX(120px) rotate(-360deg)} }
+        @keyframes corePulse { 0%,100%{box-shadow:0 0 40px #06b6d444,0 0 80px #3b82f622} 50%{box-shadow:0 0 80px #06b6d466,0 0 160px #3b82f644} }
+        @keyframes scanLine { 0%{transform:translateY(-100%)} 100%{transform:translateY(100vh)} }
+        @keyframes dash    { to{stroke-dashoffset:0} }
+        * { box-sizing:border-box; }
+        ::-webkit-scrollbar { width:3px } ::-webkit-scrollbar-track{background:#010610} ::-webkit-scrollbar-thumb{background:#1e293b}
+      `}</style>
+
+      {/* Star field */}
+      <StarField count={220}/>
+
+      {/* Scan line effect */}
+      <div style={{
+        position:"fixed", inset:0, pointerEvents:"none", zIndex:1,
+        background:"linear-gradient(transparent 50%,#06b6d403 50%)",
+        backgroundSize:"100% 4px", opacity:.3,
+      }}/>
+
+      {/* ── SCENE 1: HERO ─────────────────────────────────── */}
+      <Scene h="100vh">
+        {/* Nebulae */}
+        <div style={{position:"absolute",inset:0,overflow:"hidden"}}>
+          <Nebula x={50} y={40} color="#06b6d4" size={800} opacity={0.10}/>
+          <Nebula x={20} y={70} color="#8b5cf6" size={500} opacity={0.07}/>
+          <Nebula x={80} y={20} color="#3b82f6" size={400} opacity={0.06}/>
+        </div>
+
+        {/* Floating tool nodes */}
+        <div style={{position:"absolute",inset:0,overflow:"hidden"}}>
+          {[
+            {x:15,y:25,c:"#06b6d4",l:"ChatGPT",s:8,d:"0s"},
+            {x:85,y:30,c:"#8b5cf6",l:"Midjourney",s:7,d:"1s"},
+            {x:10,y:70,c:"#22c55e",l:"ElevenLabs",s:9,d:"2s"},
+            {x:88,y:65,c:"#f59e0b",l:"Cursor",s:6,d:"0.5s"},
+            {x:25,y:85,c:"#ec4899",l:"Runway",s:7,d:"1.5s"},
+            {x:75,y:80,c:"#3b82f6",l:"Zapier",s:8,d:"2.5s"},
+            {x:50,y:88,c:"#06b6d4",l:"Perplexity",s:6,d:"0.8s"},
+          ].map((n,i)=>(
+            <FloatingNode key={i} x={n.x} y={n.y} color={n.c} label={n.l} size={n.s} delay={n.d}/>
+          ))}
+        </div>
+
+        {/* Parallax core orb */}
+        <div style={{
+          position:"absolute", left:"50%", top:"44%",
+          width:180, height:180,
+          transform:`translate(calc(-50% + ${parallaxX*0.3}px), calc(-50% + ${parallaxY*0.3}px))`,
+          transition:"transform .1s ease",
+          borderRadius:"50%",
+          background:"radial-gradient(circle,#06b6d422 0%,#3b82f610 40%,transparent 70%)",
+          animation:"corePulse 4s infinite ease-in-out",
+          zIndex:1,
+        }}>
+          <div style={{
+            position:"absolute",inset:0,borderRadius:"50%",
+            border:"1px solid #06b6d422",
+            animation:"corePulse 4s 0.5s infinite ease-in-out",
+          }}/>
+        </div>
+
+        {/* Hero text */}
+        <div style={{
+          textAlign:"center", position:"relative", zIndex:2,
+          transform:`translateY(${scrollY * -0.15}px)`,
+        }}>
+          <div style={{
+            display:"inline-block",
+            background:"#06b6d410", color:"#06b6d4",
+            border:"1px solid #06b6d422",
+            borderRadius:20, padding:"4px 16px",
+            fontSize:11, fontWeight:700, letterSpacing:1,
+            marginBottom:28,
+          }}>
+            AI WORKFLOW INFRASTRUCTURE · VERSION 20.0
+          </div>
+
+          <GlowText size="clamp(40px,6.5vw,90px)">
+            The OS for<br/>Building<br/>AI Systems
+          </GlowText>
+
+          <div style={{
+            fontSize:16, color:"#475569", marginTop:20, marginBottom:8,
+            height:28,
+          }}>
+            Your goal: <span style={{color:"#06b6d4", fontWeight:700}}>{typed}</span>
+            <span style={{color:"#06b6d4",animation:"twinkle .8s infinite"}}>|</span>
+          </div>
+
+          <p style={{
+            fontSize:14, color:"#334155", maxWidth:420,
+            margin:"12px auto 40px", lineHeight:1.8,
+          }}>
+            Google indexed the web.<br/>
+            <em style={{color:"#1e3a5f"}}>Atlas indexes intelligence.</em>
+          </p>
+
+          <div style={{display:"flex",gap:12,justifyContent:"center",flexWrap:"wrap"}}>
+            <button style={{
+              background:"linear-gradient(135deg,#06b6d4,#3b82f6)",
+              border:"none", color:"#fff", borderRadius:10,
+              padding:"14px 32px", fontWeight:800, fontSize:14,
+              cursor:"pointer", boxShadow:"0 0 40px #06b6d430",
+              letterSpacing:.3,
+            }}>
+              Generate Your Stack →
+            </button>
+            <button style={{
+              background:"transparent",
+              border:"1px solid #1e293b", color:"#64748b",
+              borderRadius:10, padding:"14px 32px",
+              fontWeight:700, fontSize:14, cursor:"pointer",
+            }}>
+              Explore Galaxy Map
+            </button>
+          </div>
+
+          {/* Scroll indicator */}
+          <div style={{
+            marginTop:60, display:"flex", flexDirection:"column",
+            alignItems:"center", gap:6, opacity:.4,
+          }}>
+            <div style={{fontSize:10,color:"#334155",letterSpacing:2}}>SCROLL</div>
+            <div style={{
+              width:1, height:40,
+              background:"linear-gradient(#06b6d4,transparent)",
+              animation:"float 2s infinite ease-in-out",
+            }}/>
+          </div>
+        </div>
+      </Scene>
+
+      {/* ── SCENE 2: PROBLEM ──────────────────────────────── */}
+      <Scene h="80vh">
+        <div style={{position:"absolute",inset:0,overflow:"hidden"}}>
+          <Nebula x={80} y={50} color="#ef4444" size={500} opacity={0.06}/>
+        </div>
+        <div style={{textAlign:"center",maxWidth:700,position:"relative",zIndex:2}}>
+          <div style={{fontSize:11,color:"#334155",fontWeight:700,letterSpacing:2,marginBottom:20}}>THE PROBLEM</div>
+          <GlowText size="clamp(28px,4vw,56px)" color="#ef4444">
+            50,000+ AI tools.<br/>Nobody knows<br/>which ones work together.
+          </GlowText>
+          <p style={{fontSize:15,color:"#334155",marginTop:24,lineHeight:1.8}}>
+            Developers waste hours choosing between ChatGPT, Claude, Gemini, Perplexity, Midjourney, Runway...
+          </p>
+          {/* Chaos nodes */}
+          <div style={{display:"flex",justifyContent:"center",gap:12,marginTop:36,flexWrap:"wrap"}}>
+            {["ChatGPT?","Claude?","Gemini?","Midjourney?","Runway?","..."].map((t,i)=>(
+              <div key={t} style={{
+                background:"#1e293b", border:"1px solid #334155",
+                borderRadius:8, padding:"6px 14px",
+                fontSize:12, color:"#475569",
+                animation:`float ${3+i*0.4}s ${i*0.2}s infinite ease-in-out`,
+              }}>{t}</div>
+            ))}
+          </div>
+        </div>
+      </Scene>
+
+      {/* ── SCENE 3: SOLUTION ─────────────────────────────── */}
+      <Scene h="90vh">
+        <div style={{position:"absolute",inset:0,overflow:"hidden"}}>
+          <Nebula x={50} y={50} color="#06b6d4" size={700} opacity={0.09}/>
+        </div>
+        <div style={{textAlign:"center",maxWidth:800,position:"relative",zIndex:2}}>
+          <div style={{fontSize:11,color:"#06b6d4",fontWeight:700,letterSpacing:2,marginBottom:20}}>THE SOLUTION</div>
+          <GlowText size="clamp(28px,4vw,56px)">
+            You describe the goal.<br/>ATLAS builds the system.
+          </GlowText>
+
+          {/* Input demo */}
+          <div style={{
+            background:"#0f172a", border:"1px solid #1e293b",
+            borderRadius:14, padding:"20px 24px",
+            maxWidth:520, margin:"40px auto 0",
+            textAlign:"left",
+          }}>
+            <div style={{fontSize:11,color:"#334155",fontWeight:700,marginBottom:10}}>GOAL</div>
+            <div style={{fontSize:16,color:"#f1f5f9",fontWeight:700,marginBottom:20}}>
+              "I want to automate YouTube videos"
+            </div>
+            <div style={{borderTop:"1px solid #1e293b",paddingTop:14}}>
+              <div style={{fontSize:10,color:"#334155",fontWeight:700,marginBottom:10}}>ATLAS GENERATES</div>
+              <div style={{display:"flex",flexDirection:"column",gap:8}}>
+                {WORKFLOW.map((s,i)=>(
+                  <div key={i} style={{display:"flex",gap:10,alignItems:"center"}}>
+                    <div style={{
+                      width:22,height:22,borderRadius:"50%",
+                      background:`${s.color}22`,border:`1px solid ${s.color}44`,
+                      display:"flex",alignItems:"center",justifyContent:"center",
+                      fontSize:9,fontWeight:800,color:s.color,flexShrink:0,
+                    }}>{i+1}</div>
+                    <span style={{fontSize:12,fontWeight:700,color:s.color,minWidth:80}}>{s.tool}</span>
+                    <span style={{fontSize:11,color:"#475569"}}>→ {s.role}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </Scene>
+
+      {/* ── SCENE 4: STATS ────────────────────────────────── */}
+      <Scene h="60vh">
+        <div style={{position:"absolute",inset:0,overflow:"hidden"}}>
+          <Nebula x={30} y={50} color="#8b5cf6" size={500} opacity={0.07}/>
+          <Nebula x={70} y={50} color="#06b6d4" size={400} opacity={0.06}/>
+        </div>
+        <div style={{
+          display:"flex",gap:0,justifyContent:"center",flexWrap:"wrap",
+          background:"#0f172a", border:"1px solid #1e293b",
+          borderRadius:20, overflow:"hidden", maxWidth:640, width:"100%",
+          position:"relative",zIndex:2,
+        }}>
+          {METRICS.map((m,i)=>(
+            <div key={m.l} style={{
+              flex:1, minWidth:130, padding:"32px 20px",
+              textAlign:"center",
+              borderRight:i<METRICS.length-1?"1px solid #1e293b":"none",
+            }}>
+              <div style={{fontSize:28,fontWeight:900,color:"#06b6d4"}}>{m.n}</div>
+              <div style={{fontSize:11,color:"#334155",marginTop:4}}>{m.l}</div>
+            </div>
+          ))}
+        </div>
+      </Scene>
+
+      {/* ── SCENE 5: SYSTEM MAP ───────────────────────────── */}
+      <Scene h="80vh">
+        <div style={{position:"absolute",inset:0,overflow:"hidden"}}>
+          <Nebula x={50} y={50} color="#3b82f6" size={800} opacity={0.07}/>
+        </div>
+        <div style={{textAlign:"center",position:"relative",zIndex:2,maxWidth:860,width:"100%"}}>
+          <div style={{fontSize:11,color:"#334155",fontWeight:700,letterSpacing:2,marginBottom:20}}>SYSTEM ARCHITECTURE</div>
+          <GlowText size="clamp(24px,3.5vw,48px)">The Intelligence Stack</GlowText>
+          <div style={{
+            display:"grid",
+            gridTemplateColumns:"repeat(auto-fit,minmax(160px,1fr))",
+            gap:10, marginTop:48,
+          }}>
+            {[
+              {layer:"Interface",  desc:"Web App · Dashboard · API",        color:"#06b6d4"},
+              {layer:"Intelligence",desc:"Stack Generator · Recommendations",color:"#8b5cf6"},
+              {layer:"Agents",     desc:"Architect · Research · Builder",    color:"#3b82f6"},
+              {layer:"Discovery",  desc:"GitHub · ProductHunt · HuggingFace",color:"#22c55e"},
+              {layer:"Data Core",  desc:"Knowledge Graph · PostgreSQL",      color:"#f59e0b"},
+              {layer:"Distribution",desc:"Social · Newsletter · API",        color:"#ec4899"},
+            ].map((l,i)=>(
+              <div key={l.layer} style={{
+                background:`${l.color}08`,
+                border:`1px solid ${l.color}22`,
+                borderRadius:12, padding:"18px 14px",
+                textAlign:"center",
+                animation:`fadeUp .5s ${i*0.08}s both`,
+              }}>
+                <div style={{fontSize:11,fontWeight:800,color:l.color,marginBottom:6}}>{l.layer}</div>
+                <div style={{fontSize:10,color:"#334155",lineHeight:1.6}}>{l.desc}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </Scene>
+
+      {/* ── SCENE 6: NETWORK EFFECT ───────────────────────── */}
+      <Scene h="70vh">
+        <div style={{position:"absolute",inset:0,overflow:"hidden"}}>
+          <Nebula x={50} y={50} color="#22c55e" size={600} opacity={0.07}/>
+        </div>
+        <div style={{textAlign:"center",position:"relative",zIndex:2,maxWidth:640}}>
+          <div style={{fontSize:11,color:"#22c55e",fontWeight:700,letterSpacing:2,marginBottom:20}}>NETWORK EFFECT</div>
+          <GlowText size="clamp(24px,3.5vw,48px)" color="#22c55e">
+            More tools →<br/>Better graph →<br/>More users →<br/>Stronger ATLAS
+          </GlowText>
+          <div style={{
+            marginTop:40,
+            display:"flex",alignItems:"center",justifyContent:"center",gap:12,
+            flexWrap:"wrap",
+          }}>
+            {["Discover","Graph","Recommend","Generate","Share","Repeat"].map((s,i,arr)=>(
+              <div key={s} style={{display:"flex",alignItems:"center",gap:12}}>
+                <div style={{
+                  background:"#0f172a",border:"1px solid #22c55e22",
+                  borderRadius:8,padding:"8px 16px",
+                  fontSize:12,fontWeight:700,color:"#22c55e",
+                  animation:`float ${3+i*0.3}s ${i*0.15}s infinite ease-in-out`,
+                }}>{s}</div>
+                {i<arr.length-1 && <span style={{color:"#1e3a5f",fontSize:14}}>→</span>}
+              </div>
+            ))}
+          </div>
+        </div>
+      </Scene>
+
+      {/* ── SCENE 7: CONVERSION ───────────────────────────── */}
+      <Scene h="80vh">
+        <div style={{position:"absolute",inset:0,overflow:"hidden"}}>
+          <Nebula x={50} y={50} color="#06b6d4" size={900} opacity={0.12}/>
+        </div>
+        <div style={{textAlign:"center",position:"relative",zIndex:2}}>
+          <div style={{
+            width:80,height:80,borderRadius:"50%",
+            background:"linear-gradient(135deg,#06b6d4,#3b82f6)",
+            display:"flex",alignItems:"center",justifyContent:"center",
+            fontSize:28,fontWeight:900,color:"#fff",
+            margin:"0 auto 32px",
+            boxShadow:"0 0 60px #06b6d444",
+            animation:"corePulse 3s infinite ease-in-out",
+          }}>A</div>
+          <GlowText size="clamp(32px,5vw,72px)">
+            Enter Atlas
+          </GlowText>
+          <p style={{
+            fontSize:15,color:"#334155",
+            margin:"20px auto 40px",maxWidth:360,lineHeight:1.8,
+          }}>
+            The AI Workflow Infrastructure Layer.<br/>
+            Build systems. Not just find tools.
+          </p>
+          <div style={{display:"flex",gap:12,justifyContent:"center",flexWrap:"wrap"}}>
+            <button style={{
+              background:"linear-gradient(135deg,#06b6d4,#3b82f6)",
+              border:"none",color:"#fff",borderRadius:10,
+              padding:"16px 40px",fontWeight:800,fontSize:15,
+              cursor:"pointer",boxShadow:"0 0 50px #06b6d440",
+              letterSpacing:.3,
+            }}>
+              Launch Atlas →
+            </button>
+            <button style={{
+              background:"transparent",border:"1px solid #1e293b",
+              color:"#475569",borderRadius:10,
+              padding:"16px 40px",fontWeight:700,fontSize:15,cursor:"pointer",
+            }}>
+              Explore Galaxy Map
+            </button>
+          </div>
+        </div>
+      </Scene>
+
+      {/* Footer */}
+      <div style={{borderTop:"1px solid #0a1628",padding:"20px",textAlign:"center"}}>
+        <div style={{fontSize:10,color:"#0f172a",fontWeight:700}}>
+          ATLAS OS · AIAstralis · Version 20.0 · Google indexed the web. Atlas indexes intelligence.
+        </div>
+      </div>
+    </div>
+  );
+}

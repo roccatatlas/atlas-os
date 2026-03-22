@@ -1,0 +1,226 @@
+AIATLAS VISUAL + SYSTEM DESIGN BLUEPRINT (Combined variables,
+parameters, and design rules)
+
+  --------------------------------------------------
+  1 — CORE POSITIONING VARIABLES
+  --------------------------------------------------
+  ProductType = Infrastructure InterfaceMetaphor =
+  Universe SystemMetaphor = Atlas NavigationConcept
+  = Map InteractionConcept = Exploration
+
+  Narrative Identity: UserRole = Explorer | Pilot |
+  Builder SystemRole = Navigator ProductRole =
+  Infrastructure Layer
+
+  Psychological Frame: PrimaryEmotion = Awe
+  SecondaryEmotion = Discovery IdentityTrigger =
+  Belonging PowerFantasy = Control System
+  --------------------------------------------------
+
+2 — VISUAL ENVIRONMENT VARIABLES
+
+Environment = Cosmic Space BackgroundType = Infinite Canvas Atmosphere =
+Nebula / Deep Space
+
+Spatial Design: SpaceDepth = High CanvasSize = Very Large ContentDensity
+= Low EmptySpaceRatio ≈ 70–85%
+
+Object Scale: ForegroundObjects = Small EnvironmentScale = Massive
+ScaleContrast = Extreme
+
+PrimaryObjectSize ≈ 2–5% of viewport
+
+  --------------------------------------------------
+  3 — COLOR SYSTEM
+  --------------------------------------------------
+  PrimaryColor = Deep Space Black AccentColor1 =
+  Electric Blue AccentColor2 = Cosmic Purple
+  TextColor = White
+
+  Color Functions: Black → Depth / Infinity Blue →
+  Technology / Intelligence Purple → Mystery /
+  Future White → Information / Focus
+
+  Contrast Strategy: BackgroundContrast = Low
+  HighlightContrast = High ColorUsage = Minimal
+  --------------------------------------------------
+
+4 — LIGHTING VARIABLES
+
+LightSources: StarGlow EnergyCore NebulaLight EngineTrail
+
+LightDirection: PrimaryLightOrigin = Center SecondaryLightOrigin =
+Background
+
+LightPurpose: FocusGuidance DepthCreation Atmosphere
+
+  --------------------------------------------------
+  5 — TYPOGRAPHY PARAMETERS
+  --------------------------------------------------
+  FontFamily = Futuristic Sans Serif Weight = Thin /
+  Medium Spacing = Wide
+
+  Hierarchy: HeadlineSize = Very Large SublineSize =
+  Medium BodyText = Minimal
+
+  TextDensity: WordsPerSection = Low HeadlineFocus =
+  Vision
+  --------------------------------------------------
+
+6 — MOTION SYSTEM
+
+MotionStyle = Cinematic MotionSpeed = Slow MotionDensity = Low
+
+MotionLayers: Layer1 = Background (stars drift) Layer2 = Midground
+(nebula movement) Layer3 = Foreground (UI + objects)
+
+MotionPurpose: DepthSimulation Atmosphere NarrativeProgression
+
+  --------------------------------------------------
+  7 — SCROLL ARCHITECTURE
+  --------------------------------------------------
+  ScrollType = Cinematic Camera NavigationMode =
+  Scene Transition InteractionMode = Exploration
+
+  SceneStructure: Scene1 = Hero Scene2 = Problem
+  Scene3 = System Activation Scene4 = Function
+  Scene5 = Ecosystem Scene6 = System Map Scene7 =
+  Network Effect Scene8 = Conversion
+
+  SceneLogic: Emotion → Identity → Fantasy → Power →
+  Conversion
+  --------------------------------------------------
+
+8 — OBJECT TYPES (VISUAL ELEMENTS)
+
+CoreObjects: AtlasCore AI Nodes Data Streams Constellations Clusters
+
+EnvironmentObjects: Stars Nebula Planet Horizons Space Stations Ships
+
+InterfaceObjects: Navigation Grid Radar Rings Connection Lines Pulse
+Signals
+
+  --------------------------------------------------
+  9 — NETWORK VISUALIZATION PARAMETERS
+  --------------------------------------------------
+  NodeType = AI Model | Tool | Agent NodeSymbol =
+  Star NodeCluster = Constellation
+
+  NetworkRepresentation: Connections = Lines
+  ActiveProcess = Light Pulse ClusterType =
+  Technology Domain
+
+  ExampleClusters: LLMs Image Models Agents Vector
+  DB Automation Speech Video Coding
+  --------------------------------------------------
+
+10 — SCALE VARIABLES
+
+UniverseSize = Massive NodeCount = High NetworkDensity = Expanding
+
+VisualScaling: ForegroundElements = Minimal EnvironmentElements =
+Dominant Perspective = Wide
+
+  --------------------------------------------------
+  11 — PSYCHOLOGICAL TRIGGERS
+  --------------------------------------------------
+  Scale Bias Discovery Drive Ownership Feeling
+  Identity Formation
+
+  EmotionalTriggers: Awe Curiosity Exploration Power
+  Belonging
+  --------------------------------------------------
+
+12 — USER ROLE DESIGN
+
+Visitor → Explorer User → Navigator Customer → Citizen
+
+InteractionMetaphor: Scrolling = Flying Clicking = Navigating Selecting
+= Charting Route
+
+  --------------------------------------------------
+  13 — PRODUCT STORY PARAMETERS
+  --------------------------------------------------
+  NarrativeStructure: Chaos → Order → Network →
+  Infrastructure
+
+  StoryLayers: Universe System Function Network
+  Access
+  --------------------------------------------------
+
+14 — CONVERSION DESIGN
+
+CTAPosition = End CTAEmotion = Discovery CTAConcept = Entry
+
+ExampleCTAs: Enter Atlas Explore the AI Universe Launch Atlas
+
+  --------------------------------------------------
+  15 — TECH STACK VARIABLES
+  --------------------------------------------------
+  GraphicsEngine = WebGL 3DLibrary = Three.js
+
+  Animation: ScrollAnimation = GSAP / Lenis
+  SceneTransition = Shader / Canvas
+
+  Performance: GPUAcceleration = Enabled TargetFPS ≈
+  60
+  --------------------------------------------------
+
+16 — SYSTEM METAPHOR VARIABLES
+
+Internet = Universe AI Models = Stars Workflows = Routes Atlas =
+Navigation System
+
+VisualLanguage: Nodes → Stars Clusters → Constellations Connections →
+Orbits Core → Navigation Hub
+
+  --------------------------------------------------
+  17 — VISUAL QUALITY PARAMETERS
+  --------------------------------------------------
+  PremiumIndicators: MotionSpeed = Slow
+  ContentDensity = Low DetailQuality = High Contrast
+  = Controlled
+
+  Avoid: UI Clutter Fast Animations Small Canvas
+  High Text Density
+  --------------------------------------------------
+
+18 — DESIGN PRINCIPLE SYSTEM
+
+Principle1: Environment > Interface Principle2: Scale > Information
+Principle3: Narrative > Navigation
+
+  --------------------------------------------------
+  19 — WEBSITE STRUCTURE MODEL
+  --------------------------------------------------
+  Hero → Universe Entry Scene1 → Problem (AI Chaos)
+  Scene2 → System Activation Scene3 → AI Routing
+  Scene4 → AI Ecosystem Scene5 → System Map Scene6 →
+  AI Routes Scene7 → Network Effect Final → Enter
+  Atlas
+
+  --------------------------------------------------
+
+20 — MASTER FORMULA
+
+Environment + Extreme Scale + Cinematic Motion + Narrative Scroll +
+Network Visualization = Infrastructure Perception
+
+UserPerception: Atlas ≠ Tool Atlas = System Layer of AI
+
+  ------------------------------------------
+  21 — PIXEL‑LEVEL DESIGN RULES (12 RULES)
+  ------------------------------------------
+
+1.  Empty space should occupy at least 70% of the viewport.
+2.  Primary focal object should never exceed ~5% of the canvas.
+3.  Motion speeds should stay below 0.6x normal UI animation speed.
+4.  Limit the palette to 3–4 core colors.
+5.  Use glow and light gradients instead of sharp highlights.
+6.  Every scene must have a single visual focal point.
+7.  Text blocks should rarely exceed two lines.
+8.  Maintain large vertical spacing between sections (200–400px).
+9.  Background layers must move slower than foreground layers.
+10. Interactive nodes should pulse subtly every 3–5 seconds.
+11. Avoid rectangular UI boxes when possible — prefer floating elements.
+12. Every scroll transition should visually feel like a camera movement.

@@ -1,0 +1,1168 @@
+VEXORA ENGINE SDK — 100 ADVANCED RENDERING ENGINES & VISUAL SYSTEMS
+======================================================================
+Version 5.0 | Production Reference Document
+======================================================================
+ 
+ 
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+BLOCK I — PARTICLE & FLUID SYSTEMS (01–15)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 
+01. GPU PARTICLE ENGINE — TRANSFORM FEEDBACK
+    Type:    WebGL 2.0 / GLSL ES 3.0
+    Core:    Instanced rendering via gl.drawArraysInstanced()
+             Transform Feedback loop for GPU-side velocity/position update
+             No CPU readback — all simulation stays on GPU
+    Specs:   2.4M particles @ 144fps
+             8 emitter types: point, cone, sphere, disc, mesh-surface, volume, spline, vortex
+             Per-particle: position, velocity, life, size, color (RGBA), rotation, custom data
+    Output:  Billboard sprites, stretched velocity trails, geometry particles
+    API:     ParticleSystem.create({ emitter, count, shader, physics })
+ 
+02. SPH FLUID SIMULATOR (Smoothed Particle Hydrodynamics)
+    Type:    Canvas 2D / WebGL compute
+    Core:    Navier-Stokes approximation via SPH kernels
+             Poly6 kernel for density, Spiky kernel for pressure gradient
+             Viscosity kernel for velocity diffusion
+    Specs:   4000–8000 fluid particles real-time
+             Surface tension, viscosity, density, pressure all configurable
+             Metaball rendering pass for smooth fluid surface
+    Output:  Liquid simulation, blob merging, viscous flow
+    API:     FluidSim.init({ particles, viscosity, surfaceTension, gravity })
+ 
+03. FIRE & COMBUSTION ENGINE
+    Type:    Canvas 2D multi-pass
+    Core:    Cellular automaton grid (256x256) for heat propagation
+             Turbulence via layered Perlin noise field
+             Particle emitter spawns from hot cells above threshold
+    Specs:   Fire, ember, smoke, heat-haze layers
+             Wind vector field influence
+             Fuel consumption model with burnout
+    Output:  Realistic fire, torch flames, explosion, controlled burn
+    API:     FireEngine.ignite({ x, y, radius, fuel, windVector })
+ 
+04. SMOKE & VOLUMETRIC FOG ENGINE
+    Type:    WebGL / Canvas layered
+    Core:    Advection-diffusion PDE on 2D velocity field
+             Jacobi iteration pressure solver
+             Curl-noise turbulence injection
+    Specs:   512x512 velocity/density/temperature fields
+             Buoyancy model (hot smoke rises)
+             3-band color gradient (fresh/old/dissipating)
+    Output:  Smoke plumes, exhaust, fog rolls, chemical clouds
+    API:     SmokeEngine.emit({ source, temperature, density, color })
+ 
+05. GALAXY & NEBULA RENDERER
+    Type:    WebGL 2 instanced
+    Core:    Logarithmic spiral arm generation
+             Per-star luminosity from main-sequence distribution
+             Dust lane occlusion via depth-sorted alpha
+    Specs:   500K stars instanced
+             HSL color distribution by stellar class (O/B/A/F/G/K/M)
+             Animated star formation regions with emission nebula glow
+    Output:  Milky Way, spiral galaxies, nebulae, star clusters
+    API:     GalaxyEngine.build({ arms, stars, age, coreRadius })
+ 
+06. LIGHTNING & ELECTRICITY ENGINE
+    Type:    Canvas 2D recursive
+    Core:    Recursive midpoint displacement for fractal bolt geometry
+             Charge propagation with branching probability
+             Bloom pass via off-screen canvas compositing
+    Specs:   Configurable branch depth (2–8 levels)
+             Strike, arc, tesla, plasma modes
+             Persistent glow decay with after-image
+    Output:  Lightning bolts, electrical arcs, tesla coil, plasma tendrils
+    API:     LightningEngine.strike({ from, to, branches, intensity })
+ 
+07. WATER SURFACE ENGINE (FFT Ocean)
+    Type:    WebGL 2 + GLSL compute
+    Core:    Phillips spectrum for wave height field generation
+             2D FFT via Cooley-Tukey algorithm in GLSL
+             Gerstner waves for sharp crests
+    Specs:   256x256 FFT grid, 60fps
+             Foam map accumulation at wave crests
+             Subsurface scattering approximation for water color
+    Output:  Ocean, lake, puddle, ripple interactions
+    API:     OceanEngine.init({ windSpeed, windDir, choppiness, tileSize })
+ 
+08. SNOW & ICE PARTICLE ENGINE
+    Type:    Canvas 2D multi-layer
+    Core:    Drift simulation via perlin velocity field
+             Accumulation map on static surfaces
+             Crystalline flake geometry procedurally generated (6-fold symmetry)
+    Specs:   3000 simultaneous snowflakes
+             Accumulation depth tracking per pixel column
+             Wind gusts via time-varying noise
+    Output:  Snowfall, blizzard, accumulation, ice crystal growth
+    API:     SnowEngine.setConditions({ density, wind, temperature })
+ 
+09. HYPERSPACE / WARP TUNNEL ENGINE
+    Type:    WebGL + GLSL
+    Core:    Radial streak lines from center singularity
+             Time-warped cylindrical tunnel geometry
+             Chromatic aberration and motion blur post-pass
+    Specs:   Configurable star density and warp factor
+             Entry/exit animation sequence
+             Tunnel curvature via bezier path
+    Output:  Star trek warp, hyperspace jump, portal effect
+    API:     WarpEngine.engage({ speed, direction, duration })
+ 
+10. DNA / MOLECULAR VISUALIZATION ENGINE
+    Type:    Canvas 2D + WebGL hybrid
+    Core:    B-form helix parametric equations
+             Van der Waals sphere rendering with depth sort
+             Bond cylinder interpolation between atoms
+    Specs:   Full double helix with base pair coloring
+             Rotation, zoom, tilt controls
+             Highlight/selection system for base pairs
+    Output:  DNA double helix, protein structures, molecular bonds
+    API:     MoleculeEngine.load({ sequence, style, colors })
+ 
+11. MAGNETIC FIELD VISUALIZER
+    Type:    Canvas 2D vector field
+    Core:    Biot-Savart law numerical integration
+             Streamline integration via 4th-order Runge-Kutta
+             LIC (Line Integral Convolution) texture synthesis
+    Specs:   Interactive pole placement
+             Field strength heat-map overlay
+             Animated field line propagation
+    Output:  Dipole fields, solenoids, complex multi-pole configurations
+    API:     MagneticEngine.addPole({ x, y, strength, polarity })
+ 
+12. CLOTH SIMULATION ENGINE
+    Type:    Canvas 2D + verlet
+    Core:    Grid of mass-spring nodes
+             Position-based dynamics (XPBD) constraints
+             Wind force integration, self-collision detection
+    Specs:   32x32 grid (~1000 nodes) real-time
+             Tearing threshold support
+             Pinning system for arbitrary anchor points
+    Output:  Fabric, flags, curtains, parachutes, torn cloth
+    API:     ClothEngine.create({ width, height, stiffness, pinPoints })
+ 
+13. ROPE & CHAIN DYNAMICS
+    Type:    Canvas 2D verlet
+    Core:    Segmented rigid-body chain with distance constraints
+             Iterative constraint solver (Gauss-Seidel, 8 iterations)
+             Collision response with environment geometry
+    Specs:   Up to 200 segments real-time
+             Elastic, rigid, chain, cable modes
+             Wrapping and contact friction
+    Output:  Ropes, chains, cables, vines, whips
+    API:     RopeEngine.create({ segments, stiffness, gravity, elasticity })
+ 
+14. AURORA BOREALIS ENGINE
+    Type:    WebGL layered quads
+    Core:    Animated sinusoidal curtain geometry
+             Multi-layer alpha compositing with additive blend
+             Time-varying color shift through aurora spectrum
+    Specs:   5 independent curtain layers
+             Geomagnetic activity parameter controls intensity
+             Atmospheric perspective gradient
+    Output:  Aurora australis/borealis, northern lights, ion curtains
+    API:     AuroraEngine.setActivity({ kp_index, colors, speed })
+ 
+15. LAVA / MAGMA FLOW ENGINE
+    Type:    WebGL + GLSL fragment
+    Core:    Voronoi cell cracking pattern for cooling crust
+             Heat-mapped temperature gradient (black→red→orange→white)
+             Flow velocity field with viscosity decay
+    Specs:   Cooling crust animation over active lava
+             Glowing crack network regeneration
+             Particle steam emission from hot zones
+    Output:  Lava flow, cooling magma, volcanic eruption, lava lamp
+    API:     LavaEngine.flow({ source, viscosity, temperature, flowRate })
+ 
+ 
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+BLOCK II — PHYSICS & SIMULATION (16–30)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 
+16. RIGID BODY PHYSICS ENGINE
+    Type:    Canvas 2D / deterministic
+    Core:    Sequential impulse solver with warm starting
+             GJK (Gilbert-Johnson-Keerthi) collision detection
+             EPA (Expanding Polytope Algorithm) for penetration depth
+    Specs:   100+ simultaneous rigid bodies
+             Shapes: circle, polygon, capsule, compound
+             Constraints: revolute, prismatic, distance, weld
+    Output:  Full physics sandbox, destruction, stacking, mechanisms
+    API:     RigidBody.create({ shape, mass, restitution, friction })
+ 
+17. SOFT BODY FEM ENGINE (Finite Element Method)
+    Type:    Canvas 2D / WebGL compute
+    Core:    Triangulated mesh with stiffness matrix per element
+             Corotational FEM for large deformation
+             Mass-lumping for stable implicit integration
+    Specs:   Accurate elastic deformation under load
+             Plastic deformation (permanent shape change)
+             Fracture propagation via energy criterion
+    Output:  Elastic jelly, rubber objects, foam compression, fracture
+    API:     FEMBody.create({ mesh, youngModulus, poissonRatio })
+ 
+18. FLUID-SOLID COUPLING ENGINE
+    Type:    WebGL hybrid
+    Core:    Two-way coupling: fluid forces on solids, solids displace fluid
+             Immersed boundary method
+             Buoyancy + drag calculation per submerged body
+    Specs:   SPH fluid with 2–10 coupled rigid bodies
+             Splash and wake generation
+             Real-time stability at 30+ fps
+    Output:  Objects floating, sinking, boats on water, fluid displacement
+    API:     CoupledSim.add({ fluid, solids, coupling_strength })
+ 
+19. GRANULAR MATERIAL ENGINE (Sand / Powder)
+    Type:    Canvas 2D particle
+    Core:    Per-grain collision with inelastic restitution
+             Angle of repose enforcement via constraint projection
+             Avalanche trigger from slope instability
+    Specs:   5000+ grains real-time
+             Sand, gravel, powder, grain, pebble modes
+             Container fill simulation
+    Output:  Sand piles, powder flow, hourglass, grain physics
+    API:     GranularEngine.fill({ container, grainSize, angle_of_repose })
+ 
+20. DESTRUCTIBLE BODY ENGINE
+    Type:    Canvas 2D / WebGL
+    Core:    Voronoi fracture pre-computation
+             Impact energy threshold triggers fragmentation
+             Fragment physics with debris simulation
+    Specs:   Real-time Voronoi shattering on impact
+             Glass, ceramic, wood, stone fracture modes
+             Debris fade and gravity
+    Output:  Breaking glass, shattering objects, explosion destruction
+    API:     DestructEngine.shatter({ body, impactPoint, energy, mode })
+ 
+21. SPRING NETWORK ENGINE
+    Type:    Canvas 2D verlet
+    Core:    Graph-based spring topology
+             Damped harmonic oscillator per edge
+             Natural frequency and resonance modes
+    Specs:   Arbitrary spring graph topology
+             Frequency sweep to find resonance
+             Wave propagation visualization
+    Output:  Jelly networks, elastic webs, seismic wave models, tensegrity
+    API:     SpringNet.build({ nodes, edges, stiffness, damping })
+ 
+22. PROJECTILE & BALLISTICS ENGINE
+    Type:    Canvas 2D
+    Core:    4th-order Runge-Kutta trajectory integration
+             Drag model: Cd * 0.5 * rho * v^2 * A
+             Magnus effect for spinning projectiles
+    Specs:   Air resistance, gravity, wind, spin all modeled
+             Ballistic arc visualization with impact prediction
+             Ricochet physics on surface contact
+    Output:  Cannonballs, bullets, arrows, thrown objects, trebuchets
+    API:     Ballistics.fire({ origin, velocity, mass, dragCoeff, spin })
+ 
+23. WAVE PROPAGATION ENGINE
+    Type:    Canvas 2D / WebGL
+    Core:    2D wave equation on finite-difference grid
+             Absorbing boundary conditions (PML layer)
+             Multi-source interference and diffraction
+    Specs:   512x512 wave field real-time
+             Frequency, amplitude, phase control per source
+             Constructive/destructive interference visualization
+    Output:  Water ripples, sound waves, interference patterns, diffraction
+    API:     WaveEngine.addSource({ x, y, frequency, amplitude, phase })
+ 
+24. CELLULAR AUTOMATON ENGINE
+    Type:    Canvas 2D / WebGL texture ping-pong
+    Core:    GPU-accelerated rule evaluation via fragment shader
+             Neighbor kernel configurable (Moore, Von Neumann, custom)
+             Toroidal, absorbing, or reflective boundary modes
+    Specs:   1024x1024 grid at 60fps
+             Conway's Life, Brian's Brain, Langton's Ant, Wireworld built-in
+             Custom rule definition via lookup table
+    Output:  Game of Life, ant colonies, crystal growth, all CA variants
+    API:     CellAuto.setRule({ table, neighborhood, boundary })
+ 
+25. ELASTIC COLLISION ENGINE
+    Type:    Canvas 2D
+    Core:    Continuous collision detection (CCD) via swept sphere
+             Restitution coefficient per pair
+             Spatial hash grid broad phase (O(n) average)
+    Specs:   500 simultaneous elastic bodies
+             Perfect elastic / inelastic / sticky modes
+             Energy conservation visualization
+    Output:  Billiards, Newton's cradle, molecular dynamics, gas simulation
+    API:     ElasticSim.add({ x, y, radius, vx, vy, mass, restitution })
+ 
+26. ORBITAL MECHANICS ENGINE (N-Body)
+    Type:    Canvas 2D
+    Core:    Barnes-Hut tree for O(n log n) gravity
+             Leapfrog (Verlet) integrator for energy conservation
+             Adaptive timestep based on closest approach
+    Specs:   500–2000 gravitating bodies
+             Planet, star, black hole, asteroid modes
+             Lagrange point visualization
+    Output:  Solar systems, galaxy mergers, orbital resonance, slingshots
+    API:     OrbitalSim.addBody({ x, y, vx, vy, mass, radius })
+ 
+27. PENDULUM & CHAOS ENGINE
+    Type:    Canvas 2D / WebGL
+    Core:    Double pendulum via Lagrangian mechanics (exact ODEs)
+             4th-order Runge-Kutta integration
+             Phase space (q, dq/dt) trajectory plotting
+    Specs:   Single, double, triple, N-linked pendulums
+             Poincaré section visualization
+             Lyapunov exponent estimation in real-time
+    Output:  Pendulum clocks, chaos demonstration, phase portraits
+    API:     PendulumEngine.create({ n_links, lengths, masses, angles })
+ 
+28. FLUID DYNAMICS ENGINE (Eulerian Grid)
+    Type:    WebGL compute textures
+    Core:    Incompressible Navier-Stokes on staggered MAC grid
+             Poisson pressure solve via multi-grid relaxation
+             Semi-Lagrangian advection for stable high-Re flows
+    Specs:   256x256 velocity field, 60fps
+             Obstacles via solid boundary conditions
+             Dye injection for visualization
+    Output:  Wind tunnels, vortex shedding, Kármán vortex streets
+    API:     NSEngine.setObstacle({ shape, x, y }) / .injectDye({ x, y, color })
+ 
+29. TIRE & VEHICLE DYNAMICS ENGINE
+    Type:    Canvas 2D
+    Core:    Pacejka Magic Formula for tire force model
+             Chassis rigid body with suspension constraints
+             Weight transfer under acceleration/braking
+    Specs:   4-wheel vehicle with independent suspension
+             Understeer/oversteer, ABS, traction control modes
+             Skid mark rendering from slip ratio
+    Output:  Car physics, drift simulation, racing dynamics
+    API:     VehicleEngine.create({ mass, wheelbase, suspStiffness, tirePacejka })
+ 
+30. TOPOLOGY ENGINE (Real-Time Mesh Deformation)
+    Type:    WebGL 3D
+    Core:    Laplacian smoothing and sharpening on triangle mesh
+             Mean curvature flow for shape evolution
+             Harmonic map for UV parameterization
+    Specs:   Live mesh deformation via vertex displacement
+             Catmull-Clark subdivision on demand
+             Curvature color visualization
+    Output:  Morphing shapes, surface smoothing, topological transforms
+    API:     TopologyEngine.deform({ mesh, mode, intensity, iterations })
+ 
+ 
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+BLOCK III — SHADER & POST-PROCESSING (31–45)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 
+31. BLOOM & HDR PIPELINE
+    Type:    WebGL multi-pass
+    Core:    Threshold extraction → dual-pass Kawase blur → tone mapping
+             Filmic tone map (Uncharterd 2 / ACES / Reinhard selectable)
+             Lens dirt mask overlay on highlight areas
+    Specs:   5-pass pipeline, sub-1ms on modern GPU
+             Configurable threshold, radius, intensity
+             Anamorphic horizontal streak option
+    Output:  Game-quality HDR bloom, cinematic glow, lens flares
+    API:     BloomPass.apply({ threshold, radius, intensity, tonemap })
+ 
+32. CHROMATIC ABERRATION ENGINE
+    Type:    WebGL fragment shader
+    Core:    Per-channel UV offset toward screen edges
+             Radial distortion model (barrel / pincushion)
+             Lateral CA (fringe) vs. longitudinal CA (focus shift)
+    Specs:   Lateral, longitudinal, and combined modes
+             Configurable falloff curve (quadratic, linear, custom)
+             Split-toning option for color shift direction
+    Output:  Lens imperfection, lo-fi aesthetic, sci-fi display distortion
+    API:     CAberration.apply({ lateral, longitudinal, falloff })
+ 
+33. SCREEN SPACE AMBIENT OCCLUSION (SSAO)
+    Type:    WebGL depth buffer pass
+    Core:    Hemisphere sample kernel in screen space
+             Noise rotation texture for dithering
+             Bilateral blur to remove noise
+    Specs:   64-sample kernel, depth + normal reconstruct
+             Radius, bias, power configurable
+             HBAO+ mode with horizon-based sampling
+    Output:  Contact shadows, concavity darkening, realistic shading
+    API:     SSAOPass.apply({ radius, samples, bias, power })
+ 
+34. MOTION BLUR ENGINE
+    Type:    WebGL multi-sample
+    Core:    Per-object velocity buffer generation
+             Tile-based max-velocity dilation
+             Reconstruction filter with depth weighting
+    Specs:   Camera motion blur + per-object motion blur
+             Ghost reduction via weight based on depth
+             Configurable shutter angle (0–360°)
+    Output:  Film-quality motion blur, speed smear, cinematography
+    API:     MotionBlur.apply({ shutterAngle, samples, maxLength })
+ 
+35. DEPTH OF FIELD ENGINE (Bokeh)
+    Type:    WebGL multi-pass
+    Core:    CoC (Circle of Confusion) computation from depth
+             Gather-based bokeh with per-sample weighting
+             Bokeh shape: circular, hexagonal, cat-eye, custom
+    Specs:   Near/far DoF separation
+             Configurable aperture (f/1.2 – f/22)
+             Anamorphic oval bokeh option
+    Output:  Cinematic focus rack, product photography DoF
+    API:     DOFEngine.setFocus({ focalDistance, aperture, bokehShape })
+ 
+36. SCREEN SPACE REFLECTIONS (SSR)
+    Type:    WebGL ray-marching pass
+    Core:    Ray-march against depth buffer in screen space
+             Binary search refinement for intersection
+             Fresnel-weighted blend with reflection
+    Specs:   Configurable ray steps (16–128)
+             Roughness-based ray spread
+             Edge fade to prevent SSR artifacts
+    Output:  Floor reflections, wet surfaces, mirror-like materials
+    API:     SSRPass.apply({ steps, thickness, maxDistance, roughnessMask })
+ 
+37. LENS FLARE ENGINE
+    Type:    WebGL / Canvas 2D
+    Core:    Light source occlusion test via depth buffer
+             Ghosts along sensor-to-light axis
+             Streak rays, anamorphic horizontal flare
+    Specs:   Per-light flare with configurable element chain
+             Dynamic occlusion as scene changes
+             Spectral dispersion across flare elements
+    Output:  Cinematic lens flares, sun flares, sci-fi light streaks
+    API:     LensFlare.add({ light, elements, anamorphic, dispersion })
+ 
+38. HEAT DISTORTION / REFRACTION SHADER
+    Type:    WebGL fragment
+    Core:    Time-varying noise-based UV distortion
+             Physically based: sample behind distorted surface
+             Temperature field drives distortion magnitude
+    Specs:   Turbulence from Perlin/Simplex noise derivative
+             Distance falloff (near heat source = stronger)
+             Chromatic shift option for more realism
+    Output:  Road heat shimmer, fire haze, hot air vents, hot metal glow
+    API:     HeatShader.apply({ field, intensity, frequency, colorShift })
+ 
+39. DISPLACEMENT MAPPING ENGINE
+    Type:    WebGL tessellation (if available) / vertex shader
+    Core:    Height map → vertex displacement in normal direction
+             LOD-adaptive tessellation near camera
+             Silhouette correction for displaced edges
+    Specs:   16-bit height map precision
+             Normal map auto-generation from displacement
+             Seamless tiling support
+    Output:  Terrain, sculpted surfaces, cloth wrinkles, skin pores
+    API:     DisplacementEngine.apply({ mesh, heightMap, scale, tessLevel })
+ 
+40. GLITCH & DATAMOSH SHADER
+    Type:    WebGL / Canvas 2D
+    Core:    Block displacement: random rect offset in screen space
+             RGB channel separation and scan-line jumping
+             Frame blending with random freeze duration
+    Specs:   Configurable glitch intensity and frequency
+             VHS, CRT, digital, databend modes
+             Sync loss simulation
+    Output:  Glitch art, error aesthetics, hacker terminal, corrupted signal
+    API:     GlitchShader.apply({ intensity, mode, frequency, rgbSplit })
+ 
+41. VOLUMETRIC LIGHT (God Rays) ENGINE
+    Type:    WebGL radial blur pass
+    Core:    Occlusion map from shadow pass
+             Radial blur toward light source position
+             Additive compositing over base scene
+    Specs:   Configurable sample count (16–128)
+             Light extinction coefficient
+             Multi-light support
+    Output:  Sunbeams through trees, crepuscular rays, stage spotlights
+    API:     GodRays.apply({ lightPos, density, decay, samples, weight })
+ 
+42. VIGNETTE & COLOR GRADING ENGINE
+    Type:    WebGL LUT pass
+    Core:    3D color LUT (64x64x64) for color grade
+             Vignette with configurable shape and feather
+             Lift/gamma/gain wheels for creative grade
+    Specs:   HDR-safe LUT application
+             Import Resolve / Premiere LUTs (.cube format)
+             Animated grade transitions (LUT interpolation)
+    Output:  Film grain, cinematic color grades, teal-orange, vintage
+    API:     ColorGrade.applyLUT({ lut, intensity }) / .vignette({ radius, feather })
+ 
+43. TOON / CEL SHADER ENGINE
+    Type:    WebGL multi-pass
+    Core:    Quantized diffuse ramp (2–6 bands)
+             Edge detection via Sobel/Laplacian on normals
+             Outline pass with configurable thickness
+    Specs:   Configurable ramp curve per material
+             Specular highlight step function
+             Hatching pattern fill option
+    Output:  Anime, comic book, watercolor, flat illustration styles
+    API:     ToonShader.apply({ rampSteps, outlineWidth, outlineColor, hatch })
+ 
+44. SUBSURFACE SCATTERING ENGINE (SSS)
+    Type:    WebGL multi-pass
+    Core:    Texture-space diffusion approximation
+             Gaussian blur in texture space weighted by depth
+             Three-color SSS (red/green/blue diffuse widths)
+    Specs:   Separable blur: two passes (H + V)
+             Works with existing PBR pipeline
+             Skin, wax, marble, jade, milk material presets
+    Output:  Realistic skin, translucent materials, wax candles
+    API:     SSSPass.apply({ mesh, widths, strength, falloff })
+ 
+45. PIXELATION & RETRO ENGINE
+    Type:    WebGL / Canvas 2D
+    Core:    Downscale→upscale with nearest-neighbor for pixelation
+             Palette quantization via nearest-color LUT
+             Ordered dithering (Bayer matrix 4x4 / 8x8)
+    Specs:   1-bit, 2-bit, 8-bit, 16-bit color modes
+             CGA, EGA, Gameboy, NES, PICO-8 palette presets
+             Scanline and TV curvature composite
+    Output:  Pixel art aesthetic, retro game look, lo-fi
+    API:     RetroShader.apply({ pixelSize, palette, dither, scanlines })
+ 
+ 
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+BLOCK IV — 3D RENDERING ENGINES (46–60)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 
+46. PBR (PHYSICALLY BASED RENDERING) ENGINE
+    Type:    WebGL 2 / Three.js core
+    Core:    Cook-Torrance BRDF with GGX normal distribution
+             Smith masking-shadowing function
+             IBL (Image-Based Lighting) via environment cube map
+    Specs:   metallic/roughness workflow
+             Albedo, normal, metallic, roughness, AO, emissive maps
+             Real-time area light support
+    Output:  Photorealistic materials, metals, plastics, fabrics
+    API:     PBRMaterial.create({ albedo, metallic, roughness, normal, ao })
+ 
+47. DEFERRED RENDERING PIPELINE
+    Type:    WebGL 2 MRT (Multiple Render Targets)
+    Core:    G-Buffer: albedo, normal, material, depth
+             Tiled light culling for many lights
+             Light accumulation pass with shadow mapping
+    Specs:   200+ dynamic point lights at 60fps
+             Directional, point, spot, area light types
+             Stencil-optimized light volumes
+    Output:  High-quality multi-light scenes, game-engine quality
+    API:     DeferredRenderer.addLight({ type, pos, color, intensity, shadow })
+ 
+48. RAY MARCHING ENGINE
+    Type:    WebGL GLSL fragment
+    Core:    Signed Distance Function scene representation
+             Sphere tracing (Lipschitz optimization)
+             Normal estimation via SDF gradient (central differences)
+    Specs:   Complex SDF scenes: CSG ops (union, subtract, intersect, smooth)
+             Ambient occlusion from SDF
+             Soft shadows via shadow ray marching
+    Output:  Implicit surfaces, metaballs, abstract 3D shapes, fractals
+    API:     RayMarcher.compile({ sdf, maxSteps, maxDist, aoSamples })
+ 
+49. SIGNED DISTANCE FIELD FONT ENGINE
+    Type:    WebGL + SDF textures
+    Core:    Multi-channel SDF (MSDF) for sharp corners
+             Single texture scales to any size without aliasing
+             Per-glyph SDF atlas generation
+    Specs:   Subpixel rendering quality at all scales
+             Outline, glow, shadow as shader effects
+             Emoji/Unicode full range support
+    Output:  Crisp text at any size, game HUDs, dynamic labels
+    API:     SDFFont.render({ text, font, size, outline, shadow })
+ 
+50. PATH TRACING ENGINE (Offline Quality, Online Speed)
+    Type:    WebGL 2 progressive
+    Core:    Monte Carlo path tracing, progressive refinement
+             BVH acceleration structure (surface area heuristic)
+             BSDF sampling: diffuse, specular, glass, SSS
+    Specs:   Converges to ground-truth in ~200 samples per pixel
+             Firefly suppression via clamped sampling
+             Next event estimation (direct light sampling)
+    Output:  Photorealistic renders, caustics, global illumination
+    API:     PathTracer.render({ scene, spp, bounces, exposure })
+ 
+51. SHADOW MAP ENGINE (Cascaded)
+    Type:    WebGL 2
+    Core:    CSM (Cascaded Shadow Maps) for directional lights
+             PCF (Percentage Closer Filtering) for soft shadows
+             PCSS (Percentage Closer Soft Shadows) for area penumbra
+    Specs:   4 cascade splits with automatic split scheme
+             Configurable kernel size for softness
+             Shadow fade at cascade boundaries
+    Output:  Real-time hard and soft shadows, large outdoor scenes
+    API:     ShadowEngine.addCaster({ light, cascades, pcssRadius })
+ 
+52. SKYBOX & ATMOSPHERE ENGINE
+    Type:    WebGL / GLSL
+    Core:    Rayleigh + Mie scattering simulation
+             Single-pass analytical atmosphere
+             Sun disk with limb darkening
+    Specs:   Time-of-day parameter drives sky color
+             Aerial perspective for distant objects
+             Star field (procedural) for night mode
+    Output:  Realistic sky, sunsets, dawn, night sky, alien atmospheres
+    API:     AtmosphereEngine.setTime({ hours, latitude, turbidity })
+ 
+53. TERRAIN ENGINE (Procedural)
+    Type:    WebGL + GLSL
+    Core:    Fractional Brownian Motion (fBm) height generation
+             GPU tessellation with view-dependent LOD
+             Erosion simulation (hydraulic + thermal)
+    Specs:   Infinite terrain via domain warping
+             Multi-biome: mountains, plains, canyons, archipelago
+             Real-time normal map from height gradient
+    Output:  Procedural landscapes, planets, alien terrain, heightmaps
+    API:     TerrainEngine.generate({ seed, scale, octaves, erosion })
+ 
+54. INSTANCED MESH ENGINE
+    Type:    WebGL 2 instanced arrays
+    Core:    gl.drawElementsInstanced with per-instance matrix + color
+             Frustum culling on CPU, occlusion culling optional
+             LOD blending (cross-fade between detail levels)
+    Specs:   50K+ instances at 60fps
+             Per-instance: transform, color, material ID, custom data
+             Animated instances (GPU skinning)
+    Output:  Forests, crowds, grass fields, particle debris
+    API:     InstancedMesh.create({ geometry, count, transforms, materials })
+ 
+55. SKELETON & SKINNING ENGINE
+    Type:    WebGL 2 / GLSL
+    Core:    Linear Blend Skinning (LBS) on GPU
+             Dual Quaternion Skinning for no volume collapse
+             Forward kinematics with IK (CCD algorithm)
+    Specs:   256-bone skeleton real-time
+             Blend shapes (morph targets) for facial animation
+             Animation blending and state machine
+    Output:  Character animation, facial expressions, creature rigs
+    API:     SkeletonEngine.load({ mesh, skeleton, animations }) / .blend()
+ 
+56. VOXEL ENGINE
+    Type:    WebGL / Canvas 3D projection
+    Core:    Octree scene representation
+             Greedy meshing for face reduction
+             Marching Cubes for smooth voxel surfaces
+    Specs:   256x256x256 voxel grid real-time
+             Run-length encoding for compression
+             Ambient occlusion per vertex baked
+    Output:  Minecraft-style worlds, medical imaging, sculpting
+    API:     VoxelEngine.set({ x, y, z, type }) / .remesh()
+ 
+57. LEVEL OF DETAIL (LOD) ENGINE
+    Type:    WebGL
+    Core:    Quadric Error Metric (QEM) mesh simplification
+             Continuous LOD via geomorphing
+             Impostor billboards at extreme distance
+    Specs:   Automatic LOD chain generation (100%→50%→25%→10%)
+             Screen-space error budget controlling switch distance
+             Smooth transition to avoid popping
+    Output:  Performance-optimal complex scenes, open worlds
+    API:     LODEngine.build({ mesh, levels, screenError }) / .update({ camera })
+ 
+58. OUTLINE / EDGE DETECTION ENGINE
+    Type:    WebGL post-pass
+    Core:    Roberts, Sobel, Prewitt, Laplacian-of-Gaussian (LoG)
+             Depth-based edges + normal-based edges
+             Stylized variable-width lines (pressure simulation)
+    Specs:   Sub-pixel accurate at any resolution
+             Color, width, depth-fade all configurable
+             X-ray mode (outline through occluders)
+    Output:  Toon outlines, technical drawings, X-ray view, holograms
+    API:     OutlineEngine.apply({ method, color, width, depthFade })
+ 
+59. REFLECTIVE / REFRACTIVE SURFACE ENGINE
+    Type:    WebGL cube map + ray-march hybrid
+    Core:    Dynamic cube map capture per reflective object
+             Parallax correction for local reflections
+             Refraction via IOR-based Snell's law in shader
+    Specs:   Dynamic reflection at 30fps update rate
+             IOR: water (1.33), glass (1.5), diamond (2.42), custom
+             Total internal reflection support
+    Output:  Mirrors, water, glass, gems, bubbles
+    API:     RefractionEngine.create({ mesh, ior, tint, roughness })
+ 
+60. WIREFRAME & TOPOLOGY VISUALIZER
+    Type:    WebGL geometry shader / barycentric
+    Core:    Barycentric coordinate trick for per-triangle wireframe
+             Edge thickness in screen space (pixel-perfect)
+             Backface culling toggle for X-ray
+    Specs:   Works with any triangle mesh, no geometry doubling
+             Animated morphing between solid and wireframe
+             Color by: edge, face normal, curvature, UV seams
+    Output:  Debug visualization, tech aesthetic, topology analysis
+    API:     WireframeEngine.apply({ mesh, lineWidth, color, mode })
+ 
+ 
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+BLOCK V — GENERATIVE & MATHEMATICAL (61–75)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 
+61. FRACTAL ENGINE (Mandelbrot / Julia / Burning Ship)
+    Type:    WebGL GLSL fragment
+    Core:    Arbitrary precision iteration via two-float emulation
+             Smooth coloring (normalized iteration count)
+             Orbit traps for complex coloring modes
+    Specs:   Zoom depth to 10^14 before precision loss
+             Configurable max iterations (64 – 65536)
+             Julia set parameter animation
+    Output:  Mandelbrot, Julia, burning ship, tricorn, mandelbulb 2D
+    API:     FractalEngine.render({ type, center, zoom, maxIter, colorMode })
+ 
+62. L-SYSTEM ENGINE (Lindenmayer)
+    Type:    Canvas 2D turtle graphics
+    Core:    String rewriting system with stochastic rules
+             3D turtle with push/pop stack
+             Context-sensitive L-System (neighboring symbols)
+    Specs:   Unlimited derivation depth (memory-limited)
+             Parametric L-Systems (numeric parameters in symbols)
+             Tropism (gravity vector biasing growth)
+    Output:  Plants, trees, fractals, organic forms, branching coral
+    API:     LSystem.define({ axiom, rules, angle, length }) / .iterate(n)
+ 
+63. VORONOI ENGINE
+    Type:    WebGL / Canvas 2D
+    Core:    Jump Flooding Algorithm (JFA) for GPU Voronoi in O(n log n)
+             Fortune's algorithm for exact Delaunay triangulation
+             Lloyd relaxation for centroidal Voronoi
+    Specs:   10K seed points real-time on GPU
+             Distance metrics: Euclidean, Manhattan, Chebyshev, Minkowski
+             Weighted and power Voronoi variants
+    Output:  Cell patterns, territory maps, cracks, mosaic, organic texture
+    API:     VoronoiEngine.generate({ seeds, metric, relax }) / .animate()
+ 
+64. REACTION-DIFFUSION ENGINE (Turing Patterns)
+    Type:    WebGL texture ping-pong
+    Core:    Gray-Scott model: du/dt = Du∇²u - uv² + f(1-u)
+             Feed (f) and kill (k) parameters create all pattern types
+             Multi-species extension for complex morphogenesis
+    Specs:   512x512 grid at 60fps
+             Built-in presets: coral, sponge, zebrafish, mitosis, labyrinth
+             Parameter sweep animation
+    Output:  Turing patterns, animal skin, coral growth, biological forms
+    API:     ReactionDiffusion.setParams({ f, k, Du, Dv }) / .seed({ x, y })
+ 
+65. NOISE ENGINE (Comprehensive)
+    Type:    WebGL GLSL / JavaScript
+    Core:    Perlin, Simplex, Worley (cellular), Value, Gradient noise
+             fBm (fractal Brownian motion) layering
+             Domain warping for complex turbulence
+    Specs:   1D, 2D, 3D, 4D noise all implemented
+             Derivative noise for normals and gradients
+             Tileable variants for seamless textures
+    Output:  Textures, terrain, clouds, procedural surfaces, animation
+    API:     NoiseEngine.sample({ type, x, y, z, w, octaves, lacunarity })
+ 
+66. STRANGE ATTRACTOR ENGINE
+    Type:    Canvas 2D / WebGL
+    Core:    Runge-Kutta integration of ODE system
+             Point cloud accumulated over millions of iterations
+             Density → brightness mapping with HDR
+    Specs:   Lorenz, Rossler, Duffing, Halvorsen, Thomas built-in
+             3D rotation for 3D attractors
+             Color by velocity magnitude
+    Output:  Lorenz butterfly, chaotic attractors, mathematical beauty
+    API:     Attractor.init({ system, params, iterations }) / .render()
+ 
+67. PARAMETRIC SURFACE ENGINE
+    Type:    WebGL 3D
+    Core:    (u,v) → (x,y,z) mapping with configurable function
+             Auto normal via cross product of partial derivatives
+             UV-mapped texture support
+    Specs:   100+ built-in surfaces: torus, sphere, Klein bottle, Möbius, Boy surface
+             Animation via time parameter t in equations
+             Real-time parameter slider connection
+    Output:  Mathematical surfaces, non-orientable manifolds, morphing shapes
+    API:     ParametricSurface.define({ x_fn, y_fn, z_fn, uRange, vRange })
+ 
+68. FOURIER DRAWING ENGINE
+    Type:    Canvas 2D
+    Core:    DFT decomposition of arbitrary path into frequency components
+             Epicycle rendering (rotating circles on circles)
+             Inverse DFT reconstruction with selectable frequency count
+    Specs:   Up to 2048 frequency components
+             Any SVG path or handdrawn input accepted
+             Animation synced to frequency resolution
+    Output:  Fourier series visualization, epicycles drawing portraits
+    API:     FourierEngine.decompose({ path, components }) / .animate()
+ 
+69. FRACTAL TERRAIN GENERATOR
+    Type:    Canvas 2D / WebGL
+    Core:    Diamond-Square algorithm for heightmap
+             Spectral synthesis via 2D FFT with power-law spectrum
+             Erosion post-process (hydraulic simulation pass)
+    Specs:   Up to 2048x2048 heightmap
+             Fractal dimension parameter controls roughness
+             Multi-scale coherent noise blending
+    Output:  Terrain heightmaps, alien landscapes, procedural worlds
+    API:     FractalTerrain.generate({ size, H, seed, erosionPasses })
+ 
+70. SPACE-FILLING CURVE ENGINE
+    Type:    Canvas 2D recursive
+    Core:    Hilbert, Peano, Gosper, Sierpinski, Dragon curve algorithms
+             Order-n recursion with coordinate mapping
+             Smooth animation between orders
+    Specs:   Up to order 8 Hilbert curve (65536 segments)
+             Color mapped by curve position / iteration depth
+             Animated traversal along curve
+    Output:  Space-filling curves, fractal art, Z-order/Morton curves
+    API:     SpaceFilling.draw({ type, order, color, animate })
+ 
+71. KNOT THEORY ENGINE
+    Type:    WebGL 3D tube rendering
+    Core:    Parametric knot equations (trefoil, torus knot, cinquefoil)
+             Tube geometry via Frenet-Serret frame sweep
+             Writhe and linking number visualization
+    Specs:   (p, q) torus knot family fully parameterized
+             Cross-section: circular, elliptical, polygonal
+             Self-intersection detection and highlighting
+    Output:  Mathematical knots, decorative 3D shapes, topology demos
+    API:     KnotEngine.create({ p, q, tubeRadius, segments, twist })
+ 
+72. CONVOLUTION ENGINE (Pattern/Texture)
+    Type:    WebGL fragment shader
+    Core:    Arbitrary kernel convolution via texture sampling
+             Separable optimization for large kernels
+             Frequency domain convolution via FFT for huge kernels
+    Specs:   Up to 64x64 kernel real-time
+             Emboss, sharpen, edge detect, blur, directional blur built-in
+             Animated kernel interpolation
+    Output:  Image effects, texture generation, pattern synthesis
+    API:     ConvEngine.apply({ texture, kernel }) / .animate({ from, to, t })
+ 
+73. TESSELLATION ENGINE (Geometric)
+    Type:    Canvas 2D / SVG
+    Core:    Penrose tiling (P1/P2/P3) via deflation algorithm
+             Aperiodic Wang tile sets
+             Voronoi-based organic tessellation
+    Specs:   Iterative refinement: each deflation multiplies tile count
+             Configurable color schemes and stroke weights
+             Export to SVG for vector output
+    Output:  Penrose tiles, Islamic geometric patterns, quasicrystal art
+    API:     TessEngine.penrose({ type, iterations, scale, colors })
+ 
+74. GRAPH LAYOUT ENGINE
+    Type:    Canvas 2D / WebGL
+    Core:    Force-directed layout (Barnes-Hut optimized)
+             Spectral layout via graph Laplacian eigenvectors
+             Hierarchical (Sugiyama) for DAGs
+    Specs:   1000-node graphs real-time
+             Edge bundling for readability
+             Animated transitions between layouts
+    Output:  Network graphs, dependency trees, knowledge graphs, mind maps
+    API:     GraphEngine.load({ nodes, edges, layout }) / .springForce({ k, c })
+ 
+75. ISOLINE / CONTOUR ENGINE
+    Type:    Canvas 2D / WebGL
+    Core:    Marching Squares with linear interpolation
+             Smooth contouring via bicubic interpolation
+             Multiple simultaneous iso-levels
+    Specs:   512x512 scalar field at 60fps
+             Animated fields (flowing contour lines)
+             Filled contour maps with configurable color ramps
+    Output:  Topographic maps, pressure maps, weather charts, gradients
+    API:     IsolineEngine.trace({ field, levels, smooth }) / .fill({ ramp })
+ 
+ 
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+BLOCK VI — UI, DATA & ADVANCED VISUAL (76–100)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 
+76. FORCE-FIELD VISUALIZER
+    Type:    Canvas 2D / WebGL
+    Core:    Vector field rendering via arrow glyphs or LIC
+             Flow animation via advected texture synthesis
+             Field decomposition: curl, divergence display
+    Output:  Wind, fluid, electric, gravitational fields
+    API:     FieldViz.setField({ fn, resolution, colorMode })
+ 
+77. PHYSICS CONSTRAINT ENGINE
+    Type:    Canvas 2D / Verlet
+    Core:    Sequential impulse constraint solver
+             Joint types: ball, hinge, slider, fixed, motor, spring
+             Constraint graphs for mechanical linkages
+    Output:  Mechanisms, machines, robots, linkage animations
+    API:     ConstraintEngine.addJoint({ type, bodyA, bodyB, params })
+ 
+78. AUDIO VISUALIZER ENGINE
+    Type:    Canvas 2D + Web Audio API
+    Core:    FFT analysis via AnalyserNode (1024/2048/4096 bins)
+             Frequency → visual mapping: bars, waveform, radial, 3D
+             Beat detection via onset detection function
+    Output:  Music visualizers, frequency spectrum, waveform, VU meters
+    API:     AudioViz.connect({ source, fftSize, mode, colorMap })
+ 
+79. TYPOGRAPHY ANIMATION ENGINE
+    Type:    Canvas 2D + GSAP-style easing
+    Core:    Per-character decomposition of text to paths
+             Spring physics on individual glyphs
+             Particle disintegration and reconstitution
+    Output:  Kinetic typography, character physics, text reveal effects
+    API:     TypeEngine.animate({ text, mode, physics, timing })
+ 
+80. MORPH TARGET ENGINE
+    Type:    WebGL vertex interpolation
+    Core:    N-way blend shape interpolation on GPU
+             Key-driven morph via blend weights
+             Delta compression for memory efficiency
+    Output:  Facial animation, shape morphing, organic transitions
+    API:     MorphEngine.blend({ targets, weights }) / .animate({ keyframes })
+ 
+81. PROCEDURAL TEXTURE ENGINE
+    Type:    WebGL GLSL fragment
+    Core:    Node-graph texture synthesis pipeline
+             Nodes: noise, gradient, blend, warp, cells, color ops
+             Real-time preview with parameter binding
+    Output:  Wood, marble, rust, skin, fabric, all procedural surfaces
+    API:     ProcTexture.build({ graph }) / .export({ resolution })
+ 
+82. RIBBON / TRAIL RENDERER
+    Type:    WebGL dynamic mesh
+    Core:    Time-stamped position buffer → ribbon mesh generation
+             Width and color keyed by speed, age, or custom value
+             Billboard or world-space orientation modes
+    Output:  Motion trails, particle ribbons, dragon curves, ink traces
+    API:     RibbonEngine.create({ source, width_fn, color_fn, maxLength })
+ 
+83. RADIAL / CIRCULAR LAYOUT ENGINE
+    Type:    Canvas 2D / SVG
+    Core:    Circular tree (Reingold-Tilford adapted to polar coords)
+             Radial edge bundling via hierarchical routing
+             Arc diagram for sequential data
+    Output:  Phylogenetic trees, org charts, radial mind maps
+    API:     RadialLayout.build({ tree, innerRadius, outerRadius, sort })
+ 
+84. HEAT MAP ENGINE
+    Type:    WebGL Gaussian splat
+    Core:    Per-point Gaussian kernel in shader
+             Density accumulation in HDR buffer
+             Color ramp: density → RGBA via 1D LUT texture
+    Specs:   100K points real-time
+             Configurable bandwidth (kernel radius)
+             Log/linear density scaling
+    Output:  Click heatmaps, density maps, activity visualization
+    API:     HeatMap.plot({ points, bandwidth, colorRamp, scale })
+ 
+85. STREAMLINE ENGINE (Flow Visualization)
+    Type:    WebGL / Canvas 2D
+    Core:    RK4 integration of steady vector field
+             Farthest-point seeding strategy for even coverage
+             FTLE (Finite-Time Lyapunov Exponent) computation
+    Output:  CFD visualization, ocean current maps, wind streamlines
+    API:     StreamlineEngine.integrate({ field, seeds, length, step })
+ 
+86. PARTICLE LIFE ENGINE (Artificial Life)
+    Type:    Canvas 2D
+    Core:    N-species particle attraction/repulsion rule matrix
+             Short-range repulsion (collision avoidance)
+             Long-range attraction (emergent clustering)
+    Specs:   6–12 species, 2000 particles, emergent complexity
+             Self-organizing patterns: clusters, snakes, rings
+             Rule matrix live-editable
+    Output:  Artificial life simulation, emergent behavior, flocking
+    API:     ParticleLife.setRules({ matrix, shortRange, longRange })
+ 
+87. BOID FLOCKING ENGINE
+    Type:    Canvas 2D / WebGL
+    Core:    Reynolds rules: separation, alignment, cohesion
+             Spatial hash for O(n) neighbor lookup
+             Obstacle avoidance with potential field steering
+    Specs:   5000 boids at 60fps
+             Predator-prey mode
+             3D boid with projection
+    Output:  Bird flocks, fish schools, crowd simulation, swarms
+    API:     BoidEngine.create({ count, sep, align, coh, speed })
+ 
+88. NETWORK PACKET VISUALIZER
+    Type:    Canvas 2D / WebGL
+    Core:    Graph-based node layout with live edge traffic
+             Animated packets traversing edges (bezier paths)
+             Congestion → color mapping (green→yellow→red)
+    Output:  Network topology, traffic visualization, protocol diagrams
+    API:     PacketViz.addNode({ id, type }) / .send({ from, to, size, color })
+ 
+89. SEISMIC WAVEFORM ENGINE
+    Type:    Canvas 2D
+    Core:    Multi-channel seismogram rendering
+             P-wave / S-wave / surface wave separation visualization
+             Spectrogram (STFT) display option
+    Output:  Earthquake visualization, signal analysis, seismology
+    API:     SeismicEngine.stream({ channels, sampling_rate, window })
+ 
+90. GROWTH SIMULATION ENGINE
+    Type:    Canvas 2D / WebGL
+    Core:    DLA (Diffusion-Limited Aggregation)
+             Eden model for compact cluster growth
+             Laplacian growth (fingering instability)
+    Specs:   Anisotropic sticking probability for crystal facets
+             Multi-seed simultaneous growth competition
+             Color by growth time / cluster ID
+    Output:  Crystal growth, coral, urban sprawl, dendrites, snowflakes
+    API:     GrowthEngine.init({ model, seeds, anisotropy, rate })
+ 
+91. INVERSE KINEMATICS ENGINE (IK)
+    Type:    Canvas 2D / WebGL 3D
+    Core:    CCD (Cyclic Coordinate Descent) solver
+             FABRIK (Forward And Backward Reaching IK)
+             Jacobian pseudo-inverse for redundant chains
+    Specs:   N-link chain, 2D and 3D
+             Joint limits (min/max angle constraints)
+             Multiple end-effector targets simultaneously
+    Output:  Robot arms, character limbs, tentacles, procedural animation
+    API:     IKSolver.solve({ chain, target, iterations, limits })
+ 
+92. SMOKE SOLVER (Vorticity Confinement)
+    Type:    WebGL compute
+    Core:    Vorticity confinement term added to Navier-Stokes
+             Velocity curl computation from velocity field
+             Enhanced small-scale swirl via confinement scaling
+    Specs:   More turbulent, detailed smoke than standard NS
+             Configurable confinement epsilon parameter
+             Temperature-driven buoyancy
+    Output:  Highly detailed smoke, fire turbulence, animated clouds
+    API:     VorticitySmoke.sim({ resolution, confinement, buoyancy })
+ 
+93. SLIME MOLD ENGINE (Physarum)
+    Type:    WebGL texture ping-pong
+    Core:    Agent-based model: sense → rotate → move → deposit trail
+             Trail diffusion + decay per step
+             Chemoattractant concentration drives agent turning
+    Specs:   200K agents at 60fps
+             Sensor angle, sensor distance, rotation angle configurable
+             Multiple food source injection
+    Output:  Physarum polycephalum patterns, network emergence, mycelium
+    API:     SlimeMold.init({ agents, sensorAngle, turnSpeed, decay })
+ 
+94. CONSTELLATION ENGINE
+    Type:    Canvas 2D / WebGL
+    Core:    Tycho2 star catalog positions (118K stars)
+             Magnitude-based size/brightness rendering
+             Constellation line overlay with label rendering
+    Specs:   Full sky or configurable window
+             Precession-corrected coordinates
+             Time-animated sky rotation (sidereal)
+    Output:  Star map, interactive sky, planetarium visualization
+    API:     ConstellationEngine.render({ ra, dec, fov, time, showLines })
+ 
+95. CLOTH WIND SOLVER
+    Type:    Canvas 2D / WebGL verlet
+    Core:    Aerodynamic force: F = Cd * 0.5 * rho * v_rel² * A * n̂
+             Turbulent wind via curl noise
+             Collision with arbitrary convex obstacles
+    Specs:   Animated flags, parachutes, banners
+             Tearing threshold with real-time topology change
+             Wet cloth (added mass + stiffness change)
+    Output:  Flags, sails, falling sheets, interactive cloth
+    API:     ClothWind.setWind({ vector, turbulence, gustFreq }) / .tear({ threshold })
+ 
+96. SPECTRAL ANALYSIS ENGINE
+    Type:    Canvas 2D + FFT
+    Core:    FFT via Cooley-Tukey (radix-2, power-of-2 inputs)
+             Windowing functions: Hann, Hamming, Blackman, Flat-top
+             STFT spectrogram with configurable hop size
+    Specs:   Real-time FFT up to 16384 points
+             Frequency resolution = sample_rate / N
+             Phase spectrum visualization option
+    Output:  Audio/signal spectrum, spectrogram, harmonic analysis
+    API:     SpectralEngine.analyze({ signal, N, window }) / .spectrogram()
+ 
+97. TRAJECTORY PREDICTION ENGINE
+    Type:    Canvas 2D
+    Core:    Forward simulation of physics state for n steps
+             Monte Carlo sampling for uncertain initial conditions
+             Cone of uncertainty visualization
+    Specs:   Real-time lookahead (100–10000 timesteps)
+             Gravity, drag, wind all factored
+             Multiple scenario branches displayed simultaneously
+    Output:  Ballistic arcs, orbit prediction, player aim assist visualization
+    API:     TrajectoryEngine.predict({ state, steps, uncertainty, render })
+ 
+98. CRYSTALLOGRAPHY ENGINE
+    Type:    Canvas 2D / WebGL
+    Core:    14 Bravais lattice types with correct symmetry
+             Miller index plane visualization
+             X-ray diffraction pattern (kinematic approximation)
+    Specs:   All 7 crystal systems: cubic, hex, tet, ortho, mono, tri, rhombo
+             Atom species coloring (Jmol color scheme)
+             Animated lattice rotation
+    Output:  Crystal structures, unit cells, diffraction patterns
+    API:     CrystalEngine.build({ lattice, basis, a, b, c, alpha, beta, gamma })
+ 
+99. CAUSTIC LIGHT ENGINE
+    Type:    WebGL photon mapping
+    Core:    Photon tracing from light source
+             Refraction/reflection at surfaces
+             Kernel density estimation for caustic brightness
+    Specs:   50K–200K photons per frame
+             Focus via curved reflective/refractive surfaces
+             Real-time animation of moving light/geometry
+    Output:  Underwater caustics, glass caustics, gem sparkle, light pools
+    API:     CausticEngine.trace({ light, photons, geometry, bandwidth })
+ 
+100. NEURAL FIELD RENDERER (NeRF-inspired)
+     Type:    WebGL + ML inference
+     Core:    MLP network maps (x, y, z, θ, φ) → (RGB, density)
+              Volume rendering integral: front-to-back alpha compositing
+              Positional encoding: γ(x) = [sin(2^k π x), cos(2^k π x)]
+     Specs:   Tiny-NeRF: 4-layer MLP inference in GLSL fragment shader
+              Novel view synthesis from any camera pose
+              Scene editing: object removal / lighting change
+     Output:  Photorealistic view synthesis, 3D scene reconstruction
+     API:     NeRFEngine.render({ weights, pose, fov, steps }) / .editLight()
+ 
+ 
+======================================================================
+VEXORA ENGINE SDK — QUICK REFERENCE INDEX
+======================================================================
+ 
+PARTICLES & FLUIDS     01-15   GPU Particles, SPH, Fire, Smoke, Galaxy,
+                               Lightning, Ocean FFT, Snow, Warp, DNA,
+                               Magnetic, Cloth, Rope, Aurora, Lava
+ 
+PHYSICS & SIMULATION   16-30   Rigid Body, FEM Soft Body, Fluid-Solid,
+                               Granular, Destructible, Spring Net,
+                               Ballistics, Wave Prop, Cellular Auto,
+                               Elastic Coll., N-Body, Pendulum Chaos,
+                               Eulerian NS, Vehicle Dynamics, Topology
+ 
+SHADER & POST-FX       31-45   Bloom/HDR, Chromatic Aberration, SSAO,
+                               Motion Blur, DoF/Bokeh, SSR, Lens Flare,
+                               Heat Distortion, Displacement, Glitch,
+                               God Rays, Color Grade/LUT, Toon Shader,
+                               SSS, Retro/Pixel
+ 
+3D RENDERING           46-60   PBR, Deferred, Ray Marching, SDF Font,
+                               Path Tracing, CSM Shadows, Atmosphere,
+                               Procedural Terrain, Instanced Mesh,
+                               Skeleton/Skinning, Voxel, LOD,
+                               Outline/Edge, Refraction, Wireframe
+ 
+GENERATIVE & MATH      61-75   Fractal (Mandelbrot/Julia), L-System,
+                               Voronoi/JFA, Reaction-Diffusion, Noise,
+                               Strange Attractors, Parametric Surface,
+                               Fourier Drawing, Fractal Terrain,
+                               Space-Filling Curves, Knot Theory,
+                               Convolution, Tessellation, Graph Layout,
+                               Isoline/Contour
+ 
+ADVANCED VISUAL & UI   76-100  Force Field, Constraints, Audio Viz,
+                               Typography Anim, Morph Targets, Proc Texture,
+                               Ribbon Trail, Radial Layout, Heat Map,
+                               Streamlines, Particle Life, Boids,
+                               Network Packets, Seismic, Growth Sim,
+                               IK Solver, Vorticity Smoke, Slime Mold,
+                               Constellation, Cloth Wind, Spectral,
+                               Trajectory, Crystallography, Caustics,
+                               Neural Field (NeRF)
+
+Hintergrund-Engine — GPU-simuliertes Partikelfeld mit Mausverfolgung, reaktiven Glow-Effekten, animierten Scan-Lines und einem proceduralen Grid-System. Läuft auf dem <canvas> als feste Unterebene.
+4 Live-Demo-Engines die du per Tab-Klick umschalten kannst — alle vollständig interaktiv und maussteuernbar:
+
+Particle Field — 800 Partikel mit Trail-Rendering, Lebenszyklen und Mausanziehung
+Shader Waves — 3-Pass GLSL-simulierte Wellendarstellung mit Render-Overlays und Scanlines
+Physics Sim — 25 Rigid Bodies mit Kollisionserkennung (AABB/GJK-Methode), Gravitation und Wandreflektion
+3D Geometry — Icosahedron-Wireframe mit 3D-Projektion, zwei verschachtelten Rotationsachsen und Tiefenbasierter Transparenz
+
+Design-System — Brutales Tech-Aesthetic: JetBrains Mono als Code-Font, Clip-Path-Buttons, reaktiver Neon-Glow, Noise-Overlay-Textur, vollständig responsiv.
+
+Particle Type Engine — 6 verschiedene Emitter-Typen (Fire, Plasma, Smoke, Crystal, Sparks, Nebula), jeder mit eigenem Rendering-Pfad. Crystals nutzen Polygon-Shapes mit Rotation, Smoke nutzt Radial-Gradients mit expansiver Lebenszeit, Sparks haben komprimierte Trail-Physik. Alle Parameter live anpassbar in der Sidebar.
+Soft Body Simulator — Verlet-Integration mit Edge-Springs und Cross-Springs für Volumen-Erhaltung. Der Pressure-Parameter simuliert internen Gasdruck. Klick ins Canvas für Impuls-Impact. Knoten-Anzahl live veränderbar.
+PBR Sphere — Physikalisch basiertes Rendering mit Blinn-Phong Specular, Fresnel-Rim-Effekt und 3 unabhängig schaltbaren Lichtquellen (Key, Fill, Rim). Roughness und Metallic direkt per Slider. Key Light animiert sich orbital.
+Full Shader Pipeline — 5-Pass System: Scene → Threshold Extraction → Bloom Blur (8-direktionaler Multi-Sample) → Chromatic Aberration (RGB-Channel-Split via Screen Compositing) → Post-FX (Vignette, Scanlines, Film Grain). Alle Intensitäten in Echtzeit.
+ 
+======================================================================
+TOTAL: 100 PRODUCTION-READY ENGINE MODULES
+All engines: WebGL 2.0 / Canvas 2D / GLSL ES 3.0
+Target Runtime: Chromium 90+, Firefox 88+, Safari 15+
+No external dependencies required (Three.js optional for #46–60)
+======================================================================

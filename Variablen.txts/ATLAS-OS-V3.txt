@@ -1,0 +1,626 @@
+import { useState, useEffect, useRef } from "react";
+
+const TOOLS = [
+  { id:"chatgpt", name:"ChatGPT", cat:"Writing", desc:"Conversational AI by OpenAI. Best for chat, coding, plugins and image generation.", pricing:"Free / $20mo", pricingNum:20, logo:"🤖", rating:4.8, users:"100M+", api:true, deploy:"cloud", integrations:500, contextWindow:"128K", openSource:false, company:"OpenAI" },
+  { id:"claude", name:"Claude", cat:"Writing", desc:"Anthropic's AI — best for long documents, deep reasoning and safe outputs.", pricing:"Free / $20mo", pricingNum:20, logo:"🧠", rating:4.9, users:"10M+", api:true, deploy:"cloud", integrations:120, contextWindow:"200K", openSource:false, company:"Anthropic" },
+  { id:"midjourney", name:"Midjourney", cat:"Image", desc:"AI image generation from text. Best visual quality on the market.", pricing:"$10mo", pricingNum:10, logo:"🎨", rating:4.7, users:"20M+", api:false, deploy:"cloud", integrations:30, contextWindow:"—", openSource:false, company:"Midjourney" },
+  { id:"runway", name:"Runway", cat:"Video", desc:"AI video generation and editing for creators and studios.", pricing:"$15mo", pricingNum:15, logo:"🎬", rating:4.5, users:"3M+", api:true, deploy:"cloud", integrations:45, contextWindow:"—", openSource:false, company:"Runway" },
+  { id:"elevenlabs", name:"ElevenLabs", cat:"Audio", desc:"Ultra-realistic AI voice synthesis and cloning.", pricing:"Free / $22mo", pricingNum:22, logo:"🎙️", rating:4.8, users:"1M+", api:true, deploy:"cloud", integrations:80, contextWindow:"—", openSource:false, company:"ElevenLabs" },
+  { id:"perplexity", name:"Perplexity", cat:"Research", desc:"AI-powered search engine with real-time web access and citations.", pricing:"Free / $20mo", pricingNum:20, logo:"🔍", rating:4.7, users:"15M+", api:true, deploy:"cloud", integrations:20, contextWindow:"—", openSource:false, company:"Perplexity AI" },
+  { id:"zapier", name:"Zapier", cat:"Automation", desc:"Connect 6000+ apps and automate workflows without code.", pricing:"Free / $19mo", pricingNum:19, logo:"⚡", rating:4.6, users:"5M+", api:true, deploy:"cloud", integrations:6000, contextWindow:"—", openSource:false, company:"Zapier" },
+  { id:"notion-ai", name:"Notion AI", cat:"Productivity", desc:"AI-enhanced workspace for notes, docs and project management.", pricing:"$10mo", pricingNum:10, logo:"📝", rating:4.5, users:"30M+", api:false, deploy:"cloud", integrations:200, contextWindow:"—", openSource:false, company:"Notion" },
+  { id:"cursor", name:"Cursor", cat:"Coding", desc:"AI-first code editor built on VSCode. Inline AI, chat and autocomplete.", pricing:"Free / $20mo", pricingNum:20, logo:"💻", rating:4.9, users:"500K+", api:false, deploy:"desktop", integrations:40, contextWindow:"—", openSource:false, company:"Anysphere" },
+  { id:"descript", name:"Descript", cat:"Video", desc:"Edit audio and video like a text document with AI-powered tools.", pricing:"Free / $24mo", pricingNum:24, logo:"✂️", rating:4.4, users:"500K+", api:false, deploy:"desktop", integrations:30, contextWindow:"—", openSource:false, company:"Descript" },
+  { id:"synthesia", name:"Synthesia", cat:"Video", desc:"Create AI avatar videos from text in 120+ languages.", pricing:"$22mo", pricingNum:22, logo:"👤", rating:4.3, users:"50K+", api:true, deploy:"cloud", integrations:25, contextWindow:"—", openSource:false, company:"Synthesia" },
+  { id:"copy-ai", name:"Copy.ai", cat:"Writing", desc:"AI marketing copy and content generation for teams.", pricing:"Free / $49mo", pricingNum:49, logo:"✍️", rating:4.3, users:"10M+", api:true, deploy:"cloud", integrations:90, contextWindow:"—", openSource:false, company:"Copy.ai" },
+  { id:"github-copilot", name:"GitHub Copilot", cat:"Coding", desc:"AI coding assistant integrated into GitHub and VS Code.", pricing:"$10mo", pricingNum:10, logo:"🐙", rating:4.7, users:"1M+", api:true, deploy:"cloud", integrations:30, contextWindow:"—", openSource:false, company:"GitHub/Microsoft" },
+  { id:"dalle", name:"DALL·E 3", cat:"Image", desc:"OpenAI's image generation model, natively integrated in ChatGPT.", pricing:"$0.04/img", pricingNum:0, logo:"🖼️", rating:4.5, users:"50M+", api:true, deploy:"cloud", integrations:50, contextWindow:"—", openSource:false, company:"OpenAI" },
+  { id:"stable-diffusion", name:"Stable Diffusion", cat:"Image", desc:"Open-source image generation model. Self-host or use via API.", pricing:"Free", pricingNum:0, logo:"🌊", rating:4.4, users:"10M+", api:true, deploy:"self-hosted", integrations:200, contextWindow:"—", openSource:true, company:"Stability AI" },
+  { id:"pika", name:"Pika", cat:"Video", desc:"AI video generation from text or image. Fast, beautiful results.", pricing:"Free / $8mo", pricingNum:8, logo:"🎥", rating:4.4, users:"500K+", api:false, deploy:"cloud", integrations:10, contextWindow:"—", openSource:false, company:"Pika Labs" },
+];
+
+const CATS = ["All","Writing","Image","Video","Audio","Research","Automation","Productivity","Coding"];
+
+const STACKS = [
+  { id:1, title:"YouTube Channel Builder", goal:"Full AI YouTube automation", difficulty:"medium", cost:"~$57/mo", views:"2.4K", steps:[{tool:"Perplexity",role:"Research"},{tool:"Claude",role:"Script"},{tool:"ElevenLabs",role:"Voice"},{tool:"Runway",role:"Video"},{tool:"Descript",role:"Edit"}] },
+  { id:2, title:"SaaS Marketing Machine", goal:"Automated content marketing pipeline", difficulty:"easy", cost:"~$39/mo", views:"1.8K", steps:[{tool:"Perplexity",role:"Research"},{tool:"Claude",role:"Content"},{tool:"Midjourney",role:"Visuals"},{tool:"Copy.ai",role:"Ads"},{tool:"Zapier",role:"Publish"}] },
+  { id:3, title:"AI SaaS MVP Builder", goal:"Launch an AI product in 30 days", difficulty:"hard", cost:"~$60/mo", views:"3.1K", steps:[{tool:"Claude",role:"Architect"},{tool:"Cursor",role:"Code"},{tool:"ChatGPT",role:"Debug"},{tool:"Midjourney",role:"Design"},{tool:"Notion AI",role:"Docs"}] },
+  { id:4, title:"Podcast Production Stack", goal:"Record, edit, publish podcasts with AI", difficulty:"easy", cost:"~$32/mo", views:"980", steps:[{tool:"Descript",role:"Record/Edit"},{tool:"ElevenLabs",role:"Voice"},{tool:"Claude",role:"Show Notes"},{tool:"Zapier",role:"Publish"}] },
+];
+
+const PLANS = [
+  { name:"Explorer", price:"Free", features:["5 AI Stacks/month","Basic tool search","Public stacks","Community access"] },
+  { name:"Builder", price:"$12", highlight:true, features:["Unlimited stacks","AI Stack Generator","Private stacks","Stack analytics","Priority support"] },
+  { name:"Enterprise", price:"$99", features:["Everything in Builder","Team workspaces","ATLAS API access","Custom integrations","SLA + Dedicated support"] },
+];
+
+const NAV = ["Home","Generate","Stacks","Tools","Compare","Pricing"];
+
+// ── ATOMS ─────────────────────────────────────────────────────
+const Badge = ({children,color="#06b6d4",sm})=>(
+  <span style={{background:`${color}22`,color,border:`1px solid ${color}44`,borderRadius:4,padding:sm?"1px 6px":"2px 9px",fontSize:sm?10:11,fontWeight:600,letterSpacing:.4,whiteSpace:"nowrap",display:"inline-block"}}>{children}</span>
+);
+const Btn = ({children,onClick,outline,sm,full,disabled,style={}})=>(
+  <button onClick={onClick} disabled={disabled} style={{background:outline?"transparent":"linear-gradient(135deg,#06b6d4,#3b82f6)",border:outline?"1px solid #06b6d444":"none",color:outline?"#06b6d4":"#fff",borderRadius:8,padding:sm?"7px 14px":"11px 24px",fontWeight:700,fontSize:sm?11:13,cursor:disabled?"not-allowed":"pointer",opacity:disabled?.5:1,transition:"all .2s",width:full?"100%":"auto",boxShadow:outline?"none":"0 0 16px #06b6d420",...style}}>{children}</button>
+);
+const Stars = ({n})=><span style={{color:"#f59e0b",fontSize:11}}>{"★".repeat(Math.round(n))}{"☆".repeat(5-Math.round(n))} <span style={{color:"#64748b"}}>{n}</span></span>;
+
+// ── ANIMATED COUNTER ──────────────────────────────────────────
+function Counter({end,suffix=""}) {
+  const [val,setVal]=useState(0);
+  useEffect(()=>{
+    let start=0; const step=end/60;
+    const t=setInterval(()=>{ start+=step; if(start>=end){setVal(end);clearInterval(t);}else setVal(Math.floor(start)); },16);
+    return ()=>clearInterval(t);
+  },[end]);
+  return <span>{val.toLocaleString()}{suffix}</span>;
+}
+
+// ── TYPEWRITER ────────────────────────────────────────────────
+function Typewriter({texts}) {
+  const [idx,setIdx]=useState(0);
+  const [shown,setShown]=useState("");
+  const [del,setDel]=useState(false);
+  useEffect(()=>{
+    const t=texts[idx];
+    if(!del&&shown.length<t.length){ const id=setTimeout(()=>setShown(t.slice(0,shown.length+1)),40); return()=>clearTimeout(id); }
+    if(!del&&shown.length===t.length){ const id=setTimeout(()=>setDel(true),1800); return()=>clearTimeout(id); }
+    if(del&&shown.length>0){ const id=setTimeout(()=>setShown(shown.slice(0,-1)),20); return()=>clearTimeout(id); }
+    if(del&&shown.length===0){ setDel(false); setIdx((idx+1)%texts.length); }
+  },[shown,del,idx,texts]);
+  return <span style={{color:"#06b6d4"}}>{shown}<span style={{animation:"blink 1s infinite",opacity:.8}}>|</span></span>;
+}
+
+// ── HERO ──────────────────────────────────────────────────────
+function Hero({setPage}) {
+  const goals = ["Build a YouTube Channel","Launch a SaaS in 30 days","Automate content marketing","Create a podcast","Build a coding workflow"];
+  return (
+    <section style={{textAlign:"center",padding:"80px 20px 60px",position:"relative",overflow:"hidden"}}>
+      {/* bg glow */}
+      <div style={{position:"absolute",top:0,left:"50%",transform:"translateX(-50%)",width:800,height:400,background:"radial-gradient(ellipse,#06b6d418 0%,transparent 70%)",pointerEvents:"none"}}/>
+      <div style={{position:"absolute",top:60,left:"10%",width:200,height:200,background:"radial-gradient(circle,#3b82f610,transparent)",pointerEvents:"none",borderRadius:"50%"}}/>
+      <div style={{position:"absolute",top:100,right:"10%",width:150,height:150,background:"radial-gradient(circle,#8b5cf610,transparent)",pointerEvents:"none",borderRadius:"50%"}}/>
+
+      <Badge>AI Workflow Infrastructure · Version 20.0</Badge>
+      <h1 style={{fontSize:"clamp(30px,5vw,66px)",fontWeight:900,lineHeight:1.08,margin:"20px 0 12px",background:"linear-gradient(135deg,#f8fafc 20%,#7dd3fc,#06b6d4,#3b82f6)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>
+        The OS for<br/>Building AI Systems
+      </h1>
+      <div style={{fontSize:"clamp(14px,2vw,18px)",color:"#64748b",marginBottom:6,minHeight:28}}>
+        Your goal: <Typewriter texts={goals}/>
+      </div>
+      <p style={{fontSize:14,color:"#475569",maxWidth:480,margin:"10px auto 32px",lineHeight:1.75}}>
+        ATLAS converts any goal into a complete AI workflow — the right tools, in the right order. <em style={{color:"#334155"}}>Google indexed the web. Atlas indexes intelligence.</em>
+      </p>
+      <div style={{display:"flex",gap:10,justifyContent:"center",flexWrap:"wrap",marginBottom:48}}>
+        <Btn onClick={()=>setPage("Generate")} style={{fontSize:14,padding:"13px 28px"}}>Generate Your Stack →</Btn>
+        <Btn outline onClick={()=>setPage("Compare")} style={{fontSize:14,padding:"13px 28px"}}>Compare Tools</Btn>
+      </div>
+
+      {/* Stats */}
+      <div style={{display:"flex",gap:0,justifyContent:"center",flexWrap:"wrap",maxWidth:640,margin:"0 auto 60px",background:"#0f172a",border:"1px solid #1e293b",borderRadius:14}}>
+        {[["10,000","+","AI Tools"],["300","+","Categories"],["1,000,000","+","SEO Pages"],["98","%","WSR"]].map(([n,s,l],i)=>(
+          <div key={l} style={{flex:1,minWidth:120,padding:"18px 10px",borderRight:i<3?"1px solid #1e293b":"none",textAlign:"center"}}>
+            <div style={{fontSize:22,fontWeight:900,color:"#06b6d4"}}><Counter end={parseInt(n.replace(",",""))} suffix={s}/></div>
+            <div style={{fontSize:11,color:"#475569",marginTop:2}}>{l}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Featured stacks */}
+      <div style={{maxWidth:920,margin:"0 auto",textAlign:"left"}}>
+        <div style={{fontSize:11,color:"#334155",fontWeight:700,letterSpacing:1,marginBottom:14,textAlign:"center"}}>FEATURED STACKS</div>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(210px,1fr))",gap:12}}>
+          {STACKS.map(s=>(
+            <div key={s.id} onClick={()=>setPage("Stacks")} style={{background:"#0f172a",border:"1px solid #1e293b",borderRadius:12,padding:16,cursor:"pointer",transition:"all .2s"}}
+              onMouseEnter={e=>{e.currentTarget.style.borderColor="#06b6d4";e.currentTarget.style.transform="translateY(-2px)";}}
+              onMouseLeave={e=>{e.currentTarget.style.borderColor="#1e293b";e.currentTarget.style.transform="translateY(0)";}}>
+              <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
+                <span style={{fontWeight:700,fontSize:12,color:"#f1f5f9"}}>{s.title}</span>
+                <Badge color={{easy:"#22c55e",medium:"#f59e0b",hard:"#ef4444"}[s.difficulty]} sm>{s.difficulty}</Badge>
+              </div>
+              <div style={{fontSize:10,color:"#475569",marginBottom:10}}>{s.goal}</div>
+              <div style={{display:"flex",flexWrap:"wrap",gap:4,marginBottom:8}}>
+                {s.steps.map((st,i)=><span key={i} style={{fontSize:9,background:"#1e293b",color:"#94a3b8",borderRadius:3,padding:"2px 6px"}}>{st.tool}</span>)}
+              </div>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                <span style={{fontSize:10,color:"#22c55e",fontWeight:600}}>{s.cost}</span>
+                <span style={{fontSize:10,color:"#334155"}}>👁 {s.views}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ── GENERATE ──────────────────────────────────────────────────
+function Generate() {
+  const [goal,setGoal]=useState("");
+  const [loading,setLoading]=useState(false);
+  const [result,setResult]=useState(null);
+  const [err,setErr]=useState("");
+  const [saved,setSaved]=useState(false);
+  const examples = ["YouTube channel automation","SaaS landing page","Podcast production","AI coding workflow","Content marketing pipeline","Customer support bot"];
+
+  async function run() {
+    if(!goal.trim()||loading) return;
+    setLoading(true); setErr(""); setResult(null); setSaved(false);
+    try {
+      const res = await fetch("https://api.anthropic.com/v1/messages",{
+        method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({
+          model:"claude-sonnet-4-20250514",max_tokens:1200,
+          messages:[{role:"user",content:`You are ATLAS OS — the AI Workflow Infrastructure. Route this goal through the AI Model Router.
+
+User goal: "${goal}"
+
+Return ONLY valid JSON (no markdown, no backticks, no extra text):
+{"title":"...","summary":"one sentence","estimated_cost":"$X/mo","difficulty":"easy|medium|hard","time_to_result":"e.g. 2 hours","wsrScore":72,"steps":[{"step":1,"tool":"Real AI Tool Name","role":"Role","action":"what it does","why":"why best here","altTool":"Alternative tool name"}],"pro_tip":"actionable tip","moat":"what makes this stack defensible"}`}]
+        })
+      });
+      const data = await res.json();
+      const txt = data.content?.find(b=>b.type==="text")?.text||"";
+      setResult(JSON.parse(txt.replace(/```json|```/g,"").trim()));
+    } catch(e){ setErr("Generation failed — please try again."); }
+    setLoading(false);
+  }
+
+  const dc = result?{easy:"#22c55e",medium:"#f59e0b",hard:"#ef4444"}[result.difficulty]:"#06b6d4";
+
+  return (
+    <section style={{maxWidth:800,margin:"0 auto",padding:"52px 20px"}}>
+      <Badge>AI Stack Generator · Model Router</Badge>
+      <h2 style={{fontSize:32,fontWeight:900,margin:"14px 0 6px",color:"#f1f5f9"}}>Generate Your AI Stack</h2>
+      <p style={{color:"#475569",marginBottom:32,fontSize:13,lineHeight:1.7}}>
+        Describe your goal → ATLAS AI Model Router selects the best tool for each step → You get a production-ready workflow.
+      </p>
+
+      <div style={{background:"#0f172a",border:"1px solid #1e293b",borderRadius:14,padding:22,marginBottom:20,transition:"border-color .2s"}}
+        onFocus={()=>{}} >
+        <div style={{fontSize:11,color:"#334155",fontWeight:700,marginBottom:8,letterSpacing:.5}}>WHAT DO YOU WANT TO BUILD?</div>
+        <textarea value={goal} onChange={e=>setGoal(e.target.value)}
+          onKeyDown={e=>{ if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();run();} }}
+          placeholder='e.g. "Automate YouTube videos" or "Launch a SaaS in 30 days"...'
+          style={{width:"100%",background:"transparent",border:"none",outline:"none",color:"#f1f5f9",fontSize:15,resize:"none",height:64,fontFamily:"inherit",lineHeight:1.7}}/>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:12,flexWrap:"wrap",gap:8}}>
+          <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
+            {examples.map(ex=>(
+              <button key={ex} onClick={()=>setGoal(ex)} style={{background:"#1e293b",border:"1px solid #334155",color:"#64748b",borderRadius:6,padding:"3px 9px",fontSize:10,cursor:"pointer",transition:"color .15s"}}
+                onMouseEnter={e=>e.target.style.color="#94a3b8"} onMouseLeave={e=>e.target.style.color="#64748b"}>
+                {ex}
+              </button>
+            ))}
+          </div>
+          <Btn onClick={run} disabled={loading||!goal.trim()} style={{minWidth:140}}>
+            {loading?"Routing...":"Generate Stack →"}
+          </Btn>
+        </div>
+      </div>
+
+      {err && <div style={{color:"#ef4444",fontSize:12,marginBottom:12,padding:"10px 14px",background:"#ef444411",borderRadius:8,border:"1px solid #ef444433"}}>{err}</div>}
+
+      {loading && (
+        <div style={{textAlign:"center",padding:48}}>
+          <div style={{display:"flex",justifyContent:"center",gap:6,marginBottom:16}}>
+            {[0,1,2].map(i=>(
+              <div key={i} style={{width:8,height:8,borderRadius:"50%",background:"#06b6d4",animation:`pulse 1s ${i*0.2}s infinite`}}/>
+            ))}
+          </div>
+          <div style={{color:"#475569",fontSize:13}}>AI Model Router is selecting the best tools...</div>
+          <div style={{color:"#334155",fontSize:11,marginTop:6}}>Analyzing your goal → Routing to optimal models → Building workflow</div>
+        </div>
+      )}
+
+      {result && (
+        <div style={{background:"#0f172a",border:"1px solid #06b6d433",borderRadius:14,padding:26,boxShadow:"0 0 60px #06b6d410",animation:"fadeIn .4s ease"}}>
+          {/* Header */}
+          <div style={{display:"flex",justifyContent:"space-between",flexWrap:"wrap",gap:12,marginBottom:20,paddingBottom:16,borderBottom:"1px solid #1e293b"}}>
+            <div style={{flex:1}}>
+              <div style={{fontSize:19,fontWeight:800,color:"#f1f5f9",marginBottom:4}}>{result.title}</div>
+              <div style={{fontSize:12,color:"#64748b",lineHeight:1.6}}>{result.summary}</div>
+            </div>
+            <div style={{display:"flex",flexWrap:"wrap",gap:6,alignItems:"flex-start"}}>
+              <Badge color={dc}>{result.difficulty}</Badge>
+              <Badge color="#8b5cf6">⏱ {result.time_to_result}</Badge>
+              <Badge color="#22c55e">💰 {result.estimated_cost}</Badge>
+              {result.wsrScore && <Badge color="#f59e0b">WSR {result.wsrScore}%</Badge>}
+            </div>
+          </div>
+
+          {/* Steps */}
+          <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:18}}>
+            {result.steps?.map((s,i)=>(
+              <div key={i} style={{display:"flex",gap:14,background:"#1e293b",borderRadius:10,padding:14,alignItems:"flex-start",transition:"background .2s"}}
+                onMouseEnter={e=>e.currentTarget.style.background="#243040"}
+                onMouseLeave={e=>e.currentTarget.style.background="#1e293b"}>
+                <div style={{minWidth:28,height:28,borderRadius:"50%",background:"linear-gradient(135deg,#06b6d4,#3b82f6)",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:12,color:"#fff",flexShrink:0}}>{s.step}</div>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{display:"flex",gap:7,alignItems:"center",marginBottom:3,flexWrap:"wrap"}}>
+                    <span style={{fontWeight:700,color:"#f1f5f9",fontSize:13}}>{s.tool}</span>
+                    <Badge sm>{s.role}</Badge>
+                    {s.altTool && <span style={{fontSize:10,color:"#334155"}}>alt: {s.altTool}</span>}
+                  </div>
+                  <div style={{fontSize:12,color:"#94a3b8",marginBottom:3}}>{s.action}</div>
+                  <div style={{fontSize:11,color:"#475569"}}>💡 {s.why}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Pro tip + moat */}
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:16}}>
+            {result.pro_tip && <div style={{background:"#06b6d410",border:"1px solid #06b6d422",borderRadius:8,padding:12,fontSize:11,color:"#06b6d4",lineHeight:1.6}}><strong>🚀 Pro tip:</strong> {result.pro_tip}</div>}
+            {result.moat && <div style={{background:"#3b82f610",border:"1px solid #3b82f622",borderRadius:8,padding:12,fontSize:11,color:"#3b82f6",lineHeight:1.6}}><strong>🏰 Moat:</strong> {result.moat}</div>}
+          </div>
+
+          <div style={{display:"flex",gap:8,justifyContent:"flex-end",flexWrap:"wrap"}}>
+            <Btn outline sm onClick={()=>{setResult(null);setGoal("");}}>New Stack</Btn>
+            <Btn sm outline onClick={()=>setSaved(true)} style={{borderColor:"#22c55e",color:saved?"#22c55e":"#64748b"}}>{saved?"✓ Saved":"Save Stack"}</Btn>
+            <Btn sm>Share Stack →</Btn>
+          </div>
+        </div>
+      )}
+      <style>{`@keyframes pulse{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1.2)}} @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}`}</style>
+    </section>
+  );
+}
+
+// ── STACKS ────────────────────────────────────────────────────
+function Stacks() {
+  const [active,setActive]=useState(null);
+  return (
+    <section style={{maxWidth:1000,margin:"0 auto",padding:"52px 20px"}}>
+      <Badge>Stack Library</Badge>
+      <h2 style={{fontSize:32,fontWeight:900,margin:"14px 0 6px",color:"#f1f5f9"}}>AI Workflow Stacks</h2>
+      <p style={{color:"#475569",marginBottom:32,fontSize:13}}>Production-ready AI workflows. Clone any stack and adapt it to your use case.</p>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:16}}>
+        {STACKS.map(s=>{
+          const dc={easy:"#22c55e",medium:"#f59e0b",hard:"#ef4444"}[s.difficulty];
+          const open=active===s.id;
+          return (
+            <div key={s.id} style={{background:"#0f172a",border:`1px solid ${open?"#06b6d4":"#1e293b"}`,borderRadius:14,padding:20,transition:"all .25s",transform:open?"scale(1.01)":"scale(1)",boxShadow:open?"0 0 30px #06b6d415":"none"}}
+              onMouseEnter={e=>!open&&(e.currentTarget.style.borderColor="#1e3a5f")}
+              onMouseLeave={e=>!open&&(e.currentTarget.style.borderColor="#1e293b")}>
+              <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
+                <span style={{fontWeight:800,color:"#f1f5f9",fontSize:13}}>{s.title}</span>
+                <Badge color={dc} sm>{s.difficulty}</Badge>
+              </div>
+              <div style={{fontSize:11,color:"#475569",marginBottom:14}}>{s.goal}</div>
+              <div style={{display:"flex",flexDirection:"column",gap:7,marginBottom:14}}>
+                {s.steps.map((st,i)=>(
+                  <div key={i} style={{display:"flex",gap:8,alignItems:"center"}}>
+                    <span style={{width:16,height:16,borderRadius:"50%",background:"#1e293b",display:"flex",alignItems:"center",justifyContent:"center",fontSize:8,color:"#475569",flexShrink:0}}>{i+1}</span>
+                    <span style={{fontSize:11,color:"#06b6d4",fontWeight:600,minWidth:80}}>{st.tool}</span>
+                    <span style={{fontSize:10,color:"#334155"}}>→ {st.role}</span>
+                  </div>
+                ))}
+              </div>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                <div style={{display:"flex",gap:8}}>
+                  <span style={{fontSize:11,color:"#22c55e",fontWeight:600}}>{s.cost}</span>
+                  <span style={{fontSize:11,color:"#334155"}}>👁 {s.views}</span>
+                </div>
+                <div style={{display:"flex",gap:6}}>
+                  <Btn sm onClick={()=>setActive(open?null:s.id)}>{open?"Close":"Details"}</Btn>
+                  <Btn sm outline>Clone</Btn>
+                </div>
+              </div>
+              {open && (
+                <div style={{marginTop:14,paddingTop:14,borderTop:"1px solid #1e293b",animation:"fadeIn .3s ease"}}>
+                  <div style={{fontSize:11,color:"#64748b",lineHeight:1.7}}>
+                    This stack combines <strong style={{color:"#94a3b8"}}>{s.steps.length} AI tools</strong> to achieve <em style={{color:"#06b6d4"}}>{s.goal}</em>. Estimated monthly cost: <strong style={{color:"#22c55e"}}>{s.cost}</strong>. Clone it to customize for your workflow.
+                  </div>
+                  <div style={{marginTop:10,display:"flex",gap:6}}>
+                    <Btn sm full>Clone & Customize →</Btn>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+      <style>{`@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}`}</style>
+    </section>
+  );
+}
+
+// ── TOOLS ─────────────────────────────────────────────────────
+function Tools({onCompare}) {
+  const [q,setQ]=useState("");
+  const [cat,setCat]=useState("All");
+  const [sort,setSort]=useState("rating");
+  const [compareList,setCompareList]=useState([]);
+
+  const filtered = TOOLS
+    .filter(t=>(cat==="All"||t.cat===cat)&&(!q||t.name.toLowerCase().includes(q.toLowerCase())||t.desc.toLowerCase().includes(q.toLowerCase())))
+    .sort((a,b)=>sort==="rating"?b.rating-a.rating:sort==="price"?a.pricingNum-b.pricingNum:a.name.localeCompare(b.name));
+
+  function toggleCompare(t) {
+    setCompareList(prev=>prev.find(x=>x.id===t.id)?prev.filter(x=>x.id!==t.id):[...prev.slice(-1),t]);
+  }
+
+  return (
+    <section style={{maxWidth:1100,margin:"0 auto",padding:"52px 20px"}}>
+      <Badge>Tool Explorer · 10,000+ Tools</Badge>
+      <h2 style={{fontSize:32,fontWeight:900,margin:"14px 0 6px",color:"#f1f5f9"}}>AI Tool Catalog</h2>
+      <p style={{color:"#475569",marginBottom:24,fontSize:13}}>Filter, search, and compare AI tools across every category.</p>
+
+      {compareList.length>0 && (
+        <div style={{background:"#0f172a",border:"1px solid #06b6d433",borderRadius:10,padding:"12px 16px",marginBottom:20,display:"flex",gap:10,alignItems:"center",flexWrap:"wrap"}}>
+          <span style={{fontSize:12,color:"#06b6d4",fontWeight:700}}>⚖️ Compare:</span>
+          {compareList.map(t=><Badge key={t.id} sm>{t.logo} {t.name}</Badge>)}
+          {compareList.length===2 && <Btn sm onClick={()=>onCompare(compareList[0],compareList[1])}>Compare Now →</Btn>}
+          <button onClick={()=>setCompareList([])} style={{background:"none",border:"none",color:"#475569",cursor:"pointer",fontSize:11}}>Clear</button>
+        </div>
+      )}
+
+      <div style={{display:"flex",gap:10,flexWrap:"wrap",marginBottom:20,alignItems:"center"}}>
+        <input value={q} onChange={e=>setQ(e.target.value)} placeholder="Search 10,000+ tools..."
+          style={{flex:1,minWidth:180,background:"#0f172a",border:"1px solid #1e293b",borderRadius:8,padding:"8px 14px",color:"#f1f5f9",fontSize:12,outline:"none"}}/>
+        <select value={sort} onChange={e=>setSort(e.target.value)} style={{background:"#0f172a",border:"1px solid #1e293b",borderRadius:8,padding:"8px 12px",color:"#64748b",fontSize:12,outline:"none"}}>
+          <option value="rating">Sort: Rating</option>
+          <option value="price">Sort: Price</option>
+          <option value="name">Sort: Name</option>
+        </select>
+      </div>
+
+      <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:20}}>
+        {CATS.map(c=>(
+          <button key={c} onClick={()=>setCat(c)} style={{background:cat===c?"linear-gradient(135deg,#06b6d4,#3b82f6)":"#0f172a",border:"1px solid",borderColor:cat===c?"transparent":"#1e293b",color:cat===c?"#fff":"#64748b",borderRadius:6,padding:"5px 12px",fontSize:11,fontWeight:600,cursor:"pointer",transition:"all .15s"}}>
+            {c}
+          </button>
+        ))}
+      </div>
+
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(240px,1fr))",gap:12}}>
+        {filtered.map(t=>{
+          const inCompare = compareList.find(x=>x.id===t.id);
+          return (
+            <div key={t.id} style={{background:"#0f172a",border:`1px solid ${inCompare?"#06b6d4":"#1e293b"}`,borderRadius:12,padding:16,transition:"all .2s"}}
+              onMouseEnter={e=>!inCompare&&(e.currentTarget.style.borderColor="#1e3a5f")}
+              onMouseLeave={e=>!inCompare&&(e.currentTarget.style.borderColor="#1e293b")}>
+              <div style={{display:"flex",gap:10,marginBottom:8,alignItems:"flex-start"}}>
+                <span style={{fontSize:24,lineHeight:1}}>{t.logo}</span>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{fontWeight:700,color:"#f1f5f9",fontSize:13,marginBottom:2}}>{t.name}</div>
+                  <div style={{display:"flex",gap:3,flexWrap:"wrap"}}>
+                    <Badge sm>{t.cat}</Badge>
+                    {t.api&&<Badge color="#22c55e" sm>API</Badge>}
+                    {t.openSource&&<Badge color="#f59e0b" sm>OSS</Badge>}
+                  </div>
+                </div>
+              </div>
+              <p style={{fontSize:11,color:"#64748b",lineHeight:1.6,marginBottom:8,minHeight:36}}>{t.desc}</p>
+              <div style={{fontSize:10,color:"#334155",marginBottom:6}}>{t.company}</div>
+              <Stars n={t.rating}/>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:10,gap:6}}>
+                <span style={{fontSize:11,color:"#22c55e",fontWeight:600}}>{t.pricing}</span>
+                <div style={{display:"flex",gap:5}}>
+                  <Btn sm outline onClick={()=>toggleCompare(t)} style={{borderColor:inCompare?"#06b6d4":"undefined",color:inCompare?"#06b6d4":"undefined"}}>
+                    {inCompare?"✓ Added":"+ Compare"}
+                  </Btn>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+// ── COMPARE ───────────────────────────────────────────────────
+function Compare({initA,initB}) {
+  const [a,setA]=useState(initA||null);
+  const [b,setB]=useState(initB||null);
+  const [pick,setPick]=useState(null);
+
+  function sel(t){ if(pick==="a"){setA(t);setPick(null);}else if(pick==="b"){setB(t);setPick(null);} }
+
+  const ROWS = [
+    {label:"Company",key:"company"},
+    {label:"Category",key:"cat"},
+    {label:"Pricing",key:"pricing"},
+    {label:"Rating",key:"rating",render:(v)=><Stars n={v}/>},
+    {label:"Users",key:"users"},
+    {label:"API Access",key:"api",render:(v)=>v?<Badge color="#22c55e" sm>✓ Yes</Badge>:<Badge color="#ef4444" sm>✗ No</Badge>},
+    {label:"Open Source",key:"openSource",render:(v)=>v?<Badge color="#f59e0b" sm>✓ Yes</Badge>:<Badge color="#475569" sm>✗ No</Badge>},
+    {label:"Deployment",key:"deploy"},
+    {label:"Context Window",key:"contextWindow"},
+    {label:"Integrations",key:"integrations",render:(v)=>`${v}+`},
+  ];
+
+  function winner(attr,ta,tb) {
+    if(attr.key==="rating") return ta.rating>tb.rating?"a":tb.rating>ta.rating?"b":"tie";
+    if(attr.key==="integrations") return ta.integrations>tb.integrations?"a":tb.integrations>ta.integrations?"b":"tie";
+    if(attr.key==="api") return ta.api&&!tb.api?"a":!ta.api&&tb.api?"b":"tie";
+    return "tie";
+  }
+
+  const winsA = a&&b ? ROWS.filter(r=>winner(r,a,b)==="a").length : 0;
+  const winsB = a&&b ? ROWS.filter(r=>winner(r,a,b)==="b").length : 0;
+
+  return (
+    <section style={{maxWidth:900,margin:"0 auto",padding:"52px 20px"}}>
+      <Badge>Comparison Engine · Part 23</Badge>
+      <h2 style={{fontSize:32,fontWeight:900,margin:"14px 0 6px",color:"#f1f5f9"}}>Compare AI Tools</h2>
+      <p style={{color:"#475569",marginBottom:28,fontSize:13}}>Side-by-side comparison across 10 attributes with ATLAS Verdict.</p>
+
+      {/* Selectors */}
+      <div style={{display:"grid",gridTemplateColumns:"1fr 50px 1fr",gap:10,marginBottom:20,alignItems:"center"}}>
+        {[["a",a],["b",b]].map(([side,tool])=>(
+          <div key={side} onClick={()=>setPick(side)} style={{background:pick===side?"#06b6d412":"#0f172a",border:`2px solid ${pick===side?"#06b6d4":tool?"#1e3a5f":"#1e293b"}`,borderRadius:12,padding:16,cursor:"pointer",textAlign:"center",minHeight:88,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",transition:"all .2s"}}
+            onMouseEnter={e=>e.currentTarget.style.borderColor="#06b6d444"}
+            onMouseLeave={e=>e.currentTarget.style.borderColor=pick===side?"#06b6d4":tool?"#1e3a5f":"#1e293b"}>
+            {tool?(<><div style={{fontSize:26,marginBottom:4}}>{tool.logo}</div><div style={{fontWeight:700,color:"#f1f5f9",fontSize:13}}>{tool.name}</div><div style={{fontSize:10,color:"#475569",marginTop:2}}>{tool.cat}</div></>):(<div style={{color:pick===side?"#06b6d4":"#334155",fontSize:12}}>{pick===side?"Click a tool below":"+ Select Tool"}</div>)}
+          </div>
+        ))}
+        <div style={{textAlign:"center",color:"#1e293b",fontSize:18,fontWeight:900}}>VS</div>
+      </div>
+
+      {/* Tool picker */}
+      {pick && (
+        <div style={{background:"#0f172a",border:"1px solid #06b6d433",borderRadius:12,padding:14,marginBottom:20,animation:"fadeIn .2s ease"}}>
+          <div style={{fontSize:11,color:"#06b6d4",marginBottom:10,fontWeight:700}}>SELECT TOOL {pick.toUpperCase()}:</div>
+          <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
+            {TOOLS.map(t=>(
+              <button key={t.id} onClick={()=>sel(t)} style={{background:"#1e293b",border:"1px solid #334155",color:"#94a3b8",borderRadius:8,padding:"5px 10px",fontSize:11,cursor:"pointer",display:"flex",alignItems:"center",gap:5,transition:"all .15s"}}
+                onMouseEnter={e=>{e.currentTarget.style.background="#243040";e.currentTarget.style.color="#f1f5f9";}}
+                onMouseLeave={e=>{e.currentTarget.style.background="#1e293b";e.currentTarget.style.color="#94a3b8";}}>
+                {t.logo} {t.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Score bar */}
+      {a&&b&&(
+        <div style={{background:"#0f172a",border:"1px solid #1e293b",borderRadius:10,padding:"12px 16px",marginBottom:16,display:"flex",gap:12,alignItems:"center"}}>
+          <span style={{fontSize:13,fontWeight:700,color:"#f1f5f9",minWidth:90}}>{a.name}: {winsA}</span>
+          <div style={{flex:1,height:6,background:"#1e293b",borderRadius:3,overflow:"hidden"}}>
+            <div style={{height:"100%",background:"linear-gradient(90deg,#06b6d4,#3b82f6)",width:`${winsA/(winsA+winsB||1)*100}%`,transition:"width .5s ease",borderRadius:3}}/>
+          </div>
+          <span style={{fontSize:13,fontWeight:700,color:"#f1f5f9",minWidth:90,textAlign:"right"}}>{b.name}: {winsB}</span>
+        </div>
+      )}
+
+      {/* Table */}
+      {a&&b&&(
+        <div style={{background:"#0f172a",border:"1px solid #1e293b",borderRadius:14,overflow:"hidden"}}>
+          <div style={{display:"grid",gridTemplateColumns:"140px 1fr 1fr",background:"#080f1e"}}>
+            <div style={{padding:"12px 14px",fontSize:10,color:"#334155",fontWeight:700,letterSpacing:.5,borderRight:"1px solid #1e293b"}}>ATTRIBUTE</div>
+            {[a,b].map((t,i)=>(
+              <div key={i} style={{padding:"12px 14px",textAlign:"center",borderRight:i===0?"1px solid #1e293b":"none"}}>
+                <div style={{fontSize:20,marginBottom:2}}>{t.logo}</div>
+                <div style={{fontWeight:800,color:"#f1f5f9",fontSize:12}}>{t.name}</div>
+              </div>
+            ))}
+          </div>
+          {ROWS.map((row,i)=>{
+            const w=winner(row,a,b);
+            return (
+              <div key={row.key} style={{display:"grid",gridTemplateColumns:"140px 1fr 1fr",background:i%2===0?"#0f172a":"#0a111e",borderTop:"1px solid #0d1b2e"}}>
+                <div style={{padding:"11px 14px",fontSize:11,color:"#475569",fontWeight:600,borderRight:"1px solid #0d1b2e",display:"flex",alignItems:"center"}}>{row.label}</div>
+                {[a,b].map((t,j)=>(
+                  <div key={j} style={{padding:"11px 14px",textAlign:"center",fontSize:11,color:"#94a3b8",borderRight:j===0?"1px solid #0d1b2e":"none",display:"flex",alignItems:"center",justifyContent:"center",gap:4,background:(w==="a"&&j===0)||(w==="b"&&j===1)?"#06b6d408":"transparent",borderBottom:(w==="a"&&j===0)||(w==="b"&&j===1)?"2px solid #06b6d422":"2px solid transparent"}}>
+                    {(w==="a"&&j===0)||(w==="b"&&j===1)?<span style={{color:"#06b6d4",fontSize:9}}>▲</span>:null}
+                    {row.render?row.render(t[row.key]):<span style={{color:"#94a3b8"}}>{t[row.key]}</span>}
+                  </div>
+                ))}
+              </div>
+            );
+          })}
+          {/* Verdict */}
+          <div style={{padding:"16px 18px",background:"#06b6d408",borderTop:"1px solid #06b6d422"}}>
+            <div style={{fontWeight:700,color:"#06b6d4",fontSize:12,marginBottom:6}}>⚡ ATLAS Verdict</div>
+            <div style={{fontSize:12,color:"#94a3b8",lineHeight:1.75}}>
+              {winsA>winsB
+                ?<><strong style={{color:"#f1f5f9"}}>{a.name}</strong> wins on {winsA} of {ROWS.length} attributes. Best for: {a.cat.toLowerCase()} workflows{a.api?", API integration":""}{a.openSource?", open-source flexibility":""}.</>
+                :winsB>winsA
+                ?<><strong style={{color:"#f1f5f9"}}>{b.name}</strong> wins on {winsB} of {ROWS.length} attributes. Best for: {b.cat.toLowerCase()} workflows{b.api?", API integration":""}{b.openSource?", open-source flexibility":""}.</>
+                :<>It's a tie at {winsA} each. Choose based on your specific use case and budget.</>
+              }
+            </div>
+            <div style={{marginTop:10,display:"flex",gap:6}}>
+              <Btn sm>Add to Stack</Btn>
+              <Btn sm outline onClick={()=>{setA(null);setB(null);}}>Reset</Btn>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {(!a||!b)&&!pick&&(
+        <div style={{textAlign:"center",padding:48,color:"#1e293b",fontSize:13,border:"1px dashed #1e293b",borderRadius:14}}>
+          Click the slots above to select two tools to compare
+        </div>
+      )}
+      <style>{`@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}`}</style>
+    </section>
+  );
+}
+
+// ── PRICING ───────────────────────────────────────────────────
+function Pricing() {
+  return (
+    <section style={{maxWidth:860,margin:"0 auto",padding:"52px 20px",textAlign:"center"}}>
+      <Badge>Pricing · Part 18</Badge>
+      <h2 style={{fontSize:32,fontWeight:900,margin:"14px 0 6px",color:"#f1f5f9"}}>Simple, Transparent Plans</h2>
+      <p style={{color:"#475569",marginBottom:40,fontSize:13}}>Start free. Scale when you're ready. WSR-tracked results at every tier.</p>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(230px,1fr))",gap:16,marginBottom:24}}>
+        {PLANS.map(p=>(
+          <div key={p.name} style={{background:"#0f172a",border:`1px solid ${p.highlight?"#06b6d4":"#1e293b"}`,borderRadius:16,padding:26,position:"relative",boxShadow:p.highlight?"0 0 50px #06b6d415":"none",transition:"transform .2s"}}
+            onMouseEnter={e=>e.currentTarget.style.transform="translateY(-3px)"}
+            onMouseLeave={e=>e.currentTarget.style.transform="translateY(0)"}>
+            {p.highlight&&<div style={{position:"absolute",top:-11,left:"50%",transform:"translateX(-50%)",background:"linear-gradient(135deg,#06b6d4,#3b82f6)",color:"#fff",borderRadius:20,padding:"3px 14px",fontSize:10,fontWeight:700,whiteSpace:"nowrap"}}>MOST POPULAR</div>}
+            <div style={{fontWeight:800,fontSize:17,color:"#f1f5f9",marginBottom:4}}>{p.name}</div>
+            <div style={{fontSize:38,fontWeight:900,color:"#06b6d4"}}>{p.price}<span style={{fontSize:12,color:"#475569"}}>{p.price!=="Free"?"/mo":""}</span></div>
+            <div style={{margin:"16px 0",borderTop:"1px solid #1e293b"}}/>
+            {p.features.map(f=>(
+              <div key={f} style={{display:"flex",gap:8,alignItems:"flex-start",marginBottom:9,textAlign:"left"}}>
+                <span style={{color:"#22c55e",fontSize:12,marginTop:1}}>✓</span>
+                <span style={{fontSize:12,color:"#94a3b8"}}>{f}</span>
+              </div>
+            ))}
+            <Btn outline={!p.highlight} full style={{marginTop:16}}>{p.price==="Free"?"Get Started":"Start Free Trial"}</Btn>
+          </div>
+        ))}
+      </div>
+      <div style={{background:"#0f172a",border:"1px solid #1e293b",borderRadius:12,padding:"18px 22px",textAlign:"left",display:"grid",gridTemplateColumns:"1fr 1fr",gap:20}}>
+        <div>
+          <div style={{fontWeight:700,color:"#f1f5f9",fontSize:12,marginBottom:6}}>⚡ ATLAS API Platform</div>
+          <div style={{fontSize:11,color:"#64748b",lineHeight:1.7}}>Developer: <strong style={{color:"#06b6d4"}}>$99/mo</strong> · Professional: <strong style={{color:"#06b6d4"}}>$500/mo</strong> · Enterprise: <strong style={{color:"#06b6d4"}}>$2,500/mo</strong> · Unlimited API access, Knowledge Graph queries, custom integrations.</div>
+        </div>
+        <div>
+          <div style={{fontWeight:700,color:"#f1f5f9",fontSize:12,marginBottom:6}}>🏦 Intelligence Terminal</div>
+          <div style={{fontSize:11,color:"#64748b",lineHeight:1.7}}>Bloomberg Terminal for AI. Funding radar, model releases, benchmark trends. From <strong style={{color:"#06b6d4"}}>$2,000/yr</strong> per seat.</div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ── APP ───────────────────────────────────────────────────────
+export default function App() {
+  const [page,setPage]=useState("Home");
+  const [cmpA,setCmpA]=useState(null);
+  const [cmpB,setCmpB]=useState(null);
+
+  function goCompare(a,b){setCmpA(a);setCmpB(b||null);setPage("Compare");}
+
+  const views = {
+    Home:<Hero setPage={setPage}/>,
+    Generate:<Generate/>,
+    Stacks:<Stacks/>,
+    Tools:<Tools onCompare={goCompare}/>,
+    Compare:<Compare initA={cmpA} initB={cmpB}/>,
+    Pricing:<Pricing/>,
+  };
+
+  return (
+    <div style={{minHeight:"100vh",background:"#020817",color:"#f1f5f9",fontFamily:"system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <nav style={{position:"sticky",top:0,zIndex:100,background:"#02081792",backdropFilter:"blur(24px)",WebkitBackdropFilter:"blur(24px)",borderBottom:"1px solid #0f172a",padding:"0 18px",display:"flex",alignItems:"center",justifyContent:"space-between",height:54,gap:8}}>
+        <div style={{display:"flex",alignItems:"center",gap:7,cursor:"pointer",flexShrink:0}} onClick={()=>setPage("Home")}>
+          <div style={{width:26,height:26,borderRadius:6,background:"linear-gradient(135deg,#06b6d4,#3b82f6)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:900,color:"#fff",boxShadow:"0 0 12px #06b6d433"}}>A</div>
+          <span style={{fontWeight:900,fontSize:15,letterSpacing:.5,color:"#f1f5f9"}}>ATLAS</span>
+          <span style={{fontSize:9,color:"#1e293b",fontWeight:700,letterSpacing:1}}>OS</span>
+        </div>
+        <div style={{display:"flex",gap:1,flexWrap:"wrap",justifyContent:"center"}}>
+          {NAV.map(n=>(
+            <button key={n} onClick={()=>setPage(n)} style={{background:"transparent",border:"none",color:page===n?"#06b6d4":"#64748b",fontWeight:page===n?700:400,fontSize:12,cursor:"pointer",padding:"5px 9px",borderRadius:6,transition:"color .15s",position:"relative"}}>
+              {n}
+              {page===n&&<div style={{position:"absolute",bottom:0,left:"50%",transform:"translateX(-50%)",width:16,height:2,background:"#06b6d4",borderRadius:1}}/>}
+            </button>
+          ))}
+        </div>
+        <Btn sm onClick={()=>setPage("Generate")} style={{flexShrink:0}}>Generate Stack</Btn>
+      </nav>
+      <main style={{minHeight:"calc(100vh - 54px - 56px)"}}>{views[page]||views["Home"]}</main>
+      <footer style={{borderTop:"1px solid #0a111e",padding:"22px 20px",textAlign:"center"}}>
+        <div style={{fontSize:11,color:"#1e293b",fontWeight:700,marginBottom:3}}>ATLAS OS · AIAstralis · Version 20.0 · Ultimate Fusion Edition</div>
+        <div style={{fontSize:10,color:"#0f172a"}}>Google indexed the web. Atlas indexes intelligence. · The AI Workflow Infrastructure Layer · 10B+ Graph Relationships</div>
+      </footer>
+    </div>
+  );
+}

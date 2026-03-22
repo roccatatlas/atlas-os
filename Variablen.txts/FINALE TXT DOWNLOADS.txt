@@ -1,0 +1,962 @@
+<!DOCTYPE html><html><head><meta charset="UTF-8"><title>ATLAS OS — Final Downloads</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#020817;color:#f1f5f9;font-family:system-ui,sans-serif;padding:24px;min-height:100vh}
+h1{font-size:18px;font-weight:900;margin-bottom:4px;background:linear-gradient(135deg,#06b6d4,#3b82f6);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.sub{font-size:12px;color:#334155;margin-bottom:24px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-bottom:24px}
+.card{background:#0f172a;border:1px solid #1e293b;border-radius:12px;padding:16px;transition:border-color .2s}
+.card:hover{border-color:#06b6d444}
+.badge{display:inline-block;background:#06b6d420;color:#06b6d4;border:1px solid #06b6d433;border-radius:4px;padding:1px 8px;font-size:10px;font-weight:700;margin-bottom:10px}
+.title{font-weight:800;font-size:13px;color:#f1f5f9;margin-bottom:4px}
+.desc{font-size:11px;color:#475569;line-height:1.6;margin-bottom:14px}
+.files{font-size:10px;color:#334155;margin-bottom:12px;line-height:1.8}
+button{background:linear-gradient(135deg,#06b6d4,#3b82f6);border:none;color:#fff;border-radius:7px;padding:8px 16px;font-weight:700;font-size:11px;cursor:pointer;width:100%;transition:opacity .2s}
+button:hover{opacity:.85}
+button.done{background:#22c55e20;color:#22c55e;border:1px solid #22c55e33}
+.master-btn{background:linear-gradient(135deg,#06b6d4,#3b82f6);border:none;color:#fff;border-radius:10px;padding:14px 28px;font-weight:800;font-size:14px;cursor:pointer;width:100%;margin-bottom:8px}
+.note{font-size:10px;color:#1e293b;text-align:center}
+.progress{height:3px;background:#1e293b;border-radius:2px;margin-bottom:20px;overflow:hidden}
+.progress-bar{height:100%;background:linear-gradient(90deg,#06b6d4,#3b82f6);border-radius:2px;transition:width .3s}
+</style></head><body>
+
+<h1>ATLAS OS — Finale Sicherung</h1>
+<p class="sub">AIAstralis · Version 20.0 · Alle 8 Build-Steps als TXT</p>
+<div class="progress"><div class="progress-bar" id="progress" style="width:0%"></div></div>
+
+<div class="grid" id="cards"></div>
+
+<button class="master-btn" onclick="dlAll()">⬇️ Alle 8 Dateien herunterladen</button>
+<p class="note">Jede Datei enthält vollständigen TypeScript/SQL Code · Copy-paste ready für dein Next.js Projekt</p>
+
+<script>
+const FILES = [
+  {
+    id:1, badge:"Step 1", title:"Galaxy Map — Three.js + WebGL",
+    desc:"Production-ready 3D AI Universe visualization für Next.js",
+    files:"app/galaxy/page.tsx · components/GalaxyMap.tsx",
+    filename:"atlas-step1-galaxy-map.txt",
+    content:`// ============================================================
+// ATLAS OS — Step 1: Galaxy Map (Three.js + WebGL Production)
+// app/galaxy/page.tsx + components/GalaxyMap.tsx
+// npm install three @types/three
+// ============================================================
+
+// FILE: app/galaxy/page.tsx
+import type { Metadata } from "next";
+import { GalaxyMap } from "@/components/GalaxyMap";
+
+export const metadata: Metadata = {
+  title: "AI Galaxy Map — ATLAS OS",
+  description: "Interactive 3D visualization of the global AI ecosystem. Explore 10,000+ AI tools organized by category, relationships, and influence.",
+};
+
+export default function GalaxyPage() {
+  return (
+    <div className="w-full h-[calc(100vh-54px)] relative overflow-hidden bg-[#010610]">
+      <GalaxyMap />
+    </div>
+  );
+}
+
+// FILE: components/GalaxyMap.tsx
+"use client";
+import { useEffect, useRef, useState, useCallback } from "react";
+import * as THREE from "three";
+import Link from "next/link";
+
+type Cluster = { id:string; label:string; color:string; x:number; y:number; z:number; radius:number; tools:string[] };
+type ToolNode = { id:string; label:string; color:string; cluster:string; x:number; y:number; z:number; size:number; slug:string };
+
+const CLUSTERS: Cluster[] = [
+  { id:"llm",        label:"Language Models", color:"#06b6d4", x:0,    y:0,    z:0,   radius:80, tools:["GPT-4o","Claude 3.7","Gemini 2.0","Llama 4","Mistral","Grok 3","Command R+","Qwen 2.5"] },
+  { id:"image",      label:"Image Gen",       color:"#8b5cf6", x:180,  y:20,   z:-60, radius:65, tools:["Midjourney","DALL·E 3","Stable Diffusion","Firefly","Ideogram","Flux"] },
+  { id:"video",      label:"Video Gen",       color:"#ec4899", x:150,  y:-30,  z:120, radius:60, tools:["Runway","Pika","Sora","Kling AI","HeyGen","Synthesia"] },
+  { id:"audio",      label:"Audio & Voice",   color:"#22c55e", x:-160, y:40,   z:-80, radius:58, tools:["ElevenLabs","Murf","Suno","Udio","LOVO","Descript"] },
+  { id:"coding",     label:"Coding Agents",   color:"#f59e0b", x:-140, y:-20,  z:100, radius:70, tools:["Cursor","GitHub Copilot","Devin","Codeium","Replit","Tabnine"] },
+  { id:"automation", label:"Automation",      color:"#3b82f6", x:20,   y:160,  z:40,  radius:55, tools:["Zapier","Make","n8n","Activepieces","Bardeen"] },
+  { id:"research",   label:"Research",        color:"#06b6d4", x:-30,  y:-170, z:20,  radius:52, tools:["Perplexity","Elicit","Consensus","Storm","SciSpace"] },
+  { id:"agents",     label:"AI Agents",       color:"#f97316", x:240,  y:60,   z:30,  radius:55, tools:["AutoGPT","CrewAI","LangGraph","AgentGPT","Swarm"] },
+];
+
+function buildNodes(clusters: Cluster[]): ToolNode[] {
+  const nodes: ToolNode[] = [];
+  clusters.forEach(cl => {
+    cl.tools.forEach((tool, i) => {
+      const angle1 = (i / cl.tools.length) * Math.PI * 2;
+      const angle2 = (i % 3) * (Math.PI / 3);
+      const dist   = cl.radius * (0.4 + Math.random() * 0.55);
+      nodes.push({
+        id: cl.id + "-" + i, label: tool, color: cl.color, cluster: cl.id,
+        x: cl.x + Math.cos(angle1)*Math.sin(angle2)*dist,
+        y: cl.y + Math.sin(angle1)*Math.sin(angle2)*dist,
+        z: cl.z + Math.cos(angle2)*dist*0.5,
+        size: 0.8 + Math.random()*1.4,
+        slug: tool.toLowerCase().replace(/[^a-z0-9]+/g,"-"),
+      });
+    });
+  });
+  return nodes;
+}
+
+const NODES = buildNodes(CLUSTERS);
+
+export function GalaxyMap() {
+  const mountRef    = useRef<HTMLDivElement>(null);
+  const cameraRef   = useRef<THREE.PerspectiveCamera|null>(null);
+  const rafRef      = useRef<number>(0);
+  const mouseRef    = useRef({x:0,y:0});
+  const isDragging  = useRef(false);
+  const dragStart   = useRef({x:0,y:0,rotX:0,rotY:0});
+  const rotationRef = useRef({x:0.1,y:0});
+  const [hovered,  setHovered]  = useState<ToolNode|null>(null);
+  const [selected, setSelected] = useState<ToolNode|null>(null);
+  const [tooltip,  setTooltip]  = useState({x:0,y:0});
+
+  useEffect(() => {
+    if(!mountRef.current) return;
+    const W = mountRef.current.clientWidth;
+    const H = mountRef.current.clientHeight;
+    const scene    = new THREE.Scene();
+    const camera   = new THREE.PerspectiveCamera(60,W/H,0.1,2000);
+    camera.position.set(0,0,550);
+    cameraRef.current = camera;
+    const renderer = new THREE.WebGLRenderer({antialias:true,alpha:true});
+    renderer.setSize(W,H);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+    renderer.setClearColor(0x010610,1);
+    mountRef.current.appendChild(renderer.domElement);
+
+    // Stars
+    const starGeo = new THREE.BufferGeometry();
+    const starPos = new Float32Array(3000*3);
+    for(let i=0;i<3000*3;i++) starPos[i]=(Math.random()-0.5)*2000;
+    starGeo.setAttribute("position",new THREE.BufferAttribute(starPos,3));
+    scene.add(new THREE.Points(starGeo,new THREE.PointsMaterial({color:0xffffff,size:0.6,transparent:true,opacity:0.6})));
+
+    // Cluster nebulae
+    CLUSTERS.forEach(cl => {
+      const mesh = new THREE.Mesh(new THREE.SphereGeometry(cl.radius*1.8,16,16),new THREE.MeshBasicMaterial({color:new THREE.Color(cl.color),transparent:true,opacity:0.04,side:THREE.BackSide}));
+      mesh.position.set(cl.x,cl.y,cl.z); scene.add(mesh);
+    });
+
+    // ATLAS core
+    const core = new THREE.Mesh(new THREE.SphereGeometry(10,32,32),new THREE.MeshBasicMaterial({color:0x06b6d4}));
+    scene.add(core);
+    scene.add(new THREE.Mesh(new THREE.TorusGeometry(18,0.4,8,64),new THREE.MeshBasicMaterial({color:0x06b6d4,transparent:true,opacity:0.4})));
+
+    // Cluster centers + lines
+    CLUSTERS.forEach(cl => {
+      const mesh = new THREE.Mesh(new THREE.SphereGeometry(5,16,16),new THREE.MeshBasicMaterial({color:new THREE.Color(cl.color)}));
+      mesh.position.set(cl.x,cl.y,cl.z); scene.add(mesh);
+      const pts=[new THREE.Vector3(0,0,0),new THREE.Vector3(cl.x,cl.y,cl.z)];
+      scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),new THREE.LineBasicMaterial({color:new THREE.Color(cl.color),transparent:true,opacity:0.12})));
+    });
+
+    // Tool nodes
+    const nodeObjs: THREE.Mesh[] = [];
+    NODES.forEach(node => {
+      const mesh = new THREE.Mesh(new THREE.SphereGeometry(node.size,12,12),new THREE.MeshBasicMaterial({color:new THREE.Color(node.color)}));
+      mesh.position.set(node.x,node.y,node.z);
+      mesh.userData = {type:"node",node};
+      nodeObjs.push(mesh); scene.add(mesh);
+      const cl = CLUSTERS.find(c=>c.id===node.cluster)!;
+      const pts=[new THREE.Vector3(cl.x,cl.y,cl.z),new THREE.Vector3(node.x,node.y,node.z)];
+      scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),new THREE.LineBasicMaterial({color:new THREE.Color(node.color),transparent:true,opacity:0.08})));
+    });
+
+    const raycaster = new THREE.Raycaster();
+    let time=0;
+    function animate() {
+      rafRef.current=requestAnimationFrame(animate); time+=0.005;
+      if(!isDragging.current) rotationRef.current.y+=0.001;
+      scene.rotation.x=rotationRef.current.x;
+      scene.rotation.y=rotationRef.current.y;
+      const s=1+0.15*Math.sin(time*2); core.scale.set(s,s,s);
+      raycaster.setFromCamera(new THREE.Vector2(mouseRef.current.x,mouseRef.current.y),camera);
+      const hits=raycaster.intersectObjects(nodeObjs);
+      if(hits.length>0){
+        const nd=hits[0].object.userData?.node as ToolNode; setHovered(nd||null);
+        const sp=hits[0].object.position.clone().project(camera);
+        setTooltip({x:(sp.x*0.5+0.5)*W,y:(1-(sp.y*0.5+0.5))*H});
+      } else { setHovered(null); }
+      renderer.render(scene,camera);
+    }
+    animate();
+
+    const onResize=()=>{ if(!mountRef.current) return; const w=mountRef.current.clientWidth,h=mountRef.current.clientHeight; camera.aspect=w/h; camera.updateProjectionMatrix(); renderer.setSize(w,h); };
+    window.addEventListener("resize",onResize);
+    return ()=>{ cancelAnimationFrame(rafRef.current); window.removeEventListener("resize",onResize); renderer.dispose(); mountRef.current?.removeChild(renderer.domElement); };
+  },[]);
+
+  const onMouseMove=useCallback((e:React.MouseEvent)=>{
+    const rect=mountRef.current!.getBoundingClientRect();
+    mouseRef.current={x:((e.clientX-rect.left)/rect.width)*2-1,y:-((e.clientY-rect.top)/rect.height)*2+1};
+    if(isDragging.current){const dx=e.clientX-dragStart.current.x,dy=e.clientY-dragStart.current.y;rotationRef.current.y=dragStart.current.rotY+dx*0.005;rotationRef.current.x=dragStart.current.rotX+dy*0.005;}
+  },[]);
+  const onMouseDown=useCallback((e:React.MouseEvent)=>{isDragging.current=true;dragStart.current={x:e.clientX,y:e.clientY,rotX:rotationRef.current.x,rotY:rotationRef.current.y};},[]);
+  const onMouseUp=useCallback((e:React.MouseEvent)=>{const moved=Math.hypot(e.clientX-dragStart.current.x,e.clientY-dragStart.current.y);isDragging.current=false;if(moved<4&&hovered)setSelected(s=>s?.id===hovered.id?null:hovered);},[hovered]);
+  const onWheel=useCallback((e:React.WheelEvent)=>{e.preventDefault();if(cameraRef.current)cameraRef.current.position.z=Math.min(900,Math.max(200,cameraRef.current.position.z*(e.deltaY<0?0.9:1.1)));},[]);
+
+  return (
+    <div className="w-full h-full relative" style={{background:"#010610"}}>
+      <div ref={mountRef} className="w-full h-full cursor-grab active:cursor-grabbing" onMouseMove={onMouseMove} onMouseDown={onMouseDown} onMouseUp={onMouseUp} onWheel={onWheel}/>
+      <div className="absolute top-4 left-4 flex gap-2">
+        {[["Clusters",CLUSTERS.length],["Nodes",NODES.length]].map(([l,v])=>(<div key={l as string} className="bg-[#0f172a99] backdrop-blur-sm border border-[#1e293b] rounded-lg px-3 py-1.5 text-center"><div className="text-base font-black text-cyan-400">{v}</div><div className="text-[9px] text-slate-600">{l}</div></div>))}
+      </div>
+      {hovered&&(<div className="absolute pointer-events-none z-20 -translate-x-1/2 -translate-y-full" style={{left:tooltip.x,top:tooltip.y-12}}><div className="bg-[#0f172a] border rounded-lg px-3 py-2 text-xs font-bold text-slate-100 whitespace-nowrap" style={{borderColor:hovered.color+"66"}}>{hovered.label}<div className="text-[10px] font-normal mt-0.5" style={{color:hovered.color}}>{CLUSTERS.find(c=>c.id===hovered.cluster)?.label}</div></div></div>)}
+      {selected&&(<div className="absolute top-4 left-1/2 -translate-x-1/2 bg-[#0f172a] border rounded-xl px-5 py-3 z-20 flex items-center gap-4" style={{borderColor:selected.color+"44"}}><div><div className="font-black text-slate-100 text-sm">{selected.label}</div><div className="text-[11px] mt-0.5" style={{color:selected.color}}>{CLUSTERS.find(c=>c.id===selected.cluster)?.label}</div></div><Link href={"/tools/"+selected.slug} className="px-3 py-1.5 rounded-lg text-[11px] font-bold text-white bg-gradient-to-r from-cyan-400 to-blue-500">View Tool →</Link><button onClick={()=>setSelected(null)} className="text-slate-600 text-sm ml-1">✕</button></div>)}
+    </div>
+  );
+}`
+  },
+  {
+    id:2, badge:"Step 2", title:"AI Chat Assistant (Streaming)",
+    desc:"Claude-powered chat mit SSE streaming, Stack-Format rendering",
+    files:"app/chat/page.tsx · components/AtlasChat.tsx · app/api/chat/route.ts · lib/chat-prompts.ts",
+    filename:"atlas-step2-chat.txt",
+    content:`// ATLAS OS — Step 2: AI Chat Assistant
+// Claude-powered with SSE streaming
+// Files: lib/chat-prompts.ts | app/api/chat/route.ts | components/AtlasChat.tsx | app/chat/page.tsx
+
+// FILE: lib/chat-prompts.ts
+export const ATLAS_SYSTEM_PROMPT = \`You are ATLAS, the AI Workflow Infrastructure assistant built by AIAstralis.
+Your role: Help users find AI tools, generate workflow stacks, compare tools, explain AI concepts.
+Personality: Concise, direct, expert-level. Always recommend specific tools with real pricing.
+Use ATLAS Stack format for workflows:
+  Step 1 → Tool: [Name] | Role: [Role] | Why: [reason]
+Rules: Never recommend unknown tools. Always mention pricing. Keep responses under 300 words.\`;
+
+export const QUICK_PROMPTS = [
+  { label:"Best coding tools",   prompt:"What are the best AI tools for coding in 2026?" },
+  { label:"YouTube automation",  prompt:"How do I automate a YouTube channel with AI?" },
+  { label:"SaaS stack",          prompt:"What AI stack do I need to build a SaaS product?" },
+  { label:"Free alternatives",   prompt:"What are the best free AI tools for writing?" },
+  { label:"Compare top LLMs",    prompt:"Compare ChatGPT vs Claude vs Gemini in 2026" },
+  { label:"Marketing stack",     prompt:"Build me an AI marketing automation stack" },
+];
+
+// FILE: app/api/chat/route.ts
+import Anthropic from "@anthropic-ai/sdk";
+import { NextRequest } from "next/server";
+import { ATLAS_SYSTEM_PROMPT } from "@/lib/chat-prompts";
+const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
+export async function POST(req: NextRequest) {
+  const { messages } = await req.json();
+  const stream = await anthropic.messages.stream({
+    model: "claude-sonnet-4-20250514", max_tokens: 1024,
+    system: ATLAS_SYSTEM_PROMPT, messages,
+  });
+  const encoder = new TextEncoder();
+  const readable = new ReadableStream({
+    async start(controller) {
+      for await (const chunk of stream) {
+        if (chunk.type==="content_block_delta" && chunk.delta.type==="text_delta") {
+          controller.enqueue(encoder.encode("data: "+JSON.stringify({text:chunk.delta.text})+"\\n\\n"));
+        }
+      }
+      controller.enqueue(encoder.encode("data: [DONE]\\n\\n"));
+      controller.close();
+    },
+  });
+  return new Response(readable, { headers: { "Content-Type":"text/event-stream", "Cache-Control":"no-cache" }});
+}
+
+// FILE: components/AtlasChat.tsx
+"use client";
+import { useState, useRef, useEffect } from "react";
+import { QUICK_PROMPTS } from "@/lib/chat-prompts";
+type Message = { role: "user"|"assistant"; content: string };
+
+export function AtlasChat() {
+  const [messages,  setMessages]  = useState<Message[]>([]);
+  const [input,     setInput]     = useState("");
+  const [loading,   setLoading]   = useState(false);
+  const [streaming, setStreaming] = useState("");
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const abortRef  = useRef<AbortController|null>(null);
+
+  useEffect(() => { bottomRef.current?.scrollIntoView({behavior:"smooth"}); }, [messages, streaming]);
+
+  async function send(text?: string) {
+    const content = (text||input).trim();
+    if (!content||loading) return;
+    setInput(""); setLoading(true); setStreaming("");
+    const newMessages: Message[] = [...messages, {role:"user",content}];
+    setMessages(newMessages);
+    abortRef.current = new AbortController();
+    try {
+      const res = await fetch("/api/chat", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({messages:newMessages}), signal:abortRef.current.signal });
+      const reader = res.body!.getReader();
+      const decoder = new TextDecoder();
+      let full = "";
+      while(true) {
+        const {done,value} = await reader.read();
+        if(done) break;
+        for(const line of decoder.decode(value).split("\\n")) {
+          if(!line.startsWith("data: ")) continue;
+          const data=line.slice(6); if(data==="[DONE]") break;
+          try { const {text}=JSON.parse(data); full+=text; setStreaming(full); } catch {}
+        }
+      }
+      setMessages(prev=>[...prev,{role:"assistant",content:full}]);
+      setStreaming("");
+    } catch(e:any) { if(e.name!=="AbortError") setMessages(prev=>[...prev,{role:"assistant",content:"Sorry, something went wrong."}]); }
+    setLoading(false);
+  }
+
+  return (
+    <div className="flex flex-col h-full bg-[#020817]">
+      <div className="flex items-center justify-between px-5 py-3 border-b border-[#1e293b] bg-[#0f172a]">
+        <div className="flex items-center gap-2">
+          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center font-black text-white text-[10px]">A</div>
+          <div><div className="font-black text-slate-100 text-sm">ATLAS AI</div><div className="text-[10px] text-slate-600">Powered by Claude</div></div>
+        </div>
+        <div className="flex items-center gap-1.5 text-[10px] text-emerald-400"><div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"/>Online</div>
+      </div>
+      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+        {messages.length===0&&!streaming&&(
+          <div className="text-center py-12">
+            <div className="text-3xl mb-4">⚡</div>
+            <div className="font-black text-slate-100 text-lg mb-2">Ask ATLAS anything</div>
+            <div className="flex flex-wrap gap-2 justify-center mt-6">
+              {QUICK_PROMPTS.map(qp=>(<button key={qp.label} onClick={()=>send(qp.prompt)} className="bg-[#0f172a] border border-[#1e293b] rounded-lg px-3 py-2 text-xs text-slate-400 hover:text-cyan-400 transition-all">{qp.label}</button>))}
+            </div>
+          </div>
+        )}
+        {messages.map((msg,i)=>(<div key={i} className={"flex "+(msg.role==="user"?"justify-end":"justify-start")}><div className={"max-w-[80%] rounded-xl px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap "+(msg.role==="user"?"bg-cyan-400/15 border border-cyan-400/20 text-slate-200":"bg-[#0f172a] border border-[#1e293b] text-slate-300")}>{msg.content}</div></div>))}
+        {streaming&&(<div className="flex justify-start"><div className="max-w-[80%] bg-[#0f172a] border border-cyan-400/20 rounded-xl px-4 py-3 text-sm text-slate-300 whitespace-pre-wrap">{streaming}<span className="inline-block w-1.5 h-3.5 bg-cyan-400 ml-0.5 animate-pulse align-middle"/></div></div>)}
+        {loading&&!streaming&&(<div className="flex justify-start"><div className="bg-[#0f172a] border border-[#1e293b] rounded-xl px-4 py-3 flex gap-1">{[0,1,2].map(i=>(<div key={i} className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-bounce" style={{animationDelay:i*0.15+"s"}}/>))}</div></div>)}
+        <div ref={bottomRef}/>
+      </div>
+      <div className="px-4 pb-4 pt-2 border-t border-[#1e293b]">
+        <div className="flex gap-2 bg-[#0f172a] border border-[#1e293b] rounded-xl p-2 focus-within:border-cyan-400/40 transition-colors">
+          <input value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send();}}} placeholder="Ask about AI tools, stacks, workflows..." className="flex-1 bg-transparent outline-none text-slate-100 text-sm placeholder:text-slate-700 px-2"/>
+          <button onClick={()=>send()} disabled={!input.trim()} className="px-4 py-2 rounded-lg text-xs font-bold text-white bg-gradient-to-r from-cyan-400 to-blue-500 disabled:opacity-30">Send →</button>
+        </div>
+      </div>
+    </div>
+  );
+}`
+  },
+  {
+    id:3, badge:"Step 3", title:"Full Compare Engine + AI Verdict",
+    desc:"AI-generierte Deepdive Vergleichsseiten mit Claude, Use Case Matrix, FAQ",
+    files:"app/compare/[slug]/page.tsx · components/CompareClient.tsx · app/api/compare/route.ts",
+    filename:"atlas-step3-compare.txt",
+    content:`// ATLAS OS — Step 3: Full Compare Engine
+// AI-generated comparison pages with Claude verdict
+// Files: app/api/compare/route.ts | app/compare/[slug]/page.tsx | components/CompareClient.tsx
+
+// FILE: app/api/compare/route.ts
+import Anthropic from "@anthropic-ai/sdk";
+import { NextRequest, NextResponse } from "next/server";
+import { getToolBySlug } from "@/lib/api";
+const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
+export async function POST(req: NextRequest) {
+  const { slugA, slugB } = await req.json();
+  const [a, b] = await Promise.all([getToolBySlug(slugA), getToolBySlug(slugB)]);
+  if (!a||!b) return NextResponse.json({error:"Tool not found"},{status:404});
+  const msg = await anthropic.messages.create({
+    model:"claude-sonnet-4-20250514", max_tokens:1500,
+    messages:[{role:"user",content:\`Compare \${a.name} vs \${b.name}. Return ONLY valid JSON:
+{"verdict":"one sentence","winnerSlug":"\${slugA or slugB}","useCases":[{"scenario":"...","winner":"...","reason":"..."}],"prosA":["..."],"consA":["..."],"prosB":["..."],"consB":["..."],"bestForA":"...","bestForB":"...","faq":[{"q":"...","a":"..."}]}\`}]
+  });
+  const text = msg.content.find(b=>b.type==="text")?.text||"";
+  try { return NextResponse.json(JSON.parse(text.replace(/\`\`\`json|\`\`\`/g,"").trim())); }
+  catch { return NextResponse.json({error:"Parse error"},{status:500}); }
+}
+
+// FILE: app/compare/[slug]/page.tsx
+import { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { getToolBySlug } from "@/lib/api";
+import { CompareClient } from "@/components/CompareClient";
+import { TOOL_COMPARISONS } from "@/lib/keywords";
+
+export const revalidate = 86400;
+
+export async function generateStaticParams() {
+  return TOOL_COMPARISONS.map(([a,b])=>({slug:a+"-vs-"+b}));
+}
+
+export async function generateMetadata({params}:{params:{slug:string}}): Promise<Metadata> {
+  const [sA,sB]=params.slug.split("-vs-");
+  const [a,b]=await Promise.all([getToolBySlug(sA),getToolBySlug(sB)]);
+  if(!a||!b) return {};
+  return {
+    title: a.name+" vs "+b.name+" ("+new Date().getFullYear()+") — ATLAS",
+    description: a.name+" vs "+b.name+": compare features, pricing, use cases and ATLAS verdict.",
+    alternates:{canonical:"/compare/"+params.slug},
+  };
+}
+
+export default async function ComparePage({params}:{params:{slug:string}}) {
+  const [sA,sB]=params.slug.split("-vs-");
+  const [a,b]=await Promise.all([getToolBySlug(sA),getToolBySlug(sB)]);
+  if(!a||!b) notFound();
+  return <CompareClient toolA={a} toolB={b} slugA={sA} slugB={sB}/>;
+}
+
+// FILE: components/CompareClient.tsx
+"use client";
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import type { Tool } from "@/lib/supabase";
+
+type AIData = {
+  verdict:string; winnerSlug:string;
+  useCases:{scenario:string;winner:string;reason:string}[];
+  prosA:string[]; consA:string[]; prosB:string[]; consB:string[];
+  bestForA:string; bestForB:string;
+  faq:{q:string;a:string}[];
+};
+
+export function CompareClient({toolA,toolB,slugA,slugB}:{toolA:Tool;toolB:Tool;slugA:string;slugB:string}) {
+  const [aiData,  setAiData]  = useState<AIData|null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(()=>{
+    fetch("/api/compare",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({slugA,slugB})})
+      .then(r=>r.json()).then(d=>{setAiData(d);setLoading(false);}).catch(()=>setLoading(false));
+  },[slugA,slugB]);
+
+  const winner = aiData?.winnerSlug===slugA?toolA:toolB;
+
+  return (
+    <article className="max-w-[860px] mx-auto px-5 py-14">
+      <h1 className="text-4xl font-black text-slate-100 mb-2">{toolA.name} vs {toolB.name}</h1>
+      <div className="grid grid-cols-[1fr_56px_1fr] gap-4 mb-8 items-center">
+        {[toolA,toolB].map((t,i)=>(<div key={t.id} className={"bg-[#0f172a] border rounded-xl p-6 text-center "+(aiData&&winner.id===t.id?"border-cyan-400/40":"border-[#1e293b]")}><span className="text-4xl block mb-3">{t.logo}</span><div className="font-black text-slate-100">{t.name}</div><div className="text-2xl font-black text-cyan-400 mt-2">{t.atlas_score}</div>{aiData&&winner.id===t.id&&<div className="mt-2 text-[10px] bg-cyan-400/10 text-cyan-400 border border-cyan-400/20 rounded px-2 py-0.5 inline-block">ATLAS Pick</div>}</div>))}
+        <div className="text-center font-black text-slate-700 text-2xl">VS</div>
+      </div>
+      {loading?(<div className="bg-[#0f172a] border border-cyan-400/20 rounded-xl p-5 mb-6 text-slate-500 text-sm">ATLAS AI is analyzing...</div>):aiData&&(<div className="bg-cyan-400/5 border border-cyan-400/20 rounded-xl p-5 mb-6"><div className="font-bold text-cyan-400 text-sm mb-2">ATLAS Verdict</div><p className="text-slate-300 text-sm">{aiData.verdict}</p></div>)}
+      {aiData?.useCases&&(<div className="mb-8"><h2 className="text-xl font-black text-slate-100 mb-4">Use Case Matrix</h2>{aiData.useCases.map((uc,i)=>(<div key={i} className="grid grid-cols-[1fr_100px] bg-[#0f172a] border border-[#1e293b] rounded-lg mb-2 overflow-hidden"><div className="px-4 py-3"><div className="text-xs font-semibold text-slate-200 mb-1">{uc.scenario}</div><div className="text-[11px] text-slate-500">{uc.reason}</div></div><div className={"flex items-center justify-center text-xs font-bold border-l border-[#1e293b] "+(uc.winner===slugA?"text-cyan-400 bg-cyan-400/5":"text-purple-400 bg-purple-400/5")}>{uc.winner===slugA?toolA.name:toolB.name}</div></div>))}</div>)}
+      {aiData?.faq&&(<div className="mb-8" itemScope itemType="https://schema.org/FAQPage"><h2 className="text-xl font-black text-slate-100 mb-4">FAQ</h2>{aiData.faq.map((f,i)=>(<div key={i} className="bg-[#0f172a] border border-[#1e293b] rounded-xl p-4 mb-3"><h3 className="font-bold text-slate-100 text-sm mb-2">{f.q}</h3><p className="text-slate-400 text-sm">{f.a}</p></div>))}</div>)}
+    </article>
+  );
+}`
+  },
+  {
+    id:4, badge:"Step 4", title:"Auth + User Accounts",
+    desc:"Supabase Auth — Email, GitHub, Google OAuth, Dashboard, RLS",
+    files:"lib/supabase-server.ts · middleware.ts · app/login/page.tsx · components/AuthForm.tsx · app/dashboard/page.tsx",
+    filename:"atlas-step4-auth.txt",
+    content:`// ATLAS OS — Step 4: Auth + User Accounts (Supabase Auth)
+// npm install @supabase/ssr
+// Files: lib/supabase-server.ts | lib/supabase-browser.ts | middleware.ts | components/AuthForm.tsx | app/dashboard/page.tsx
+
+// FILE: lib/supabase-server.ts
+import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
+export function createClient() {
+  const cookieStore = cookies();
+  return createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
+    cookies: { get:(n)=>cookieStore.get(n)?.value, set:(n,v,o)=>{try{cookieStore.set({name:n,value:v,...o});}catch{}}, remove:(n,o)=>{try{cookieStore.set({name:n,value:"",...o});}catch{}} },
+  });
+}
+
+// FILE: lib/supabase-browser.ts
+import { createBrowserClient } from "@supabase/ssr";
+let client: ReturnType<typeof createBrowserClient>|null=null;
+export function getBrowserClient() {
+  if(!client) client=createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
+  return client;
+}
+
+// FILE: middleware.ts
+import { createServerClient } from "@supabase/ssr";
+import { NextResponse, type NextRequest } from "next/server";
+export async function middleware(req: NextRequest) {
+  let res=NextResponse.next({request:{headers:req.headers}});
+  const supabase=createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,{cookies:{get:n=>req.cookies.get(n)?.value,set:(n,v,o)=>{req.cookies.set({name:n,value:v,...o});res.cookies.set({name:n,value:v,...o});},remove:(n,o)=>{req.cookies.set({name:n,value:"",...o});res.cookies.set({name:n,value:"",...o});}}});
+  await supabase.auth.getSession();
+  const {data:{session}}=await supabase.auth.getSession();
+  if(req.nextUrl.pathname.startsWith("/dashboard")&&!session) return NextResponse.redirect(new URL("/login",req.url));
+  return res;
+}
+export const config={matcher:["/dashboard/:path*"]};
+
+// FILE: components/AuthForm.tsx
+"use client";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { getBrowserClient } from "@/lib/supabase-browser";
+import Link from "next/link";
+type Mode="login"|"signup";
+export function AuthForm({mode}:{mode:Mode}) {
+  const [email,setEmail]=useState(""); const [password,setPassword]=useState(""); const [name,setName]=useState(""); const [loading,setLoading]=useState(false); const [error,setError]=useState(""); const [success,setSuccess]=useState("");
+  const router=useRouter(); const supabase=getBrowserClient();
+  async function submit(e:React.FormEvent) {
+    e.preventDefault(); setLoading(true); setError(""); setSuccess("");
+    if(mode==="signup") { const {error}=await supabase.auth.signUp({email,password,options:{data:{name}}}); if(error){setError(error.message);setLoading(false);return;} setSuccess("Check your email!"); }
+    else { const {error}=await supabase.auth.signInWithPassword({email,password}); if(error){setError(error.message);setLoading(false);return;} router.push("/dashboard"); router.refresh(); }
+    setLoading(false);
+  }
+  return (
+    <div className="w-full max-w-sm">
+      <div className="text-center mb-8"><div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center font-black text-white text-xl mx-auto mb-4">A</div><h1 className="text-2xl font-black text-slate-100">{mode==="login"?"Welcome back":"Join ATLAS OS"}</h1></div>
+      <div className="flex flex-col gap-2 mb-6">
+        <button onClick={()=>supabase.auth.signInWithOAuth({provider:"github",options:{redirectTo:window.location.origin+"/auth/callback"}})} className="flex items-center justify-center gap-2 w-full py-2.5 rounded-lg text-sm font-semibold bg-[#0f172a] border border-[#1e293b] text-slate-300">🐙 Continue with GitHub</button>
+        <button onClick={()=>supabase.auth.signInWithOAuth({provider:"google",options:{redirectTo:window.location.origin+"/auth/callback"}})} className="flex items-center justify-center gap-2 w-full py-2.5 rounded-lg text-sm font-semibold bg-[#0f172a] border border-[#1e293b] text-slate-300">🔵 Continue with Google</button>
+      </div>
+      <form onSubmit={submit} className="flex flex-col gap-3">
+        {mode==="signup"&&<input value={name} onChange={e=>setName(e.target.value)} placeholder="Full name" required className="w-full bg-[#0f172a] border border-[#1e293b] rounded-lg px-4 py-2.5 text-sm text-slate-100 outline-none focus:border-cyan-400/40"/>}
+        <input value={email} onChange={e=>setEmail(e.target.value)} type="email" placeholder="Email" required className="w-full bg-[#0f172a] border border-[#1e293b] rounded-lg px-4 py-2.5 text-sm text-slate-100 outline-none focus:border-cyan-400/40"/>
+        <input value={password} onChange={e=>setPassword(e.target.value)} type="password" placeholder="Password" required className="w-full bg-[#0f172a] border border-[#1e293b] rounded-lg px-4 py-2.5 text-sm text-slate-100 outline-none focus:border-cyan-400/40"/>
+        {error&&<div className="text-red-400 text-xs bg-red-400/10 border border-red-400/20 rounded-lg px-3 py-2">{error}</div>}
+        {success&&<div className="text-emerald-400 text-xs bg-emerald-400/10 border border-emerald-400/20 rounded-lg px-3 py-2">{success}</div>}
+        <button type="submit" disabled={loading} className="w-full py-2.5 rounded-lg font-bold text-sm text-white bg-gradient-to-r from-cyan-400 to-blue-500 disabled:opacity-40">{loading?"...":mode==="login"?"Sign In":"Create Account"}</button>
+      </form>
+      <p className="text-center text-xs text-slate-600 mt-4">{mode==="login"?(<>No account? <Link href="/signup" className="text-cyan-400">Sign up free</Link></>):(<>Have account? <Link href="/login" className="text-cyan-400">Sign in</Link></>)}</p>
+    </div>
+  );
+}
+
+// FILE: app/auth/callback/route.ts
+import { createClient } from "@/lib/supabase-server";
+import { NextRequest, NextResponse } from "next/server";
+export async function GET(req: NextRequest) {
+  const {searchParams,origin}=new URL(req.url);
+  const code=searchParams.get("code"); const next=searchParams.get("next")??"dashboard";
+  if(code) { const supabase=createClient(); await supabase.auth.exchangeCodeForSession(code); }
+  return NextResponse.redirect(origin+"/"+next);
+}
+
+// SQL: Add to Supabase
+/*
+alter table stacks add column if not exists user_id uuid references auth.users(id) on delete cascade;
+create table if not exists profiles (id uuid primary key references auth.users(id) on delete cascade, name text, plan text not null default 'explorer', created_at timestamptz default now());
+create or replace function handle_new_user() returns trigger language plpgsql security definer as $$ begin insert into profiles(id,name) values(new.id,new.raw_user_meta_data->>'name'); return new; end; $$;
+create trigger on_auth_user_created after insert on auth.users for each row execute function handle_new_user();
+create policy "Users insert stacks" on stacks for insert with check(user_id=auth.uid());
+create policy "Users update stacks" on stacks for update using(user_id=auth.uid());
+*/`
+  },
+  {
+    id:5, badge:"Step 5", title:"Viral Stack Sharing + OG Images",
+    desc:"Shareable stack pages, Twitter/LinkedIn/Reddit sharing, OG Image API",
+    files:"app/stacks/[slug]/page.tsx · components/StackPageClient.tsx · app/api/og-stack/route.ts",
+    filename:"atlas-step5-viral-sharing.txt",
+    content:`// ATLAS OS — Step 5: Viral Stack Sharing
+// The viral loop: Create → Share → Clone → Repeat
+// Files: app/stacks/[slug]/page.tsx | components/StackPageClient.tsx | app/api/og-stack/route.ts
+
+// FILE: app/stacks/[slug]/page.tsx
+import { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { supabase } from "@/lib/supabase";
+import { StackPageClient } from "@/components/StackPageClient";
+export const revalidate = 3600;
+
+async function getStack(slug: string) {
+  const {data}=await supabase.from("stacks").select("*, steps:stack_steps(*)").eq("slug",slug).eq("is_public",true).single();
+  return data;
+}
+
+export async function generateMetadata({params}:{params:{slug:string}}): Promise<Metadata> {
+  const stack=await getStack(params.slug); if(!stack) return {};
+  const base=process.env.NEXT_PUBLIC_SITE_URL;
+  return {
+    title: stack.title+" — AI Stack on ATLAS OS",
+    description: stack.goal+" · "+stack.steps?.length+" AI tools · "+stack.cost_monthly,
+    openGraph: { title:stack.title, description:stack.goal||"", images:[{url:base+"/api/og-stack?slug="+params.slug,width:1200,height:630}] },
+    twitter: { card:"summary_large_image", title:stack.title, images:[base+"/api/og-stack?slug="+params.slug] },
+  };
+}
+
+export default async function StackPage({params}:{params:{slug:string}}) {
+  const stack=await getStack(params.slug); if(!stack) notFound();
+  await supabase.rpc("increment_stack_views",{stack_id:stack.id});
+  const schema={
+    "@context":"https://schema.org","@type":"HowTo","name":stack.title,"description":stack.goal,
+    "step":stack.steps?.map((s:any,i:number)=>({"@type":"HowToStep","position":i+1,"name":s.role,"text":"Use "+s.tool_name+" for "+s.role})),
+  };
+  return (<><script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(schema)}}/><StackPageClient stack={stack}/></>);
+}
+
+// FILE: components/StackPageClient.tsx
+"use client";
+import { useState } from "react";
+import Link from "next/link";
+import type { Stack } from "@/lib/supabase";
+const DIFF_COLOR={easy:"#22c55e",medium:"#f59e0b",hard:"#ef4444"} as const;
+const STEP_COLORS=["#06b6d4","#8b5cf6","#22c55e","#f59e0b","#ec4899","#3b82f6","#f97316"];
+
+export function StackPageClient({stack}:{stack:Stack}) {
+  const [copied,setCopied]=useState(false);
+  const url=process.env.NEXT_PUBLIC_SITE_URL+"/stacks/"+stack.slug;
+
+  async function copyLink(){await navigator.clipboard.writeText(url);setCopied(true);setTimeout(()=>setCopied(false),2000);}
+  function tweetStack(){const text=encodeURIComponent("AI Stack: "+stack.title+"\\n\\n"+stack.steps?.map((s:any,i:number)=>((i+1)+". "+s.tool_name+" → "+s.role)).join("\\n")+"\\n\\n"+stack.cost_monthly+"\\n\\n"+url);window.open("https://twitter.com/intent/tweet?text="+text,"_blank");}
+
+  return (
+    <article className="max-w-[760px] mx-auto px-5 py-14">
+      <nav className="flex gap-2 text-[11px] text-slate-600 mb-6"><Link href="/">Home</Link><span>/</span><Link href="/stacks">Stacks</Link><span>/</span><span>{stack.title}</span></nav>
+      <div className="mb-6">
+        <div className="flex gap-3 items-center flex-wrap mb-3">
+          <span className="text-[10px] font-bold px-2 py-0.5 rounded" style={{color:DIFF_COLOR[stack.difficulty as keyof typeof DIFF_COLOR],background:DIFF_COLOR[stack.difficulty as keyof typeof DIFF_COLOR]+"18"}}>{stack.difficulty}</span>
+          <span className="text-[10px] text-emerald-400 font-semibold">{stack.cost_monthly}</span>
+          <span className="text-[10px] text-slate-600">👁 {stack.views||0} views</span>
+        </div>
+        <h1 className="text-3xl font-black text-slate-100 mb-2">{stack.title}</h1>
+        <p className="text-slate-400 text-sm">{stack.goal}</p>
+      </div>
+      <div className="relative mb-10">
+        <div className="absolute left-[17px] top-6 bottom-6 w-px bg-gradient-to-b from-cyan-400/40 to-transparent"/>
+        <div className="flex flex-col gap-3">
+          {stack.steps?.sort((a:any,b:any)=>a.step_order-b.step_order).map((step:any,i:number)=>(
+            <div key={step.id} className="flex gap-4 bg-[#0f172a] border border-[#1e293b] rounded-xl p-4">
+              <div className="w-9 h-9 rounded-full shrink-0 flex items-center justify-center font-black text-sm border-2" style={{borderColor:STEP_COLORS[i%STEP_COLORS.length],color:STEP_COLORS[i%STEP_COLORS.length],background:STEP_COLORS[i%STEP_COLORS.length]+"15"}}>{i+1}</div>
+              <div className="flex-1"><div className="flex gap-2 items-center mb-1"><span className="font-black text-slate-100 text-sm">{step.tool_name}</span><span className="text-[9px] font-bold px-1.5 py-0.5 rounded" style={{color:STEP_COLORS[i%STEP_COLORS.length],background:STEP_COLORS[i%STEP_COLORS.length]+"18"}}>{step.role}</span></div>{step.action&&<p className="text-slate-500 text-xs">{step.action}</p>}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="bg-[#0f172a] border border-cyan-400/20 rounded-xl p-5 mb-6">
+        <div className="flex gap-3 flex-wrap items-center justify-between">
+          <div><div className="font-bold text-slate-100 text-sm mb-1">Use this stack</div><div className="text-slate-500 text-xs">Clone and customize</div></div>
+          <div className="flex gap-2 flex-wrap">
+            <button onClick={copyLink} className="px-4 py-2 rounded-lg text-xs font-bold border border-[#1e293b] text-slate-400">{copied?"✓ Copied!":"🔗 Copy link"}</button>
+            <button onClick={tweetStack} className="px-4 py-2 rounded-lg text-xs font-bold border border-[#1e3a5f] text-cyan-400">𝕏 Share</button>
+            <button onClick={()=>window.location.href="/generate?clone="+stack.slug} className="px-5 py-2 rounded-lg text-xs font-bold text-white bg-gradient-to-r from-cyan-400 to-blue-500">🔀 Clone Stack</button>
+          </div>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+// FILE: app/api/og-stack/route.ts
+import { ImageResponse } from "next/og";
+import { NextRequest } from "next/server";
+import { supabase } from "@/lib/supabase";
+export const runtime="edge";
+export async function GET(req: NextRequest) {
+  const slug=new URL(req.url).searchParams.get("slug")||"";
+  const {data:stack}=await supabase.from("stacks").select("*, steps:stack_steps(*)").eq("slug",slug).single();
+  return new ImageResponse((<div style={{background:"#020817",width:"100%",height:"100%",display:"flex",flexDirection:"column",padding:60,fontFamily:"system-ui",color:"#f1f5f9"}}><div style={{display:"flex",alignItems:"center",gap:12,marginBottom:40}}><div style={{width:40,height:40,borderRadius:10,background:"linear-gradient(135deg,#06b6d4,#3b82f6)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,fontWeight:900,color:"#fff"}}>A</div><span style={{fontSize:18,fontWeight:900}}>ATLAS OS</span></div><div style={{fontSize:48,fontWeight:900,marginBottom:16}}>{stack?.title||"AI Workflow Stack"}</div><div style={{fontSize:20,color:"#64748b",marginBottom:40}}>{stack?.goal}</div><div style={{display:"flex",gap:12,flexWrap:"wrap"}}>{stack?.steps?.slice(0,5).map((s:any,i:number)=>(<div key={i} style={{background:"#0f172a",border:"1px solid #1e293b",borderRadius:10,padding:"10px 16px",fontSize:14,color:"#06b6d4",fontWeight:700}}>{i+1}. {s.tool_name}</div>))}</div><div style={{marginTop:"auto",display:"flex",justifyContent:"space-between"}}><span style={{color:"#475569",fontSize:14}}>{stack?.cost_monthly}</span><span style={{color:"#334155",fontSize:13}}>atlas-os.com/stacks/{slug}</span></div></div>),{width:1200,height:630});
+}
+
+// SQL: RPCs
+/*
+create or replace function increment_stack_views(stack_id uuid) returns void language sql as $$ update stacks set views=views+1 where id=stack_id; $$;
+create or replace function increment_stack_clones(stack_id uuid) returns void language sql as $$ update stacks set clones=clones+1 where id=stack_id; $$;
+*/`
+  },
+  {
+    id:6, badge:"Step 6", title:"Knowledge Graph (D3.js)",
+    desc:"Interaktive Force-directed Graph Visualisierung aller Tool-Beziehungen",
+    files:"components/KnowledgeGraph.tsx · app/graph/page.tsx",
+    filename:"atlas-step6-knowledge-graph.txt",
+    content:`// ATLAS OS — Step 6: Knowledge Graph Visualization (D3.js)
+// npm install d3 @types/d3
+// Files: components/KnowledgeGraph.tsx | app/graph/page.tsx
+
+// FILE: components/KnowledgeGraph.tsx
+"use client";
+import { useEffect, useRef, useState } from "react";
+import * as d3 from "d3";
+
+type Node = { id:string; name:string; category:string; score:number; x?:number; y?:number; fx?:number|null; fy?:number|null };
+type Link = { source:string; target:string; strength:number };
+
+const CAT_COLOR: Record<string,string> = {
+  Writing:"#06b6d4", Image:"#8b5cf6", Video:"#ec4899",
+  Audio:"#22c55e", Coding:"#f59e0b", Research:"#3b82f6",
+  Automation:"#f97316", Productivity:"#a78bfa",
+};
+
+export function KnowledgeGraph({nodes,links}:{nodes:Node[];links:Link[]}) {
+  const svgRef=useRef<SVGSVGElement>(null);
+  const [hovered,setHovered]=useState<Node|null>(null);
+
+  useEffect(()=>{
+    if(!svgRef.current||!nodes.length) return;
+    const W=svgRef.current.clientWidth||800, H=svgRef.current.clientHeight||500;
+    d3.select(svgRef.current).selectAll("*").remove();
+    const svg=d3.select(svgRef.current);
+    const g=svg.append("g");
+    svg.call(d3.zoom<SVGSVGElement,unknown>().scaleExtent([0.3,3]).on("zoom",e=>g.attr("transform",e.transform)));
+
+    const sim=d3.forceSimulation(nodes as d3.SimulationNodeDatum[])
+      .force("link",d3.forceLink(links).id((d:any)=>d.id).distance(80).strength((d:any)=>d.strength))
+      .force("charge",d3.forceManyBody().strength(-200))
+      .force("center",d3.forceCenter(W/2,H/2))
+      .force("collision",d3.forceCollide(20));
+
+    const link=g.append("g").selectAll("line").data(links).join("line").attr("stroke","#1e293b").attr("stroke-width",(d:any)=>d.strength*2).attr("stroke-opacity",0.6);
+
+    const node=g.append("g").selectAll("g").data(nodes).join("g").attr("cursor","pointer")
+      .call(d3.drag<SVGGElement,Node>()
+        .on("start",(e,d)=>{if(!e.active)sim.alphaTarget(0.3).restart();d.fx=d.x;d.fy=d.y;})
+        .on("drag",(e,d)=>{d.fx=e.x;d.fy=e.y;})
+        .on("end",(e,d)=>{if(!e.active)sim.alphaTarget(0);d.fx=null;d.fy=null;})
+      );
+
+    node.append("circle").attr("r",(d:Node)=>6+d.score/15).attr("fill",(d:Node)=>CAT_COLOR[d.category]||"#06b6d4").attr("fill-opacity",0.85).attr("stroke","#020817").attr("stroke-width",1.5);
+    node.append("text").attr("x",0).attr("y",(d:Node)=>-(8+d.score/15)).attr("text-anchor","middle").attr("font-size",9).attr("fill","#64748b").attr("pointer-events","none").text((d:Node)=>d.name);
+    node.on("mouseover",(_,d)=>setHovered(d)).on("mouseout",()=>setHovered(null));
+
+    sim.on("tick",()=>{
+      link.attr("x1",(d:any)=>d.source.x).attr("y1",(d:any)=>d.source.y).attr("x2",(d:any)=>d.target.x).attr("y2",(d:any)=>d.target.y);
+      node.attr("transform",(d:any)=>"translate("+d.x+","+d.y+")");
+    });
+    return ()=>{ sim.stop(); };
+  },[nodes,links]);
+
+  return (
+    <div className="relative w-full h-[500px] bg-[#020817] rounded-xl border border-[#1e293b] overflow-hidden">
+      <svg ref={svgRef} className="w-full h-full"/>
+      {hovered&&(<div className="absolute top-4 right-4 bg-[#0f172a] border rounded-lg p-3 text-xs" style={{borderColor:(CAT_COLOR[hovered.category]||"#06b6d4")+"44"}}><div className="font-black text-slate-100">{hovered.name}</div><div className="mt-1" style={{color:CAT_COLOR[hovered.category]||"#06b6d4"}}>{hovered.category}</div><div className="text-slate-600 mt-1">Atlas Score: {hovered.score}</div></div>)}
+      <div className="absolute bottom-4 left-4 flex flex-wrap gap-2">{Object.entries(CAT_COLOR).map(([cat,color])=>(<div key={cat} className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full" style={{background:color}}/><span className="text-[9px] text-slate-600">{cat}</span></div>))}</div>
+    </div>
+  );
+}
+
+// FILE: app/graph/page.tsx
+import { supabase } from "@/lib/supabase";
+import { KnowledgeGraph } from "@/components/KnowledgeGraph";
+import type { Metadata } from "next";
+export const metadata: Metadata = { title:"Knowledge Graph — ATLAS OS" };
+
+export default async function GraphPage() {
+  const {data:tools}=await supabase.from("tools").select("id,slug,name,category,atlas_score").eq("status","active").limit(80);
+  const {data:rels}=await supabase.from("tool_integrations").select("tool_id,integrates_with_id").limit(200);
+  const nodes=(tools||[]).map(t=>({id:t.id,name:t.name,category:t.category,score:t.atlas_score}));
+  const links=(rels||[]).map(r=>({source:r.tool_id,target:r.integrates_with_id,strength:0.5}));
+  return (
+    <section className="max-w-[1100px] mx-auto px-5 py-14">
+      <h1 className="text-3xl font-black text-slate-100 mb-2">AI Tool Knowledge Graph</h1>
+      <p className="text-slate-500 text-sm mb-8">Drag nodes · Scroll to zoom · Hover for details · {nodes.length} tools · {links.length} relationships</p>
+      <KnowledgeGraph nodes={nodes} links={links}/>
+    </section>
+  );
+}`
+  },
+  {
+    id:7, badge:"Step 7", title:"Investor Pitch Data",
+    desc:"Vollständige Pitch-Daten: Problem, Solution, Metrics, Revenue, Moat, Team, Ask",
+    files:"lib/pitch-data.ts",
+    filename:"atlas-step7-pitch-data.txt",
+    content:`// ATLAS OS — Step 7: Investor Pitch Data
+// FILE: lib/pitch-data.ts
+
+export const PITCH_DATA = {
+  company:"AIAstralis", product:"ATLAS OS",
+  tagline:"Google indexed the web. Atlas indexes intelligence.",
+  stage:"Pre-Seed", raise:"$500K", valuation:"$3M", founded:"2026",
+
+  problem: {
+    headline:"50,000+ AI tools. Nobody knows which ones work together.",
+    points:[
+      "Developers waste hours choosing between ChatGPT, Claude, Gemini, Midjourney...",
+      "No platform maps AI tool relationships or recommends complete workflows",
+      "Static directories exist — but none have a moat or AI routing intelligence",
+    ],
+  },
+
+  solution: {
+    headline:"ATLAS converts any goal into a complete AI workflow system",
+    points:[
+      "AI Stack Generator — describe goal → get optimal tool pipeline",
+      "Knowledge Graph — maps 10,000+ tool relationships (data moat)",
+      "Programmatic SEO — 1M+ pages targeting AI tool keywords",
+      "Viral Stack Sharing — atlas.ai/stacks/[slug] shared by users",
+    ],
+  },
+
+  metrics: { toolsIndexed:10000, seoPages:250000, categories:300, wsrTarget:62, sarTarget:58 },
+
+  traction: [
+    { month:"M1",  traffic:10000,  revenue:500   },
+    { month:"M3",  traffic:50000,  revenue:2500  },
+    { month:"M6",  traffic:150000, revenue:8000  },
+    { month:"M12", traffic:500000, revenue:35000 },
+    { month:"M18", traffic:1500000,revenue:120000},
+    { month:"M24", traffic:5000000,revenue:450000},
+  ],
+
+  revenue: {
+    streams:[
+      { name:"Affiliate Commissions", pct:35, y1:"$15K/mo", y2:"$120K/mo" },
+      { name:"Pro Subscriptions $12", pct:25, y1:"$8K/mo",  y2:"$80K/mo"  },
+      { name:"Sponsored Placements",  pct:20, y1:"$5K/mo",  y2:"$60K/mo"  },
+      { name:"API Access",            pct:15, y1:"$3K/mo",  y2:"$50K/mo"  },
+      { name:"Intelligence Terminal", pct:5,  y1:"$1K/mo",  y2:"$20K/mo"  },
+    ],
+  },
+
+  moat:[
+    "Knowledge Graph — 10B+ relationships, impossible to replicate",
+    "Workflow Success Rate (WSR) data — no competitor tracks this",
+    "SEO compound effect — 1M+ indexed pages growing daily",
+    "Viral stack sharing — network effect increases with each user",
+  ],
+
+  comparables:[
+    { name:"There's An AI For That", arr:"$5M",   note:"Static directory, no moat" },
+    { name:"Futurepedia",            arr:"$3M",   note:"Manual curation, no AI" },
+    { name:"G2",                     arr:"$500M", note:"Enterprise focus, SaaS only" },
+    { name:"ATLAS OS",               arr:"Target $10M Y2", note:"AI-first, graph moat, viral growth" },
+  ],
+
+  team:[
+    { name:"AIAstralis Founder", role:"CEO & Product", bg:"Vision + AI Strategy" },
+    { name:"CTO (Hiring)",       role:"Engineering",   bg:"Next.js + AI Infrastructure" },
+    { name:"Growth (Hiring)",    role:"SEO & Growth",  bg:"Programmatic SEO + Distribution" },
+  ],
+
+  ask: {
+    amount:"$500K",
+    use:[
+      { item:"Engineering (6 months runway)",  pct:50, amount:"$250K" },
+      { item:"SEO & Content Infrastructure",   pct:25, amount:"$125K" },
+      { item:"Tool database expansion (10K+)", pct:15, amount:"$75K"  },
+      { item:"Marketing & Launch",             pct:10, amount:"$50K"  },
+    ],
+    milestones:[
+      "Month 3: 100K monthly visitors, $5K MRR",
+      "Month 6: 500K visitors, $35K MRR, Series Seed ready",
+      "Month 12: 1M+ visitors, $120K MRR, Series A",
+    ],
+  },
+};`
+  },
+  {
+    id:8, badge:"Step 8", title:"Launch Checklist",
+    desc:"Vollständige Launch-Checkliste: Product, SEO, Revenue, Infrastructure, Launch Day",
+    files:"lib/launch-checklist.ts",
+    filename:"atlas-step8-launch-checklist.txt",
+    content:`// ATLAS OS — Step 8: Launch Checklist
+// FILE: lib/launch-checklist.ts
+
+export type CheckItem   = { id:string; label:string; detail:string; critical:boolean };
+export type CheckSection= { title:string; icon:string; items:CheckItem[] };
+
+export const LAUNCH_CHECKLIST: CheckSection[] = [
+  { title:"Product — Core Features", icon:"⚡", items:[
+    { id:"react-ui",       label:"React UI v3.0 built",              detail:"Hero, Generate, Stacks, Tools, Compare, Pricing",       critical:true  },
+    { id:"nextjs",         label:"Next.js 14 project setup",         detail:"App Router, TypeScript, Tailwind",                      critical:true  },
+    { id:"supabase",       label:"Supabase schema deployed",          detail:"All 9 tables, RLS, triggers",                          critical:true  },
+    { id:"seed-data",      label:"30+ tools seeded",                  detail:"Real tools with metadata, categories, integrations",    critical:true  },
+    { id:"stack-gen",      label:"AI Stack Generator working",        detail:"Claude API → JSON → UI render",                        critical:true  },
+    { id:"compare",        label:"Compare engine live",               detail:"Side-by-side + AI verdict",                            critical:true  },
+    { id:"stacks-page",    label:"Stack pages live",                  detail:"/stacks/[slug] with share + clone",                    critical:true  },
+    { id:"tools-page",     label:"Tool catalog live",                 detail:"/tools with filter + search",                          critical:true  },
+    { id:"auth",           label:"Auth working",                      detail:"Email + GitHub + Google OAuth",                        critical:false },
+    { id:"dashboard",      label:"User dashboard",                    detail:"Saved stacks, profile, settings",                      critical:false },
+  ]},
+  { title:"SEO & Content", icon:"📄", items:[
+    { id:"seo-pages",      label:"SEO pages generated",              detail:"250K+ keyword pages via programmatic engine",           critical:true  },
+    { id:"sitemap",        label:"Sitemap submitted to GSC",          detail:"sitemap.xml + GSC property verified",                  critical:true  },
+    { id:"og-images",      label:"OG images for stacks",             detail:"/api/og-stack?slug=[slug] working",                    critical:true  },
+    { id:"schema-org",     label:"Schema.org markup",                detail:"Article, FAQPage, HowTo, ItemList",                    critical:true  },
+    { id:"meta-tags",      label:"Meta tags on all pages",            detail:"title, description, canonical per route",              critical:true  },
+    { id:"robots",         label:"robots.txt configured",            detail:"Allow all, sitemap reference",                         critical:true  },
+    { id:"canonical",      label:"Canonical URLs set",               detail:"No duplicate content issues",                          critical:false },
+    { id:"internal-links", label:"Internal linking system",          detail:"200K+ links generated",                                critical:false },
+  ]},
+  { title:"Revenue", icon:"💰", items:[
+    { id:"affiliate-links",label:"Affiliate links active",           detail:"27 programs integrated, click tracking live",          critical:true  },
+    { id:"track-api",      label:"Click tracking API",               detail:"/api/track logging to Supabase",                       critical:true  },
+    { id:"pricing-page",   label:"Pricing page live",                detail:"3 plans with Stripe links",                            critical:true  },
+    { id:"stripe",         label:"Stripe integration",               detail:"Builder $12/mo, Enterprise $99/mo",                    critical:false },
+    { id:"sponsored",      label:"Sponsored placement system",       detail:"Tier badges on tool cards",                            critical:false },
+  ]},
+  { title:"Infrastructure", icon:"🔧", items:[
+    { id:"netlify",        label:"Deployed to Netlify",              detail:"Auto-deploy on git push",                              critical:true  },
+    { id:"env-vars",       label:"All env vars set",                 detail:"Supabase, Anthropic, site URL",                        critical:true  },
+    { id:"ssl",            label:"SSL certificate active",           detail:"HTTPS on all routes",                                  critical:true  },
+    { id:"domain",         label:"Custom domain configured",         detail:"atlas-os.com or equivalent",                           critical:true  },
+    { id:"error-pages",    label:"404 + error pages",               detail:"Custom not-found.tsx, error.tsx",                       critical:false },
+    { id:"rate-limiting",  label:"API rate limits",                  detail:"60/min public, 30/min search",                         critical:false },
+    { id:"monitoring",     label:"Error monitoring",                 detail:"Sentry or Netlify Analytics",                          critical:false },
+  ]},
+  { title:"Launch Day", icon:"🚀", items:[
+    { id:"ph-post",        label:"Product Hunt submission ready",    detail:"Title, description, screenshots, GIF",                 critical:true  },
+    { id:"reddit-posts",   label:"Reddit posts drafted",             detail:"r/MachineLearning, r/artificial, r/SideProject",       critical:true  },
+    { id:"twitter-thread", label:"Twitter launch thread",            detail:"Vision + demo + CTA thread",                           critical:true  },
+    { id:"hacker-news",    label:"Hacker News Show HN",              detail:"Show HN: ATLAS OS — AI Workflow Infrastructure",       critical:false },
+    { id:"demo-video",     label:"Demo video (2-3 min)",             detail:"Stack generation, compare, share flow",                 critical:true  },
+    { id:"analytics",      label:"Analytics configured",             detail:"PostHog or Plausible tracking",                        critical:true  },
+    { id:"backup",         label:"Database backup configured",       detail:"Daily Supabase backups enabled",                       critical:true  },
+  ]},
+];
+
+export function getLaunchScore(completed: string[]): number {
+  const critical=LAUNCH_CHECKLIST.flatMap(s=>s.items).filter(i=>i.critical);
+  const done=critical.filter(i=>completed.includes(i.id)).length;
+  return Math.round((done/critical.length)*100);
+}
+
+// LAUNCH DAY SEQUENCE:
+// 1. 08:00 — Submit to Product Hunt (scheduled post)
+// 2. 09:00 — Post Show HN on Hacker News
+// 3. 10:00 — Twitter/X launch thread
+// 4. 11:00 — Reddit posts (r/MachineLearning, r/artificial, r/SideProject, r/webdev)
+// 5. 12:00 — LinkedIn post
+// 6. 14:00 — Email any existing waitlist
+// 7. 16:00 — Check Product Hunt comments, respond to all
+// 8. 20:00 — Twitter recap thread with early numbers
+// 9. D+1   — Post on IndieHackers with full story`
+  },
+];
+
+let downloaded = 0;
+
+function updateProgress() {
+  downloaded++;
+  const pct = (downloaded / FILES.length) * 100;
+  document.getElementById('progress').style.width = pct + '%';
+}
+
+function renderCards() {
+  const grid = document.getElementById('cards');
+  FILES.forEach(f => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <div class="badge">${f.badge}</div>
+      <div class="title">${f.title}</div>
+      <div class="desc">${f.desc}</div>
+      <div class="files">${f.files}</div>
+      <button id="btn-${f.id}" onclick="dlSingle(${f.id})">⬇️ ${f.filename}</button>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+function dlSingle(id) {
+  const f = FILES.find(x => x.id === id);
+  if (!f) return;
+  const blob = new Blob([f.content], {type:'text/plain;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = f.filename;
+  a.click();
+  const btn = document.getElementById('btn-'+id);
+  if (btn) { btn.textContent = '✓ Downloaded'; btn.className = 'done'; }
+  updateProgress();
+}
+
+function dlAll() {
+  FILES.forEach((f, i) => {
+    setTimeout(() => {
+      const blob = new Blob([f.content], {type:'text/plain;charset=utf-8'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = f.filename;
+      a.click();
+      const btn = document.getElementById('btn-'+f.id);
+      if (btn) { btn.textContent = '✓ Downloaded'; btn.className = 'done'; }
+      updateProgress();
+    }, i * 400);
+  });
+}
+
+renderCards();
+</script>
+</body></html>

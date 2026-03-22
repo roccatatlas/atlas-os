@@ -1,0 +1,428 @@
+<!DOCTYPE html><html><head><meta charset="UTF-8"><title>ATLAS Affiliate Download</title>
+<style>
+body{background:#020817;color:#f1f5f9;font-family:system-ui,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0}
+.card{background:#0f172a;border:1px solid #1e293b;border-radius:16px;padding:40px;max-width:480px;width:100%;text-align:center}
+h2{font-size:20px;font-weight:900;margin:0 0 8px;background:linear-gradient(135deg,#06b6d4,#3b82f6);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+p{color:#64748b;font-size:13px;margin:0 0 28px;line-height:1.7}
+button{background:linear-gradient(135deg,#06b6d4,#3b82f6);border:none;color:#fff;border-radius:8px;padding:12px 28px;font-weight:700;font-size:14px;cursor:pointer;width:100%;margin-bottom:10px}
+.tag{background:#06b6d422;color:#06b6d4;border:1px solid #06b6d444;border-radius:4px;padding:2px 8px;font-size:11px;font-weight:600;display:inline-block;margin-bottom:16px}
+.info{font-size:11px;color:#1e293b;margin-top:16px}
+</style></head><body>
+<div class="card">
+  <div class="tag">ATLAS OS · Affiliate System</div>
+  <h2>Affiliate Integration</h2>
+  <p>Kompletter TypeScript Code — alle 7 Dateien in einer TXT. 27 echte Affiliate Programme, Click Tracking, Revenue Dashboard.</p>
+  <button onclick="dl()">⬇️ atlas-affiliate-system.txt herunterladen</button>
+  <div class="info">lib/affiliate-links.ts · lib/affiliate.ts · components/AffiliateBtn.tsx · app/api/track/route.ts · app/api/revenue/route.ts · components/RevenueDash.tsx · supabase migration SQL</div>
+</div>
+<script>
+const C = `// ============================================================
+// ATLAS OS — Affiliate Integration System
+// AIAstralis · Version 20.0
+// Revenue Target: $50K/mo at 500K monthly visitors
+// ============================================================
+
+
+// ============================================================
+// FILE: lib/affiliate-links.ts
+// ============================================================
+
+export type AffiliateProgram = {
+  toolSlug:    string;
+  toolName:    string;
+  network:     string;
+  baseUrl:     string;
+  trackingId:  string;
+  commission:  string;
+  cookieDays:  number;
+  category:    string;
+  avgCPC:      number;
+  convRate:    number;
+};
+
+export const AFFILIATE_PROGRAMS: AffiliateProgram[] = [
+  // WRITING
+  { toolSlug:"jasper",         toolName:"Jasper",         network:"impact",       baseUrl:"https://jasper.ai",                       trackingId:"?fpr=ATLAS_REF",    commission:"25% recurring", cookieDays:60, category:"Writing",      avgCPC:2.10, convRate:3.2 },
+  { toolSlug:"copy-ai",        toolName:"Copy.ai",        network:"partnerstack", baseUrl:"https://app.copy.ai/register",             trackingId:"?via=atlas",        commission:"45% recurring", cookieDays:90, category:"Writing",      avgCPC:1.80, convRate:4.1 },
+  { toolSlug:"grammarly",      toolName:"Grammarly",      network:"impact",       baseUrl:"https://grammarly.com",                   trackingId:"?utm_source=atlas", commission:"$0.20 free / $20 premium", cookieDays:90, category:"Writing", avgCPC:0.40, convRate:8.5 },
+  { toolSlug:"writesonic",     toolName:"Writesonic",     network:"partnerstack", baseUrl:"https://writesonic.com",                  trackingId:"?via=atlas",        commission:"30% recurring", cookieDays:60, category:"Writing",      avgCPC:1.60, convRate:3.8 },
+  { toolSlug:"rytr",           toolName:"Rytr",           network:"direct",       baseUrl:"https://rytr.me",                         trackingId:"?via=atlas",        commission:"30% recurring", cookieDays:60, category:"Writing",      avgCPC:1.20, convRate:5.2 },
+  // CODING
+  { toolSlug:"cursor",         toolName:"Cursor",         network:"direct",       baseUrl:"https://cursor.sh",                       trackingId:"?ref=atlas",        commission:"20% first year",cookieDays:30, category:"Coding",       avgCPC:3.50, convRate:6.1 },
+  { toolSlug:"github-copilot", toolName:"GitHub Copilot", network:"direct",       baseUrl:"https://github.com/features/copilot",     trackingId:"?utm_source=atlas", commission:"$10 CPA",       cookieDays:30, category:"Coding",       avgCPC:2.80, convRate:4.5 },
+  { toolSlug:"tabnine",        toolName:"Tabnine",        network:"partnerstack", baseUrl:"https://tabnine.com",                     trackingId:"?ref=atlas",        commission:"20% recurring", cookieDays:60, category:"Coding",       avgCPC:2.20, convRate:3.9 },
+  { toolSlug:"replit",         toolName:"Replit",         network:"direct",       baseUrl:"https://replit.com",                      trackingId:"?ref=atlas",        commission:"$15 CPA",       cookieDays:30, category:"Coding",       avgCPC:1.90, convRate:5.3 },
+  { toolSlug:"codeium",        toolName:"Codeium",        network:"direct",       baseUrl:"https://codeium.com",                     trackingId:"?ref=atlas",        commission:"15% recurring", cookieDays:60, category:"Coding",       avgCPC:1.50, convRate:4.8 },
+  // IMAGE
+  { toolSlug:"midjourney",     toolName:"Midjourney",     network:"direct",       baseUrl:"https://midjourney.com",                  trackingId:"?ref=atlas",        commission:"$5 CPA",        cookieDays:30, category:"Image",        avgCPC:1.80, convRate:6.2 },
+  { toolSlug:"canva",          toolName:"Canva",          network:"impact",       baseUrl:"https://canva.com",                       trackingId:"?utm_source=atlas", commission:"$36 CPA Pro",   cookieDays:30, category:"Image",        avgCPC:1.20, convRate:7.8 },
+  { toolSlug:"adobe-firefly",  toolName:"Adobe Firefly",  network:"cj",           baseUrl:"https://firefly.adobe.com",               trackingId:"?mv=affiliate",     commission:"85% first month",cookieDays:30,category:"Image",        avgCPC:2.10, convRate:3.1 },
+  // VIDEO
+  { toolSlug:"runway",         toolName:"Runway",         network:"partnerstack", baseUrl:"https://runwayml.com",                    trackingId:"?via=atlas",        commission:"20% recurring", cookieDays:60, category:"Video",        avgCPC:3.20, convRate:2.8 },
+  { toolSlug:"descript",       toolName:"Descript",       network:"partnerstack", baseUrl:"https://descript.com",                    trackingId:"?via=atlas",        commission:"15% recurring", cookieDays:60, category:"Video",        avgCPC:2.40, convRate:3.5 },
+  { toolSlug:"synthesia",      toolName:"Synthesia",      network:"partnerstack", baseUrl:"https://synthesia.io",                    trackingId:"?via=atlas",        commission:"$40 CPA",       cookieDays:90, category:"Video",        avgCPC:4.10, convRate:2.2 },
+  { toolSlug:"invideo",        toolName:"InVideo",        network:"shareasale",   baseUrl:"https://invideo.io",                      trackingId:"?ref=atlas",        commission:"50% first month",cookieDays:60,category:"Video",        avgCPC:1.80, convRate:4.6 },
+  // AUDIO
+  { toolSlug:"elevenlabs",     toolName:"ElevenLabs",     network:"partnerstack", baseUrl:"https://elevenlabs.io",                   trackingId:"?via=atlas",        commission:"22% recurring", cookieDays:60, category:"Audio",        avgCPC:2.60, convRate:4.2 },
+  { toolSlug:"murf",           toolName:"Murf",           network:"partnerstack", baseUrl:"https://murf.ai",                         trackingId:"?via=atlas",        commission:"30% recurring", cookieDays:60, category:"Audio",        avgCPC:2.10, convRate:3.8 },
+  { toolSlug:"lovo",           toolName:"LOVO AI",        network:"partnerstack", baseUrl:"https://lovo.ai",                         trackingId:"?via=atlas",        commission:"30% recurring", cookieDays:60, category:"Audio",        avgCPC:1.90, convRate:4.1 },
+  // RESEARCH
+  { toolSlug:"perplexity",     toolName:"Perplexity",     network:"direct",       baseUrl:"https://perplexity.ai",                   trackingId:"?ref=atlas",        commission:"$10 CPA Pro",   cookieDays:30, category:"Research",     avgCPC:1.60, convRate:5.1 },
+  // AUTOMATION
+  { toolSlug:"zapier",         toolName:"Zapier",         network:"impact",       baseUrl:"https://zapier.com",                      trackingId:"?utm_source=atlas", commission:"$50 CPA",       cookieDays:30, category:"Automation",   avgCPC:3.80, convRate:3.2 },
+  { toolSlug:"make",           toolName:"Make",           network:"partnerstack", baseUrl:"https://make.com",                        trackingId:"?via=atlas",        commission:"20% recurring", cookieDays:90, category:"Automation",   avgCPC:2.90, convRate:4.4 },
+  { toolSlug:"n8n",            toolName:"n8n",            network:"partnerstack", baseUrl:"https://n8n.io",                          trackingId:"?via=atlas",        commission:"20% recurring", cookieDays:60, category:"Automation",   avgCPC:2.40, convRate:5.1 },
+  // PRODUCTIVITY
+  { toolSlug:"notion-ai",      toolName:"Notion AI",      network:"direct",       baseUrl:"https://notion.so",                       trackingId:"?ref=atlas",        commission:"$10 CPA",       cookieDays:30, category:"Productivity", avgCPC:1.40, convRate:6.8 },
+  { toolSlug:"clickup",        toolName:"ClickUp",        network:"partnerstack", baseUrl:"https://clickup.com",                     trackingId:"?via=atlas",        commission:"$40 CPA",       cookieDays:60, category:"Productivity", avgCPC:2.80, convRate:4.2 },
+  { toolSlug:"monday",         toolName:"Monday.com",     network:"impact",       baseUrl:"https://monday.com",                      trackingId:"?utm_source=atlas", commission:"$100 CPA",      cookieDays:30, category:"Productivity", avgCPC:5.20, convRate:2.9 },
+  { toolSlug:"motion",         toolName:"Motion",         network:"partnerstack", baseUrl:"https://usemotion.com",                   trackingId:"?via=atlas",        commission:"30% recurring", cookieDays:60, category:"Productivity", avgCPC:3.10, convRate:3.6 },
+];
+
+export const AFFILIATE_MAP = Object.fromEntries(
+  AFFILIATE_PROGRAMS.map(p => [p.toolSlug, p])
+);
+
+
+// ============================================================
+// FILE: lib/affiliate.ts
+// ============================================================
+
+import { AFFILIATE_MAP, AFFILIATE_PROGRAMS } from "./affiliate-links";
+import type { AffiliateProgram } from "./affiliate-links";
+
+export function getAffiliateUrl(
+  toolSlug: string,
+  source: string = "tool-page",
+  position: string = "cta"
+): string | null {
+  const prog = AFFILIATE_MAP[toolSlug];
+  if (!prog) return null;
+  const url = new URL(prog.baseUrl + prog.trackingId);
+  url.searchParams.set("utm_source", "atlas-os");
+  url.searchParams.set("utm_medium", "affiliate");
+  url.searchParams.set("utm_campaign", source);
+  url.searchParams.set("utm_content", position);
+  return url.toString();
+}
+
+export async function trackClick(params: {
+  toolSlug: string;
+  source: string;
+  position: string;
+  keyword?: string;
+}): Promise<void> {
+  try {
+    await fetch("/api/track", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(params),
+    });
+  } catch { /* silent fail */ }
+}
+
+export function estimateMonthlyRevenue(clicks: number, toolSlug: string): number {
+  const prog = AFFILIATE_MAP[toolSlug];
+  if (!prog) return 0;
+  const conversions = clicks * (prog.convRate / 100);
+  if (prog.commission.includes("CPA")) {
+    const cpa = parseFloat(prog.commission.replace(/[^0-9.]/g, ""));
+    return conversions * cpa;
+  }
+  if (prog.commission.includes("%")) {
+    const pct = parseFloat(prog.commission);
+    return conversions * 30 * (pct / 100);
+  }
+  return 0;
+}
+
+export function getTopAffiliates(limit = 10): AffiliateProgram[] {
+  return AFFILIATE_PROGRAMS
+    .sort((a, b) => (b.avgCPC * b.convRate) - (a.avgCPC * a.convRate))
+    .slice(0, limit);
+}
+
+
+// ============================================================
+// FILE: components/AffiliateBtn.tsx
+// ============================================================
+
+"use client";
+import { getAffiliateUrl, trackClick } from "@/lib/affiliate";
+
+type Props = {
+  toolSlug: string;
+  toolName: string;
+  source?: string;
+  position?: string;
+  keyword?: string;
+  size?: "sm" | "md" | "lg";
+  variant?: "primary" | "outline" | "ghost";
+  label?: string;
+};
+
+export function AffiliateBtn({
+  toolSlug, toolName, source = "tool-page",
+  position = "cta", keyword, size = "md",
+  variant = "primary", label,
+}: Props) {
+  const url = getAffiliateUrl(toolSlug, source, position);
+
+  const sizeClass = {
+    sm: "px-3 py-1.5 text-xs",
+    md: "px-5 py-2 text-sm",
+    lg: "px-8 py-3 text-base",
+  }[size];
+
+  const variantClass = {
+    primary: "bg-gradient-to-r from-cyan-400 to-blue-500 text-white shadow-[0_0_16px_#06b6d420] hover:opacity-90",
+    outline: "border border-cyan-400/40 text-cyan-400 hover:border-cyan-400/80",
+    ghost:   "text-cyan-400 hover:text-cyan-300",
+  }[variant];
+
+  async function handleClick() {
+    await trackClick({ toolSlug, source, position, keyword });
+    if (url) window.open(url, "_blank", "noopener,noreferrer");
+  }
+
+  if (!url) {
+    return (
+      <a href={"/tools/" + toolSlug}
+        className={"inline-block rounded-lg font-bold transition-all " + sizeClass + " " + variantClass}>
+        {label || "View " + toolName}
+      </a>
+    );
+  }
+
+  return (
+    <button onClick={handleClick} rel="nofollow"
+      className={"inline-block rounded-lg font-bold transition-all cursor-pointer " + sizeClass + " " + variantClass}>
+      {label || "Try " + toolName + " Free →"}
+    </button>
+  );
+}
+
+
+// ============================================================
+// FILE: app/api/track/route.ts
+// ============================================================
+
+import { NextRequest, NextResponse } from "next/server";
+import { supabase } from "@/lib/supabase";
+
+export async function POST(req: NextRequest) {
+  const { toolSlug, source, position, keyword } = await req.json();
+  const ip = req.headers.get("x-forwarded-for") || "unknown";
+  const ipHash = Buffer.from(ip).toString("base64").slice(0, 16);
+
+  await supabase.from("affiliate_clicks").upsert({
+    tool_slug:  toolSlug,
+    source,
+    position,
+    keyword:    keyword || null,
+    ip_hash:    ipHash,
+    clicked_at: new Date().toISOString(),
+  });
+
+  await supabase.rpc("increment_tool_clicks", { slug: toolSlug });
+
+  return NextResponse.json({ ok: true });
+}
+
+
+// ============================================================
+// FILE: app/api/revenue/route.ts
+// ============================================================
+
+import { NextResponse } from "next/server";
+import { supabase } from "@/lib/supabase";
+import { AFFILIATE_PROGRAMS } from "@/lib/affiliate-links";
+import { estimateMonthlyRevenue } from "@/lib/affiliate";
+
+export async function GET() {
+  const { data: clicks } = await supabase
+    .from("affiliate_clicks")
+    .select("tool_slug")
+    .gte("clicked_at", new Date(Date.now() - 30 * 86400000).toISOString());
+
+  const clickMap: Record<string, number> = {};
+  clicks?.forEach(c => {
+    clickMap[c.tool_slug] = (clickMap[c.tool_slug] || 0) + 1;
+  });
+
+  const revenue = AFFILIATE_PROGRAMS.map(prog => ({
+    toolSlug:         prog.toolSlug,
+    toolName:         prog.toolName,
+    category:         prog.category,
+    commission:       prog.commission,
+    clicks:           clickMap[prog.toolSlug] || 0,
+    estimatedRevenue: estimateMonthlyRevenue(clickMap[prog.toolSlug] || 0, prog.toolSlug),
+    convRate:         prog.convRate,
+    network:          prog.network,
+  })).sort((a, b) => b.estimatedRevenue - a.estimatedRevenue);
+
+  const totalRevenue = revenue.reduce((s, r) => s + r.estimatedRevenue, 0);
+  const totalClicks  = Object.values(clickMap).reduce((s, v) => s + v, 0);
+
+  return NextResponse.json({ revenue, totalRevenue, totalClicks });
+}
+
+
+// ============================================================
+// FILE: components/RevenueDash.tsx
+// ============================================================
+
+"use client";
+import { useEffect, useState } from "react";
+
+type RevenueRow = {
+  toolSlug: string; toolName: string; category: string;
+  commission: string; clicks: number; estimatedRevenue: number;
+  convRate: number; network: string;
+};
+
+export function RevenueDash() {
+  const [data, setData] = useState<RevenueRow[]>([]);
+  const [total, setTotal] = useState(0);
+  const [clicks, setClicks] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/revenue")
+      .then(r => r.json())
+      .then(d => {
+        setData(d.revenue);
+        setTotal(d.totalRevenue);
+        setClicks(d.totalClicks);
+        setLoading(false);
+      });
+  }, []);
+
+  const NETWORK_COLOR: Record<string, string> = {
+    direct:       "#06b6d4",
+    impact:       "#8b5cf6",
+    partnerstack: "#22c55e",
+    shareasale:   "#f59e0b",
+    cj:           "#ec4899",
+  };
+
+  if (loading) return (
+    <div className="text-center py-20 text-slate-600">Loading revenue data...</div>
+  );
+
+  return (
+    <div className="max-w-[1100px] mx-auto px-5 py-14">
+      <h1 className="text-2xl font-black text-slate-100 mb-8">Revenue Dashboard</h1>
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        {[
+          { label:"Est. Monthly Revenue", val: "$" + total.toFixed(0),               color:"#22c55e" },
+          { label:"Total Clicks (30d)",   val: clicks.toLocaleString(),               color:"#06b6d4" },
+          { label:"Active Programs",      val: data.length,                            color:"#8b5cf6" },
+          { label:"Avg. Per Click",       val: "$" + (clicks ? (total/clicks).toFixed(3) : "0"), color:"#f59e0b" },
+        ].map(s => (
+          <div key={s.label} className="bg-[#0f172a] border border-[#1e293b] rounded-xl p-4">
+            <div className="text-[10px] text-slate-600 font-semibold mb-2">{s.label}</div>
+            <div className="text-2xl font-black" style={{ color: s.color }}>{s.val}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="bg-[#0f172a] border border-[#1e293b] rounded-xl overflow-hidden">
+        <div className="grid grid-cols-6 bg-[#080f1e] text-[10px] font-bold text-slate-600 uppercase tracking-wider">
+          {["Tool","Network","Commission","Clicks","Est. Revenue","Conv%"].map(h => (
+            <div key={h} className="px-4 py-3 border-r border-[#1e293b] last:border-0">{h}</div>
+          ))}
+        </div>
+        {data.slice(0, 20).map((row, i) => (
+          <div key={row.toolSlug}
+            className={"grid grid-cols-6 border-t border-[#0d1b2e] text-xs " + (i % 2 === 0 ? "bg-[#0f172a]" : "bg-[#0a111e]")}>
+            <div className="px-4 py-3 border-r border-[#0d1b2e]">
+              <div className="font-semibold text-slate-100">{row.toolName}</div>
+              <div className="text-[10px] text-slate-600">{row.category}</div>
+            </div>
+            <div className="px-4 py-3 border-r border-[#0d1b2e]">
+              <span className="text-[10px] font-bold rounded px-1.5 py-0.5"
+                style={{ background: (NETWORK_COLOR[row.network] || "#64748b") + "22", color: NETWORK_COLOR[row.network] || "#64748b" }}>
+                {row.network}
+              </span>
+            </div>
+            <div className="px-4 py-3 border-r border-[#0d1b2e] text-slate-400 text-[10px]">{row.commission}</div>
+            <div className="px-4 py-3 border-r border-[#0d1b2e] text-cyan-400 font-bold">{row.clicks.toLocaleString()}</div>
+            <div className="px-4 py-3 border-r border-[#0d1b2e] text-emerald-400 font-bold">${row.estimatedRevenue.toFixed(0)}</div>
+            <div className="px-4 py-3 text-amber-400 font-bold">{row.convRate}%</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+
+// ============================================================
+// FILE: supabase/affiliate_clicks.sql
+// ============================================================
+
+/*
+create table if not exists affiliate_clicks (
+  id         bigserial primary key,
+  tool_slug  text not null,
+  source     text,
+  position   text,
+  keyword    text,
+  ip_hash    text,
+  clicked_at timestamptz default now()
+);
+
+create index idx_ac_tool_slug  on affiliate_clicks (tool_slug);
+create index idx_ac_clicked_at on affiliate_clicks (clicked_at desc);
+
+create or replace function increment_tool_clicks(slug text)
+returns void language sql as $$
+  update tools set integrations = integrations where slug = slug;
+$$;
+
+create or replace view affiliate_revenue_30d as
+select
+  tool_slug,
+  count(*) as clicks,
+  date_trunc('day', clicked_at) as day
+from affiliate_clicks
+where clicked_at > now() - interval '30 days'
+group by tool_slug, day
+order by day desc;
+*/
+
+
+// ============================================================
+// USAGE EXAMPLES
+// ============================================================
+
+/*
+import { AffiliateBtn } from "@/components/AffiliateBtn";
+
+// Tool page CTA
+<AffiliateBtn toolSlug="jasper" toolName="Jasper" source="tool-page" position="hero-cta" size="lg" />
+
+// SEO page top pick
+<AffiliateBtn toolSlug="cursor" toolName="Cursor" source="seo-page" position="top-pick" keyword="best ai tools for coding" label="Try Cursor Free" />
+
+// Compare page verdict
+<AffiliateBtn toolSlug="elevenlabs" toolName="ElevenLabs" source="compare" position="verdict-cta" variant="outline" />
+*/
+
+
+// ============================================================
+// END — ATLAS OS · Affiliate System · AIAstralis · v20.0
+// Revenue Target: $50K/mo at 500K monthly visitors
+// ============================================================`;
+
+function dl() {
+  const blob = new Blob([C], {type:'text/plain;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'atlas-affiliate-system.txt';
+  a.click();
+}
+</script>
+</body></html>
